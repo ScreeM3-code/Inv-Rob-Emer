@@ -107,7 +107,7 @@ function Fabricant() {
                  <div>
                    <Label>Email</Label>
                    <Input
-                     value={NewFabricant.NuméroTél}
+                     value={NewFabricant.Email}
                      onChange={(e) => setNewFabricant({...NewFabricant, Email: e.target.value})}
                    />
                  </div>
@@ -115,7 +115,7 @@ function Fabricant() {
                    <div>
                      <Label>Domaine pour logo</Label>
                      <Input
-                       value={NewFabricant.Ville}
+                       value={NewFabricant.Domaine}
                        onChange={(e) => setNewFabricant({...NewFabricant, Domaine: e.target.value})}
                      />
                    </div>

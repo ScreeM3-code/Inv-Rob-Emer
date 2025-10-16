@@ -86,45 +86,6 @@ function ToOrders() {
   }
 };
 
-  // Mettre à jour une commande/pièce
-  const handleUpdateGoOrder = async () => {
-  try {
-    const cleanedGoOrder = {
-      ...editingGoOrder,
-      RéfPièce: editingGoOrder.RéfPièce,
-      NomPièce: editingGoOrder.NomPièce || "",
-      DescriptionPièce: editingGoOrder.DescriptionPièce || "",
-      NumPièce: editingGoOrder.NumPièce || "",
-      RéfFournisseur: editingGoOrder.RéfFournisseur || null,
-      RéfAutreFournisseur: editingGoOrder.RéfAutreFournisseur || null,
-      NumPièceAutreFournisseur: editingGoOrder.NumPièceAutreFournisseur || "",
-      RefFabricant: editingGoOrder.RefFabricant || null,
-      Lieu_d_entreposage: editingGoOrder.Lieu_d_entreposage || "",
-      QtéenInventaire: editingGoOrder.QtéenInventaire ?? 0,
-      Qtéminimum: editingGoOrder.Qtéminimum ?? 0,
-      Qtémax: editingGoOrder.Qtémax ?? 100,
-      Prix_unitaire: editingGoOrder.Prix_unitaire ?? 0,
-      Soumission_LD: editingGoOrder.Soumission_LD || "",
-      Qtécommandée: editingGoOrder.Qtécommandée ?? 0,
-      Qtéreçue: editingGoOrder.Qtéreçue ?? 0,
-      Datecommande: editingGoOrder.Datecommande || "",
-      Qtéarecevoir: editingGoOrder.Qtéarecevoir ?? 0,
-      Cmd_info: editingGoOrder.Cmd_info || "",
-      Qtéàcommander: editingGoOrder.Qtéàcommander ?? 0,
-    };
-    delete cleanedGoOrder.NomFabricant;
-
-    await axios.put(`${API}/pieces/${editingGoOrder.RéfPièce}`, cleanedGoOrder);
-    setEditingGoOrder(null);
-    loadData(currentPage);
-  } catch (error) {
-    console.error("Erreur lors de la mise à jour:", error.response?.data || error.message);
-  }
-};
-
-
-
-
   useEffect(() => {
     loadData();
   }, []);
@@ -431,110 +392,94 @@ function ToOrders() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
-      )})
-            {/* Go Dialog */}
+      )}
+       {/* Go Dialog - Passer commande */}
       {goOrder && (
         <Dialog open={true} onOpenChange={() => setGoOrder(null)}>
           <DialogContent className="max-w-2xl">
             <DialogHeader>
-              <DialogTitle>Commandé pièce</DialogTitle>
+              <DialogTitle>Passer une commande</DialogTitle>
             </DialogHeader>
             <div className="grid gap-4 py-4 max-h-96 overflow-y-auto">
               <div>
-                <Label>Nom de la pièce</Label>
-                <Input
-                  value={goOrder.NomPièce}
-                  onChange={(e) => setGoOrder({ ...goOrder, NomPièce: e.target.value })}
-                />
+                <Label>Pièce</Label>
+                <Input value={goOrder.NomPièce} disabled />
               </div>
-              <div>
-                <Label>Description</Label>
-                <Input
-                  value={goOrder.DescriptionPièce ?? ""}
-                  onChange={(e) => setGoOrder({ ...goOrder, DescriptionPièce: e.target.value })}
-                />
+              
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>Quantité à commander</Label>
+                  <Input
+                    type="number"
+                    value={goOrder.Qtéàcommander ?? 0}
+                    onChange={(e) => setGoOrder({ ...goOrder, Qtéàcommander: parseInt(e.target.value) || 0 })}
+                  />
+                </div>
+                <div>
+                  <Label>Prix unitaire (CAD $)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={goOrder.Prix_unitaire ?? 0}
+                    onChange={(e) => setGoOrder({ ...goOrder, Prix_unitaire: parseFloat(e.target.value) || 0 })}
+                  />
+                </div>
               </div>
+              
               <div>
-                <Label>Numéro pieces</Label>
+                <Label>Date de commande</Label>
                 <Input
-                  value={goOrder.NumPièce ?? ""}
-                  onChange={(e) => setGoOrder({ ...goOrder, NumPièce: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Numéro autre fournisseur</Label>
-                <Input
-                  value={goOrder.NumPièceAutreFournisseur ?? ""}
-                  onChange={(e) => setGoOrder({ ...goOrder, NumPièceAutreFournisseur: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Soumission</Label>
-                <Input
-                  value={goOrder.Soumission_LD ?? ""}
-                  onChange={(e) => setGoOrder({ ...goOrder, Soumission_LD: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Prix unitaire</Label>
-                <Input
-                  value={goOrder.Prix_unitaire ?? ""}
-                  onChange={(e) => setGoOrder({ ...goOrder, Prix_unitaire: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Qté en Inventaire</Label>
-                <Input
-                  value={goOrder.QtéenInventaire ?? ""}
-                  onChange={(e) => setGoOrder({ ...goOrder, QtéenInventaire: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Qté à commander</Label>
-                <Input
-                  value={goOrder.Qtéàcommander ?? ""}
-                  onChange={(e) => setGoOrder({ ...goOrder, Qtéàcommander: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Qté à min</Label>
-                <Input
-                  value={goOrder.Qtéminimum ?? ""}
-                  onChange={(e) => setGoOrder({ ...goOrder, Qtéminimum: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Qté à max</Label>
-                <Input
-                  value={goOrder.Qtémax ?? ""}
-                  onChange={(e) => setGoOrder({ ...goOrder, Qtémax: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Employé</Label>
-                <Input
-                  value={goOrder.RéfEmployé ?? ""}
-                  onChange={(e) => setGoOrder({ ...goOrder, RéfEmployé: e.target.value })}
-                />
-              </div>
-              <div>
-                <Label>Date commander</Label>
-                <Input
-                  value={goOrder.Datecommande ?? ""}
+                  type="date"
+                  value={goOrder.Datecommande ? new Date(goOrder.Datecommande).toISOString().split('T')[0] : new Date().toISOString().split('T')[0]}
                   onChange={(e) => setGoOrder({ ...goOrder, Datecommande: e.target.value })}
                 />
               </div>
+              
+              <div>
+                <Label>Commentaire / Info commande</Label>
+                <Input
+                  value={goOrder.Cmd_info ?? ""}
+                  onChange={(e) => setGoOrder({ ...goOrder, Cmd_info: e.target.value })}
+                  placeholder="Numéro de bon de commande, fournisseur contacté, etc."
+                />
+              </div>
             </div>
+            
             <DialogFooter>
               <Button variant="outline" onClick={() => setGoOrder(null)}>
                 Annuler
               </Button>
-              <Button onClick={() => handleUpdateGoOrder()} className="bg-rio-red hover:bg-rio-red-dark">
-                Sauvegarder
+              <Button 
+                onClick={async () => {
+                  try {
+                    const commandeData = {
+                      ...goOrder,
+                      Qtécommandée: goOrder.Qtéàcommander,
+                      Qtéarecevoir: goOrder.Qtéàcommander,
+                      Qtéreçue: 0
+                    };
+                    
+                    // Retire les champs calculés/affichage
+                    delete commandeData.NomFabricant;
+                    delete commandeData.fournisseur_principal;
+                    delete commandeData.autre_fournisseur;
+                    
+                    await axios.put(`${API}/pieces/${goOrder.RéfPièce}`, commandeData);
+                    setGoOrder(null);
+                    loadData();
+                  } catch (error) {
+                    console.error("Erreur passage commande:", error);
+                    alert("Erreur: " + (error.response?.data?.detail || error.message));
+                  }
+                }}
+                className="bg-rio-red hover:bg-rio-red-dark"
+              >
+                Passer la commande
               </Button>
             </DialogFooter>
           </DialogContent>
         </Dialog>
+      )}
       )}  
 
       )   

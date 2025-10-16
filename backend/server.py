@@ -429,6 +429,7 @@ async def create_fabricant(fabricant: FabricantCreate):
 
         )
 
+
 @api_router.put("/fabricant/{RefFabricant}", response_model=FabricantBase)
 async def update_fabricant(RefFabricant: int, fabricant: FabricantBase):
     try:
@@ -438,24 +439,31 @@ async def update_fabricant(RefFabricant: int, fabricant: FabricantBase):
                 '''UPDATE "Fabricant"
                    SET "NomFabricant" = $1,
                        "Domaine" = $2,
-                       "TitreContact" = $3,
-                       "NomContact" = $4,
+                       "NomContact" = $3,
+                       "TitreContact" = $4,
                        "Email" = $5
                    WHERE "RefFabricant" = $6
                  RETURNING *''',
                 fabricant.NomFabricant,
-                fabricant.Domaine,
-                fabricant.TitreContact,
-                fabricant.NomContact,
-                fabricant.Email,
+                fabricant.Domaine or "",
+                fabricant.NomContact or "",
+                fabricant.TitreContact or "",
+                fabricant.Email or "",
                 RefFabricant
             )
             if not row:
                 raise HTTPException(status_code=404, detail="Fabricant non trouvé")
-            return FabricantBase(**dict(row))
+
+            return FabricantBase(
+                NomFabricant=safe_string(row["NomFabricant"]),
+                Domaine=safe_string(row["Domaine"]),
+                NomContact=safe_string(row["NomContact"]),
+                TitreContact=safe_string(row["TitreContact"]),
+                Email=safe_string(row["Email"])
+            )
     except Exception as e:
         print(f"Erreur update_fabricant: {e}")
-        raise HTTPException(status_code=500, detail="Erreur lors de la modification du Fabricant")
+        raise HTTPException(status_code=500, detail="Erreur lors de la modification du fabricant")
 
 @api_router.delete("/fabricant/{RefFabricant_id}")
 async def delete_fabricant(RefFabricant_id: int):
@@ -880,8 +888,9 @@ async def create_fournisseur(fournisseur: FournisseurCreate):
             NumTélécopie=safe_string(f_dict.get("NumTélécopie", ""))
         )
 
+
 @api_router.put("/fournisseurs/{RefFournisseur_id}", response_model=Fournisseur)
-async def update_fournisseur(RefFournisseur_id: int):
+async def update_fournisseur(RefFournisseur_id: int, fournisseur: FournisseurBase):
     try:
         pool = await get_db_connection()
         async with pool.acquire() as conn:
@@ -893,23 +902,44 @@ async def update_fournisseur(RefFournisseur_id: int):
                        "Adresse" = $4,
                        "Ville" = $5,
                        "CodePostal" = $6,
-                       "DépartementOuRégion" = $7
-                       "Pays" = $8,
-                       "NuméroTél" = $9,
-                       "NumTélécopie" = $1.,
-                       "Domaine" = $11,
-                   WHERE "RéfFournisseur" = $12
+                       "Pays" = $7,
+                       "NuméroTél" = $8,
+                       "NumTélécopie" = $9,
+                       "Domaine" = $10
+                   WHERE "RéfFournisseur" = $11
                  RETURNING *''',
-                Fournisseur.NomFournisseur, Fournisseur.NomContact, Fournisseur.Adresse, Fournisseur.Ville,
-                Fournisseur.CodePostal, Fournisseur.DépartementOuRégion, Fournisseur.Pays,
-            Fournisseur.NuméroTél, Fournisseur.NumTélécopie, Fournisseur.Domaine, Fournisseur.RéfFournisseur
+                fournisseur.NomFournisseur,
+                fournisseur.NomContact,
+                fournisseur.TitreContact,
+                fournisseur.Adresse,
+                fournisseur.Ville,
+                fournisseur.CodePostal,
+                fournisseur.Pays,
+                fournisseur.NuméroTél,
+                fournisseur.NumTélécopie,
+                fournisseur.Domaine or "",
+                RefFournisseur_id
             )
             if not row:
-                raise HTTPException(status_code=404, detail="Contact non trouvé")
-            return Contact(**dict(row))
+                raise HTTPException(status_code=404, detail="Fournisseur non trouvé")
+
+            f_dict = dict(row)
+            return Fournisseur(
+                RéfFournisseur=f_dict["RéfFournisseur"],
+                NomFournisseur=safe_string(f_dict.get("NomFournisseur", "")),
+                NomContact=safe_string(f_dict.get("NomContact", "")),
+                TitreContact=safe_string(f_dict.get("TitreContact", "")),
+                Adresse=safe_string(f_dict.get("Adresse", "")),
+                Ville=safe_string(f_dict.get("Ville", "")),
+                CodePostal=safe_string(f_dict.get("CodePostal", "")),
+                Pays=safe_string(f_dict.get("Pays", "")),
+                NuméroTél=safe_string(f_dict.get("NuméroTél", "")),
+                NumTélécopie=safe_string(f_dict.get("NumTélécopie", "")),
+                Domaine=safe_string(f_dict.get("Domaine", ""))
+            )
     except Exception as e:
-        print(f"Erreur update_contact: {e}")
-        raise HTTPException(status_code=500, detail="Erreur lors de la modification du contact")
+        print(f"Erreur update_fournisseur: {e}")
+        raise HTTPException(status_code=500, detail="Erreur lors de la modification du fournisseur")
 
 @api_router.delete("/fournisseurs/{RefFournisseur_id}")
 async def delete_fournisseur(RefFournisseur_id: int):
@@ -1085,21 +1115,25 @@ async def receive_all_order(piece_id: int):
                     "Modified" = $2
                 WHERE "RéfPièce" = $1
             '''
-            queryh = '''
-                UPDATE public.historique
-                SET 
-                    "DateRecu" = '2025-10-12',
-                    "Delais" = EXTRACT(DAY FROM ('2025-10-12'::date - "DateCMD"))
-                WHERE "Opération" = 'Achat'
-                    AND "RéfPièce" = '$1'
-                ORDER by "id" decs 
+            result = await conn.execute(query, piece_id, datetime.utcnow())
 
-                    UPDATE "historique"
-                    SET "DateRecu" = datetime.utcnow,
-                        "Delais" = "DateCMD" - datetime.utcnow
-                    WHERE "RéfPièce" = $1 
-                '''
-            
+            # ✅ Ajoute la mise à jour de l'historique correctement
+            await conn.execute('''
+                            UPDATE "historique"
+                            SET "DateRecu" = $1,
+                                "Delais" = EXTRACT(DAY FROM ($1 - "DateCMD"))
+                            WHERE "RéfPièce" = $2
+                              AND "Opération" = 'Achat'
+                              AND "DateRecu" IS NULL
+                            ORDER BY "id" DESC
+                            LIMIT 1
+                        ''', datetime.utcnow(), piece_id)
+
+            if result == "UPDATE 0":
+                raise HTTPException(status_code=404, detail="Pièce non trouvée")
+
+            return {"message": "Réception totale effectuée", "piece_id": piece_id}
+
             result = await conn.execute(query, piece_id, datetime.utcnow())
             if result == "UPDATE 0":
                 raise HTTPException(status_code=404, detail="Pièce non trouvée")
@@ -1111,12 +1145,28 @@ async def receive_all_order(piece_id: int):
         print(f"Erreur receive_all_order: {e}")
         raise HTTPException(status_code=500, detail="Erreur lors de la réception")
 
+
 @api_router.put("/orderspar/{piece_id}")
 async def receive_partial_order(piece_id: int, quantity_received: int):
     """Réception partielle d'une commande"""
     try:
         pool = await get_db_connection()
         async with pool.acquire() as conn:
+            # ✅ Vérifie d'abord que la quantité est valide
+            piece = await conn.fetchrow(
+                'SELECT "Qtéarecevoir" FROM "Pièce" WHERE "RéfPièce" = $1',
+                piece_id
+            )
+
+            if not piece:
+                raise HTTPException(status_code=404, detail="Pièce non trouvée")
+
+            if quantity_received > piece["Qtéarecevoir"]:
+                raise HTTPException(
+                    status_code=400,
+                    detail=f"Quantité reçue ({quantity_received}) supérieure à la quantité à recevoir ({piece['Qtéarecevoir']})"
+                )
+
             query = '''
                 UPDATE "Pièce"
                 SET "QtéenInventaire" = "QtéenInventaire" + $2,
@@ -1125,11 +1175,12 @@ async def receive_partial_order(piece_id: int, quantity_received: int):
                     "Modified" = $3
                 WHERE "RéfPièce" = $1
             '''
-            
+
             result = await conn.execute(query, piece_id, quantity_received, datetime.utcnow())
+
             if result == "UPDATE 0":
                 raise HTTPException(status_code=404, detail="Pièce non trouvée")
-            
+
             return {"message": "Réception partielle effectuée", "piece_id": piece_id, "quantity": quantity_received}
     except HTTPException:
         raise

@@ -64,7 +64,7 @@ function Commande() {
     if (!selectedPieceId || !qtyReceived) return;
     
     try {
-      await axios.put(`${API}/orderspar/${selectedPieceId}`, {}, {
+      await axios.put(`${API}/orderspar/${selectedPieceId}`, null, {
         params: { quantity_received: qtyReceived }
       });
       

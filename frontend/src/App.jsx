@@ -226,20 +226,22 @@ const Dashboard = () => {
         Soumission_LD: editingPiece.Soumission_LD || "",
         SoumDem: editingPiece.SoumDem || ""
       };
+      
+      // Retire les champs qui ne doivent pas être envoyés
       delete cleanedPiece.NomFabricant;
       delete cleanedPiece.fournisseur_principal;
       delete cleanedPiece.autre_fournisseur;
       delete cleanedPiece.statut_stock;
-      delete cleanedPiece.Qtéàcommander;
+      delete cleanedPiece.Qtéàcommander; // Calculé côté backend
       delete cleanedPiece.Created;
       delete cleanedPiece.Modified;
-      console.log("Updating piece", editingPiece);
-
+      
       await axios.put(`${API}/pieces/${editingPiece.RéfPièce}`, cleanedPiece);
       setEditingPiece(null);
       loadData(currentPage);
     } catch (error) {
       console.error("Erreur lors de la mise à jour:", error.response?.data || error.message);
+      alert("Erreur: " + (error.response?.data?.detail || error.message));
     }
   };
 
