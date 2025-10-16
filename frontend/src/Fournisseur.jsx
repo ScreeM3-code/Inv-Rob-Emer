@@ -8,7 +8,8 @@ import axios from "axios";
 import { Building2, Trash2, Phone, MapPin } from "lucide-react";
 import { Textarea } from "./components/ui/textarea";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 function Fournisseurs() {
   const [fournisseurs, setFournisseurs] = useState([]);

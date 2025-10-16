@@ -10,7 +10,8 @@ import { Input } from "./components/ui/input";
 import axios from "axios";
 import { CheckCircle, PackagePlus } from "lucide-react";
 
-const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 function Commande() {
   const [commande, setCommande] = useState([]);
