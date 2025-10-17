@@ -1,21 +1,91 @@
-from fastapi import FastAPI, APIRouter, HTTPException
+from fastapi import FastAPI, APIRouter, HTTPException, Request, Depends
 from dotenv import load_dotenv
-from starlette.middleware.cors import CORSMiddleware
-import os
+from fastapi.middleware.cors import CORSMiddleware
 import logging
 from pathlib import Path
 from pydantic import BaseModel, Field
-from typing import List, Optional
 from datetime import datetime, date
 import asyncpg
-import json
-from urllib.parse import urlparse
+from typing import Optional, Dict, Any, List, AsyncGenerator
+import uuid
+from datetime import datetime
+from email.mime.text import MIMEText
+from email.mime.multipart import MIMEMultipart
+import os
+import sys
+import io
+from fastapi.responses import HTMLResponse, FileResponse
+# Patch pour éviter l'erreur NoneType avec auto-py-to-exe
+if sys.stdout is None:
+    sys.stdout = io.StringIO()
+if sys.stderr is None:
+    sys.stderr = io.StringIO()
+import uvicorn
+import multiprocessing
+import configparser
+from fastapi.staticfiles import StaticFiles
+from contextlib import asynccontextmanager
 
+config = configparser.ConfigParser()
+config.read('config.ini')
 
+def get_base_path():
+    """
+    Retourne le chemin de base correct selon l'environnement:
+    - En développement: dossier du script
+    - Avec PyInstaller: dossier de l'exécutable (pas le temp!)
+    """
+    if getattr(sys, 'frozen', False):
+        # On est dans un exe PyInstaller
+        # sys.executable = chemin du .exe
+        base = Path(sys.executable).parent
+        print(f"🔧 Mode PyInstaller détecté")
+        print(f"📂 Chemin exe: {sys.executable}")
+        print(f"📂 Base directory: {base}")
+        return base
+    else:
+        # On est en développement
+        return Path(__file__).parent
 
-ROOT_DIR = Path(__file__).parent
-load_dotenv(ROOT_DIR / '.env')
+# Utiliser cette fonction partout dans votre code
+BASE_DIR = get_base_path()
 
+# Exemples d'utilisation:
+BUILD_DIR = BASE_DIR / "build"
+ENV_FILE = BASE_DIR / ".env"
+INI_FILE = BASE_DIR / "secteurs.ini"
+
+# 🔍 DEBUG: Afficher les chemins pour vérifier
+print(f"=" * 50)
+print(f"📍 Base directory: {BASE_DIR}")
+print(f"📍 Build directory: {BUILD_DIR}")
+print(f"📍 Build exists? {BUILD_DIR.exists()}")
+
+if BUILD_DIR.exists():
+    print(f"✅ Dossier 'build' trouvé!")
+    # Lister le contenu
+    print(f"📁 Contenu du dossier build:")
+    for item in BUILD_DIR.iterdir():
+        print(f"  - {item.name}")
+else:
+    print(f"❌ Dossier 'build' INTROUVABLE à: {BUILD_DIR}")
+    print(f"📁 Contenu du dossier actuel:")
+    for item in BASE_DIR.iterdir():
+        print(f"  - {item.name}")
+print(f"=" * 50)
+
+# Setup logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
+    filename="InvRob.log",
+    filemode="w"
+)
+
+logger = logging.getLogger("Inventaire-Robot")
+
+# Charger le .env depuis le bon chemin
+load_dotenv(ENV_FILE)
 # PostgreSQL connection
 POSTGRES_HOST = os.environ['POSTGRES_HOST']
 POSTGRES_PORT = os.environ.get('POSTGRES_PORT', '5432')
@@ -28,13 +98,49 @@ DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST
 # Connection pool
 connection_pool = None
 
-# Create the main app
-app = FastAPI(title="Gestion Inventaire Maintenance", version="2.0.0")
+@asynccontextmanager
+async def lifespan(app: FastAPI):
+    # STARTUP
+    try:
+        app.state.pool = await asyncpg.create_pool(
+            DATABASE_URL,
+            min_size=1,
+            max_size=10
+        )
+        logger.info(f"✅ Connexion PostgreSQL réussie")
 
-# Create a router with the /api prefix
+        async with app.state.pool.acquire() as conn:
+            try:
+                c = await conn.fetchval('SELECT COUNT(*) FROM "devices"')
+                logger.info(f"✅ {c} équipements trouvés")
+            except Exception:
+                logger.info("⚠️ Table 'devices' introuvable")
+    except Exception as e:
+        logger.exception("❌ Erreur connexion PostgreSQL: %s", e)
+        app.state.pool = None
+
+    yield
+
+    # SHUTDOWN
+    if hasattr(app.state, 'pool') and app.state.pool:
+        await app.state.pool.close()
+        logger.info("Pool PostgreSQL fermé.")
+
+
+app = FastAPI(
+    title="Afficheur Dynamique - API",
+    version="2.0.0",
+    lifespan=lifespan  # Tout dans une seule déclaration
+)
 api_router = APIRouter(prefix="/api")
 
-# Pydantic Models corrigés
+async def get_db_connection(request: Request) -> AsyncGenerator[asyncpg.Connection, None]:
+    """Fournit une connexion DB prête à l'emploi"""
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        yield conn
+
+# Pydantic Models
 class PieceBase(BaseModel):
     RéfPièce: Optional[int] = None
     NomPièce: Optional[str] = ""
@@ -95,7 +201,6 @@ class Contact(BaseModel):
     Telephone: Optional[str] = ""
     Cell: Optional[str] = ""
     RéfFournisseur: Optional[int] = None
-    Produit: Optional[str] = ""
 
 class ContactCreate(BaseModel):
     Nom: str
@@ -104,14 +209,11 @@ class ContactCreate(BaseModel):
     Telephone: Optional[str] = ""
     Cell: Optional[str] = ""
     RéfFournisseur: int
-    Produit: Optional[str] = ""
 
 
 class FournisseurBase(BaseModel):
     RéfFournisseur: Optional[int] = None
     NomFournisseur: str
-    NomContact: Optional[str] = ""
-    TitreContact: Optional[str] = ""
     Adresse: Optional[str] = ""
     Ville: Optional[str] = ""
     CodePostal: Optional[str] = ""
@@ -120,6 +222,9 @@ class FournisseurBase(BaseModel):
     NumTélécopie: Optional[str] = ""
     Domaine: Optional[str] = ""
     contacts: List[Contact] = []
+    Produit: Optional[str] = ""
+    Marque: Optional[str] = ""
+    NumSap: Optional[str] = ""
 
 
 class FournisseurCreate(FournisseurBase):
@@ -177,7 +282,6 @@ class ContactBase(BaseModel):
     Email: Optional[str] = ""
     Telephone: Optional[str] = ""
     Cell: Optional[str] = ""
-    Produit: Optional[str] = ""
     RéfFournisseur: int
 
 class ContactCreate(ContactBase):
@@ -203,13 +307,6 @@ class HistoriqueResponse(HistoriqueCreate):
     id: int
     class Config:
         orm_mode = True
-
-# Helper functions
-async def get_db_connection():
-    global connection_pool
-    if connection_pool is None:
-        connection_pool = await asyncpg.create_pool(DATABASE_URL, min_size=5, max_size=20)
-    return connection_pool
 
 def extract_domain_from_email(email: str) -> str:
     if email and "@" in email:
@@ -256,10 +353,13 @@ def get_stock_status(qty_inventaire: int, qty_minimum: int) -> str:
     else:
         return "ok"
 
-# Routes
-@api_router.get("/")
-async def root():
-    return {"message": "API Gestion Inventaire Maintenance - PostgreSQL InventaireRobots"}
+app.add_middleware(
+    CORSMiddleware,
+    allow_credentials=True,
+    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
+    allow_methods=["*"],
+    allow_headers=["*"],
+)
 
 @app.get("/api/current-user")
 def get_current_user():
@@ -267,18 +367,12 @@ def get_current_user():
     return {"user": user}
 
 @api_router.get("/historique", response_model=List[HistoriqueResponse])
-async def get_historique():
-    pool = await get_db_connection()
-    async with pool.acquire() as conn:
-
-        rows = await conn.fetch('SELECT * FROM "historique" ORDER BY "id" DESC')
+async def get_historique(conn: asyncpg.Connection = Depends(get_db_connection)):
+    rows = await conn.fetch('SELECT * FROM "historique" ORDER BY "id" DESC')
     return [HistoriqueResponse(**dict(r)) for r in rows]
 
 @api_router.get("/historique", response_model=List[HistoriqueResponse])
-async def get_historique(refpiece: Optional[int] = None):
-    """Retourne tout l'historique ou seulement pour une RéfPièce donnée."""
-    pool = await get_db_connection()
-    async with pool.acquire() as conn:
+async def get_historique(refpiece: Optional[int] = None, conn: asyncpg.Connection = Depends(get_db_connection)):
         if refpiece is not None:
             rows = await conn.fetch('SELECT * FROM "historique" WHERE "RéfPièce" = $1 ORDER BY "id" DESC', refpiece)
         else:
@@ -287,9 +381,7 @@ async def get_historique(refpiece: Optional[int] = None):
 
 
 @api_router.post("/historique", response_model=HistoriqueResponse)
-async def add_historique(entry: HistoriqueCreate):
-    pool = await get_db_connection()
-    async with pool.acquire() as conn:
+async def add_historique(entry: HistoriqueCreate, conn: asyncpg.Connection = Depends(get_db_connection)):
         query = '''
             INSERT INTO "historique" (
                 "DateCMD", "DateRecu", "Opération", "numpiece", "description",
@@ -316,18 +408,16 @@ async def add_historique(entry: HistoriqueCreate):
 
 
 @api_router.post("/contacts", response_model=Contact)
-async def create_contact(contact: ContactCreate):
+async def create_contact(contact: ContactCreate, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
-        pool = await get_db_connection()
-        async with pool.acquire() as conn:
             # Ajouter le contact
             row = await conn.fetchrow(
                 '''INSERT INTO "Contact" 
-                ("Nom", "Titre", "Email", "Telephone", "Cell", "RéfFournisseur", "Produit")
-                VALUES ($1, $2, $3, $4, $5, $6, $7)
+                ("Nom", "Titre", "Email", "Telephone", "Cell", "RéfFournisseur")
+                VALUES ($1, $2, $3, $4, $5, $6)
                 RETURNING *''',
                 contact.Nom, contact.Titre, contact.Email, contact.Telephone,
-                contact.Cell, contact.RéfFournisseur, contact.Produit
+                contact.Cell, contact.RéfFournisseur
             )
 
             if contact.Email:
@@ -348,10 +438,8 @@ async def create_contact(contact: ContactCreate):
 
 
 @api_router.put("/contacts/{contact_id}", response_model=Contact)
-async def update_contact(contact_id: int, contact: ContactCreate):
+async def update_contact(contact_id: int, contact: ContactCreate, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
-        pool = await get_db_connection()
-        async with pool.acquire() as conn:
             row = await conn.fetchrow(
                 '''UPDATE "Contacts"
                    SET "Nom" = $1,
@@ -360,11 +448,10 @@ async def update_contact(contact_id: int, contact: ContactCreate):
                        "Telephone" = $4,
                        "Cell" = $5,
                        "RéfFournisseur" = $6,
-                       "Produit" = $7
-                 WHERE "RéfContact" = $8
+                 WHERE "RéfContact" = $7
                  RETURNING *''',
                 contact.Nom, contact.Titre, contact.Email, contact.Telephone,
-                contact.Cell, contact.RéfFournisseur, contact.Produit, contact_id
+                contact.Cell, contact.RéfFournisseur, contact_id
             )
             if not row:
                 raise HTTPException(status_code=404, detail="Contact non trouvé")
@@ -375,10 +462,8 @@ async def update_contact(contact_id: int, contact: ContactCreate):
 
 
 @api_router.delete("/contacts/{contact_id}")
-async def delete_contact(contact_id: int):
+async def delete_contact(contact_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
-        pool = await get_db_connection()
-        async with pool.acquire() as conn:
             await conn.execute('DELETE FROM "Contact" WHERE "RéfContact" = $1', contact_id)
             return {"message": "Contact supprimé"}
     except Exception as e:
@@ -387,17 +472,13 @@ async def delete_contact(contact_id: int):
 
 
 @api_router.get("/fabricant")
-async def get_fabricant():
-    pool = await get_db_connection()
-    async with pool.acquire() as conn:
+async def get_fabricant(conn: asyncpg.Connection = Depends(get_db_connection)):
         rows = await conn.fetch('SELECT "RefFabricant", "NomFabricant", "Domaine", "NomContact", "TitreContact", "Email" FROM "Fabricant" ORDER BY "NomFabricant"')
         return [{"RefFabricant": r["RefFabricant"], "NomFabricant": r["NomFabricant"]} for r in rows]
 
 
 @api_router.post("/fabricant", response_model=FabricantBase)
-async def create_fabricant(fabricant: FabricantCreate):
-    pool = await get_db_connection()
-    async with pool.acquire() as conn:
+async def create_fabricant(fabricant: FabricantCreate, conn: asyncpg.Connection = Depends(get_db_connection)):
         query = '''
             INSERT INTO "Fabricant" (
                 "NomFabricant", "Domaine", "NomContact", "TitreContact", "Email"
@@ -431,10 +512,8 @@ async def create_fabricant(fabricant: FabricantCreate):
 
 
 @api_router.put("/fabricant/{RefFabricant}", response_model=FabricantBase)
-async def update_fabricant(RefFabricant: int, fabricant: FabricantBase):
+async def update_fabricant(RefFabricant: int, fabricant: FabricantBase, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
-        pool = await get_db_connection()
-        async with pool.acquire() as conn:
             row = await conn.fetchrow(
                 '''UPDATE "Fabricant"
                    SET "NomFabricant" = $1,
@@ -466,19 +545,15 @@ async def update_fabricant(RefFabricant: int, fabricant: FabricantBase):
         raise HTTPException(status_code=500, detail="Erreur lors de la modification du fabricant")
 
 @api_router.delete("/fabricant/{RefFabricant_id}")
-async def delete_fabricant(RefFabricant_id: int):
-    pool = await get_db_connection()
-    async with pool.acquire() as conn:
+async def delete_fabricant(RefFabricant_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
         result = await conn.execute('DELETE FROM "Fabricant" WHERE "RefFabricant" = $1', RefFabricant_id)
         if result == "DELETE 0":
             raise HTTPException(status_code=404, detail="Fabricant non trouvée")
         return {"message": "Fabricant supprimée"}
 
 @api_router.get("/stats", response_model=StatsResponse)
-async def get_stats():
+async def get_stats(conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
-        pool = await get_db_connection()
-        async with pool.acquire() as conn:
             # Total pièces
             total_pieces = await conn.fetchval('SELECT COUNT(*) FROM "Pièce"') or 0
 
@@ -516,10 +591,8 @@ async def get_stats():
         return StatsResponse(total_pieces=0, stock_critique=0, valeur_stock=0.0, pieces_a_commander=0)
 
 @api_router.get("/pieces", response_model=List[Piece])
-async def get_pieces(limit: int = 50, offset: int = 0, search: Optional[str] = None):
+async def get_pieces(limit: int = 50, offset: int = 0, conn: asyncpg.Connection = Depends(get_db_connection), search: Optional[str] = None):
     try:
-        pool = await get_db_connection()
-        async with pool.acquire() as conn:
             base_query = '''
                 SELECT p.*,
                        f1."NomFournisseur" as fournisseur_principal_nom,
@@ -618,10 +691,8 @@ async def get_pieces(limit: int = 50, offset: int = 0, search: Optional[str] = N
         return []
 
 @api_router.get("/pieces/{piece_id}", response_model=Piece)
-async def get_piece(piece_id: int):
+async def get_piece(piece_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
-        pool = await get_db_connection()
-        async with pool.acquire() as conn:
             query = '''
                 SELECT p.*,
                        f1."NomFournisseur" as fournisseur_principal_nom,
@@ -706,9 +777,7 @@ async def get_piece(piece_id: int):
         raise HTTPException(status_code=500, detail="Erreur serveur")
 
 @api_router.post("/pieces", response_model=Piece)
-async def create_piece(piece: PieceCreate):
-    pool = await get_db_connection()
-    async with pool.acquire() as conn:
+async def create_piece(piece: PieceCreate, conn: asyncpg.Connection = Depends(get_db_connection)):
         query = '''
             INSERT INTO "Pièce" (
                 "NomPièce", "DescriptionPièce", "NumPièce", "RéfFournisseur",
@@ -743,9 +812,7 @@ async def create_piece(piece: PieceCreate):
         return await get_piece(piece_id)
 
 @api_router.put("/pieces/{piece_id}", response_model=Piece)
-async def update_piece(piece_id: int, piece_update: PieceUpdate):
-    pool = await get_db_connection()
-    async with pool.acquire() as conn:
+async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.Connection = Depends(get_db_connection)):
         # Construire la requête de mise à jour dynamiquement
         update_fields = []
         values = []
@@ -784,9 +851,7 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate):
         return await get_piece(piece_id)
 
 @api_router.delete("/pieces/{piece_id}")
-async def delete_piece(piece_id: int):
-    pool = await get_db_connection()
-    async with pool.acquire() as conn:
+async def delete_piece(piece_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
         result = await conn.execute('DELETE FROM "Pièce" WHERE "RéfPièce" = $1', piece_id)
         if result == "DELETE 0":
             raise HTTPException(status_code=404, detail="Pièce non trouvée")
@@ -794,10 +859,8 @@ async def delete_piece(piece_id: int):
 
 
 @api_router.get("/fournisseurs", response_model=List[Fournisseur])
-async def get_fournisseurs():
+async def get_fournisseurs(conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
-        pool = await get_db_connection()
-        async with pool.acquire() as conn:
             fournisseurs = await conn.fetch('SELECT * FROM "Fournisseurs" ORDER BY "NomFournisseur"')
             result = []
 
@@ -819,7 +882,6 @@ async def get_fournisseurs():
                         Telephone=safe_string(c.get("Telephone", "")),
                         Cell=safe_string(c.get("Cell", "")),
                         RéfFournisseur=c.get("RéfFournisseur"),
-                        Produit=safe_string(c.get("Produit", ""))
                     ) for c in contacts
                 ]
 
@@ -845,9 +907,7 @@ async def get_fournisseurs():
 
 
 @api_router.post("/fournisseurs", response_model=Fournisseur)
-async def create_fournisseur(fournisseur: FournisseurCreate):
-    pool = await get_db_connection()
-    async with pool.acquire() as conn:
+async def create_fournisseur(fournisseur: FournisseurCreate, conn: asyncpg.Connection = Depends(get_db_connection)):
         query = '''
             INSERT INTO "Fournisseurs" (
                 "NomFournisseur", "NomContact", "TitreContact", "Adresse",
@@ -890,10 +950,8 @@ async def create_fournisseur(fournisseur: FournisseurCreate):
 
 
 @api_router.put("/fournisseurs/{RefFournisseur_id}", response_model=Fournisseur)
-async def update_fournisseur(RefFournisseur_id: int, fournisseur: FournisseurBase):
+async def update_fournisseur(RefFournisseur_id: int, fournisseur: FournisseurBase, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
-        pool = await get_db_connection()
-        async with pool.acquire() as conn:
             row = await conn.fetchrow(
                 '''UPDATE "Fournisseurs"
                    SET "NomFournisseur" = $1,
@@ -941,20 +999,16 @@ async def update_fournisseur(RefFournisseur_id: int, fournisseur: FournisseurBas
         print(f"Erreur update_fournisseur: {e}")
         raise HTTPException(status_code=500, detail="Erreur lors de la modification du fournisseur")
 
-@api_router.delete("/fournisseurs/{RefFournisseur_id}")
-async def delete_fournisseur(RefFournisseur_id: int):
-    pool = await get_db_connection()
-    async with pool.acquire() as conn:
+@api_router.delete("/fournisseur/{RefFournisseur_id}")
+async def delete_fournisseur(RefFournisseur_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
         result = await conn.execute('DELETE FROM "Fournisseurs" WHERE "RéfFournisseur" = $1', RefFournisseur_id)
         if result == "DELETE 0":
             raise HTTPException(status_code=404, detail="Fournisseur non trouvée")
         return {"message": "Fournisseur supprimée"}
 
 @api_router.get("/commande", response_model=List[Commande])
-async def get_commande():
+async def get_commande(conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
-        pool = await get_db_connection()
-        async with pool.acquire() as conn:
             rows = await conn.fetch('''
                 SELECT p.*,
                        f1."NomFournisseur" AS fournisseur_principal_nom,
@@ -1023,10 +1077,8 @@ async def get_commande():
         return []
 
 @api_router.get("/toorders", response_model=List[Commande])
-async def get_toorders():
+async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
-        pool = await get_db_connection()
-        async with pool.acquire() as conn:
             rows = await conn.fetch('''
                 SELECT p.*,
                        f1."NomFournisseur" AS fournisseur_principal_nom,
@@ -1099,11 +1151,8 @@ async def get_toorders():
         return []
 
 @api_router.put("/ordersall/{piece_id}")
-async def receive_all_order(piece_id: int):
-    """Réception totale d'une commande"""
+async def receive_all_order(piece_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
-        pool = await get_db_connection()
-        async with pool.acquire() as conn:
             query = '''
                 UPDATE "Pièce"
                 SET "QtéenInventaire" = "QtéenInventaire" + COALESCE("Qtécommandée", 0),
@@ -1147,11 +1196,8 @@ async def receive_all_order(piece_id: int):
 
 
 @api_router.put("/orderspar/{piece_id}")
-async def receive_partial_order(piece_id: int, quantity_received: int):
-    """Réception partielle d'une commande"""
+async def receive_partial_order(piece_id: int, quantity_received: int, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
-        pool = await get_db_connection()
-        async with pool.acquire() as conn:
             # ✅ Vérifie d'abord que la quantité est valide
             piece = await conn.fetchrow(
                 'SELECT "Qtéarecevoir" FROM "Pièce" WHERE "RéfPièce" = $1',
@@ -1188,47 +1234,57 @@ async def receive_partial_order(piece_id: int, quantity_received: int):
         print(f"Erreur receive_partial_order: {e}")
         raise HTTPException(status_code=500, detail="Erreur lors de la réception partielle")
 
-
-# Database startup
-@app.on_event("startup")
-async def startup():
-    global connection_pool
-    try:
-        connection_pool = await asyncpg.create_pool(DATABASE_URL, min_size=5, max_size=20)
-        print(f"✅ Connexion PostgreSQL réussie à {POSTGRES_HOST}")
-        print(f"✅ Base de données: {POSTGRES_DB}")
-        
-        # Test de base
-        async with connection_pool.acquire() as conn:
-            count = await conn.fetchval('SELECT COUNT(*) FROM "Pièce"')
-            print(f"✅ {count} pièces trouvées dans la base")
-    except Exception as e:
-        print(f"❌ Erreur connexion PostgreSQL: {e}")
-
-@app.on_event("shutdown")
-async def shutdown():
-    global connection_pool
-    if connection_pool:
-        await connection_pool.close()
-
 # Include the router in the main app
 app.include_router(api_router)
 
-app.add_middleware(
-    CORSMiddleware,
-    allow_credentials=True,
-    allow_origins=os.environ.get('CORS_ORIGINS', '*').split(','),
-    allow_methods=["*"],
-    allow_headers=["*"],
-)
+# Ensuite seulement, les routes statiques
+if BUILD_DIR.exists():
+    # 1. Servir les assets (CSS, JS, images)
+    assets_dir = BUILD_DIR / "assets"
+    if assets_dir.exists():
+        app.mount("/assets", StaticFiles(directory=str(assets_dir)), name="assets")
 
-# Configure logging
-logging.basicConfig(
-    level=logging.INFO,
-    format='%(asctime)s - %(name)s - %(levelname)s - %(message)s'
-)
-logger = logging.getLogger(__name__)
+
+    # 2. Route racine
+    @app.get("/", response_class=FileResponse, include_in_schema=False)
+    async def serve_root():
+        index_file = BUILD_DIR / "index.html"
+        if index_file.exists():
+            return FileResponse(index_file)
+        return HTMLResponse("<h1>Build not found</h1>", status_code=404)
+
+
+    # 3. CATCH-ALL - DOIT ÊTRE LA DERNIÈRE ROUTE
+    @app.get("/{full_path:path}", response_class=FileResponse, include_in_schema=False)
+    async def serve_spa(full_path: str):
+        # ✅ Vérifier explicitement si c'est une route API
+        if full_path.startswith("api/"):
+            raise HTTPException(status_code=404, detail="API route not found")
+
+        # Essayer de servir un fichier statique s'il existe
+        file_path = BUILD_DIR / full_path
+        if file_path.exists() and file_path.is_file():
+            return FileResponse(file_path)
+
+        # Sinon servir index.html pour React Router
+        index_file = BUILD_DIR / "index.html"
+        if index_file.exists():
+            return FileResponse(index_file)
+
+        raise HTTPException(status_code=404, detail="Page not found")
+else:
+    logger.warning("⚠️ Dossier 'build' introuvable. Lancez 'yarn build' d'abord.")
 
 if __name__ == "__main__":
-    import uvicorn
-    uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
+    multiprocessing.freeze_support()
+    import sys
+
+    is_frozen = getattr(sys, 'frozen', False)
+    is_dev = "--dev" in sys.argv and not is_frozen
+
+    if is_dev:
+        uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
+    else:
+        from server import app
+
+        uvicorn.run(app, host="0.0.0.0", port=8000, log_config=None, access_log=False)

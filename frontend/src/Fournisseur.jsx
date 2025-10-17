@@ -36,7 +36,6 @@ function Fournisseurs() {
     Telephone: "",
     Cell: "",
     RéfFournisseur: null,
-    Produit: ""
   });
 
   const [editContact, setEditContact] = useState(null);
@@ -93,7 +92,7 @@ function Fournisseurs() {
     try {
       await axios.post(`${API}/contacts`, newContact);
       setIsAddContactOpen(false);
-      setNewContact({ Nom: "", Titre: "", Email: "", Telephone: "", Cell: "", RéfFournisseur: null, Produit: "" });
+      setNewContact({ Nom: "", Titre: "", Email: "", Telephone: "", Cell: "", RéfFournisseur: null});
       loadFournisseurs();
     } catch (error) {
       console.error("Erreur ajout contact:", error);

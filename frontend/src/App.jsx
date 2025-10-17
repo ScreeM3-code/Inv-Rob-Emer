@@ -139,10 +139,10 @@ const Dashboard = () => {
         axios.get(`${API}/stats`),
         axios.get(`${API}/fabricant`),
       ]);
-
+      
       setPieces(piecesRes.data || []);
-      setFournisseurs(fournisseursRes.data);
-      setStats(statsRes.data);
+      setFournisseurs(fournisseursRes.data || []); 
+      setStats(statsRes.data || []);
       setFabricants(fabricantsRes.data || []);
 
     } catch (error) {
