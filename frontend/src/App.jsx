@@ -731,7 +731,7 @@ const Dashboard = () => {
             </p>
           </div>
         )}
-      </div>
+      </div>)
 
       {/* Edit Dialog - Interface complète avec fournisseurs */}
       {editingPiece && (
@@ -765,35 +765,34 @@ const Dashboard = () => {
                     <Label>Fournisseur principal</Label>
                     <Select
                       value={editingPiece.RéfFournisseur?.toString() || "none"}
-                        onValueChange={(value) =>
-                          setEditingPiece({
-                            ...editingPiece,
-                            RéfFournisseur: value === "none" ? null : parseInt(value),
-                          })
-                        }
-                      >
-                        <SelectTrigger>
-                          <SelectValue placeholder="Sélectionner" />
-                        </SelectTrigger>
-                        <SelectContent>
-                          <SelectItem value="none">Aucun fournisseur</SelectItem>
-                          {fournisseurs.map((f) => (
-                            <SelectItem key={f.RéfFournisseur} value={f.RéfFournisseur.toString()}>
-                              {f.NomFournisseur}
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-
+                      onValueChange={(value) =>
+                        setEditingPiece({
+                          ...editingPiece,
+                          RéfFournisseur: value === "none" ? null : parseInt(value),
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="none">Aucun fournisseur</SelectItem>
+                        {fournisseurs.map((f) => (
+                          <SelectItem key={f.RéfFournisseur} value={f.RéfFournisseur.toString()}>
+                            {f.NomFournisseur}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
                   </div>
                   <div>
                     <Label>Autre fournisseur</Label>
                     <Select
-                      value={editingPiece.RéfAutreFournisseur?.toString() || ""}
+                      value={editingPiece.RéfAutreFournisseur?.toString() || "none"}
                       onValueChange={(value) =>
                         setEditingPiece({
                           ...editingPiece,
-                          RéfAutreFournisseur: value  === "none" ? null : parseInt(value),
+                          RéfAutreFournisseur: value === "none" ? null : parseInt(value),
                         })
                       }
                     >
@@ -827,11 +826,11 @@ const Dashboard = () => {
               <div className="border-t pt-4">
                 <Label>Fabricant</Label>
                 <Select
-                  value={editingPiece.RefFabricant?.toString() || ""}
+                  value={editingPiece.RefFabricant?.toString() || "none"}
                   onValueChange={(value) =>
                     setEditingPiece({
                       ...editingPiece,
-                      RefFabricant: value  === "none" ? null : parseInt(value),
+                      RefFabricant: value === "none" ? null : parseInt(value),
                     })
                   }
                 >
@@ -905,9 +904,6 @@ const Dashboard = () => {
           </DialogContent>
         </Dialog>
       )}
-    </div>
-  );
-};
 
 function App() {
   return (
@@ -926,6 +922,8 @@ function App() {
       </BrowserRouter>
     </div>
   );
-}
+}}
 
 export default App;
+
+ 
