@@ -16,7 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "./components/ui/label";
 import { Textarea } from "./components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
-import { Plus, Package, Edit3, Trash2, AlertTriangle, TrendingUp, Search, Users, Building2, DollarSign, FileText, Phone, MapPin, Cog, Store, Mail } from "lucide-react";
+import { Plus, Package, Edit3, Trash2, AlertTriangle, TrendingUp, Search, Users, Building2, DollarSign, FileText, Phone, MapPin, Cog, Store} from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -679,18 +679,6 @@ const Dashboard = () => {
                     <Button
                       variant="outline"
                       size="sm"
-                      onClick={() => {
-                        const mailtoLink = `mailto:?subject=Demande de soumission - ${piece.NomPièce}&body=Bonjour,%0D%0A%0D%0ANous souhaitons recevoir une soumission pour la pièce suivante :%0D%0A%0D%0A- ${piece.NomPièce} (N°: ${piece.NumPièce})%0D%0A- Quantité demandée: ${piece.Qtéàcommander || 1}%0D%0A- Description: ${piece.DescriptionPièce || 'N/A'}%0D%0A%0D%0APourriez-vous nous faire parvenir vos meilleurs prix et délais de livraison ?%0D%0A%0D%0ACordialement,%0D%0AÉquipe Maintenance`;
-                        window.open(mailtoLink);
-                      }}
-                      className="text-blue-600 hover:text-blue-700"
-                      title="Demande de soumission par email"
-                    >
-                      <Mail className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
                       onClick={() => handleDeletePiece(piece.RéfPièce)}
                       className="text-red-600 hover:text-red-700"
                     >
@@ -904,6 +892,7 @@ const Dashboard = () => {
           </DialogContent>
         </Dialog>
       )}
+    };
 
 function App() {
   return (
@@ -922,7 +911,7 @@ function App() {
       </BrowserRouter>
     </div>
   );
-}}
+}
 
 export default App;
 

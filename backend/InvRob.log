@@ -6,3 +6,8 @@
 2025-10-17 20:11:35,707 - Inventaire-Robot - INFO - \u2705 17 équipements trouvés
 2025-10-17 20:11:35,711 - uvicorn.error - INFO - Application startup complete.
 2025-10-17 20:11:35,712 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-10-17 20:56:46,331 - uvicorn.error - INFO - Shutting down
+2025-10-17 20:56:46,438 - uvicorn.error - INFO - Waiting for application shutdown.
+2025-10-17 20:56:46,446 - Inventaire-Robot - INFO - Pool PostgreSQL fermé.
+2025-10-17 20:56:46,447 - uvicorn.error - INFO - Application shutdown complete.
+2025-10-17 20:56:46,447 - uvicorn.error - INFO - Finished server process [46088]
