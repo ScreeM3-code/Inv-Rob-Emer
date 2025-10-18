@@ -4,6 +4,8 @@ import Commande from "./Orders";
 import Fournisseurs from "./Fournisseur";
 import Fabricant from "./Fabricant";
 import ToOrders from "./ToOrders";
+import Historique from "./Historique";
+import Receptions from "./Receptions";
 import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Button } from "./components/ui/button";
@@ -14,7 +16,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Label } from "./components/ui/label";
 import { Textarea } from "./components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
-import { Plus, Package, Edit3, Trash2, AlertTriangle, TrendingUp, Search, Users, Building2, DollarSign, FileText, Phone, MapPin, Cog, Store } from "lucide-react";
+import { Plus, Package, Edit3, Trash2, AlertTriangle, TrendingUp, Search, Users, Building2, DollarSign, FileText, Phone, MapPin, Cog, Store, Mail } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -80,6 +82,28 @@ const Navigation = () => {
               >
                 <DollarSign className="h-4 w-4 inline mr-2" />
                 Commandes
+              </Link>
+              <Link
+                to="/receptions"
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  location.pathname === '/receptions'
+                    ? 'bg-rio-red text-white'
+                    : 'text-gray-600 hover:text-rio-red hover:bg-gray-50'
+                }`}
+              >
+                <Package className="h-4 w-4 inline mr-2" />
+                Réceptions
+              </Link>
+              <Link
+                to="/historique"
+                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                  location.pathname === '/historique'
+                    ? 'bg-rio-red text-white'
+                    : 'text-gray-600 hover:text-rio-red hover:bg-gray-50'
+                }`}
+              >
+                <FileText className="h-4 w-4 inline mr-2" />
+                Historique
               </Link>
             </nav>
           </div>
@@ -159,6 +183,62 @@ const Dashboard = () => {
 
     return () => clearTimeout(timer);
   }, [currentPage, searchTerm]);
+
+  const handleQuickRemove = async (piece) => {
+    if (piece.QtéenInventaire <= 0) {
+      alert("Le stock est déjà à zéro.");
+      return;
+    }
+
+    const originalPiece = pieces.find(p => p.RéfPièce === piece.RéfPièce);
+    const updatedPiece = { ...piece, QtéenInventaire: piece.QtéenInventaire - 1 };
+
+    // Mise à jour optimiste de l'interface
+    setPieces(prev => prev.map(p => p.RéfPièce === piece.RéfPièce ? updatedPiece : p));
+
+    try {
+      const response = await fetch(`${API}/current-user`);
+      const data = await response.json();
+      const user = data.user;
+
+      // 1. Mettre à jour le stock de la pièce
+      const pieceUpdateResponse = await fetch(`${API}/pieces/${piece.RéfPièce}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ QtéenInventaire: updatedPiece.QtéenInventaire }),
+      });
+
+      if (!pieceUpdateResponse.ok) throw new Error("La mise à jour de la pièce a échoué.");
+
+      // 2. Ajouter une entrée dans l'historique
+      const historyEntry = {
+        Opération: 'Sortie rapide',
+        QtéSortie: "1",
+        RéfPièce: piece.RéfPièce,
+        nompiece: piece.NomPièce,
+        numpiece: piece.NumPièce,
+        User: user?.full_name || 'Système',
+        DateRecu: new Date().toISOString(),
+        description: `Sortie de 1 unité depuis la page d'inventaire.`,
+      };
+
+      const historyResponse = await fetch(`${API}/historique`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(historyEntry),
+      });
+
+      if (!historyResponse.ok) throw new Error("L'enregistrement de l'historique a échoué.");
+
+    } catch (error) {
+      console.error("Erreur lors de la sortie rapide:", error);
+      // Annuler la mise à jour optimiste en cas d'erreur
+      if(originalPiece) {
+        setPieces(prev => prev.map(p => p.RéfPièce === piece.RéfPièce ? originalPiece : p));
+      }
+      alert("L'opération a échoué. Veuillez vérifier la console et vous assurer que le backend est démarré.");
+    }
+  };
 
   // Ajouter une pièce
   const handleAddPiece = async () => {
@@ -281,13 +361,13 @@ const Dashboard = () => {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Actions */}
         <div className="flex justify-end space-x-4 mb-6">
-          <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
-            <DialogTrigger asChild>
-              <Button className="bg-rio-red hover:bg-rio-red-dark">
-                <Plus className="h-4 w-4 mr-2" />
-                Nouvelle pièce
-              </Button>
-            </DialogTrigger>
+            <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
+              <DialogTrigger asChild>
+                <Button className="bg-rio-red hover:bg-rio-red-dark">
+                  <Plus className="h-4 w-4 mr-2" />
+                  Nouvelle pièce
+                </Button>
+              </DialogTrigger>
             <DialogContent className="max-w-2xl">
               <DialogHeader>
                 <DialogTitle>Ajouter une nouvelle pièce</DialogTitle>
@@ -437,6 +517,7 @@ const Dashboard = () => {
               </DialogFooter>
             </DialogContent>
           </Dialog>
+          </div>
         </div>
 
         {/* Stats */}
@@ -584,6 +665,28 @@ const Dashboard = () => {
                       onClick={() => setEditingPiece(piece)}
                     >
                       <Edit3 className="h-4 w-4" />
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleQuickRemove(piece)}
+                      disabled={piece.QtéenInventaire <= 0}
+                      className="text-orange-600 hover:text-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
+                      title="Supprimer 1 unité de l'inventaire"
+                    >
+                      <span className="text-sm font-bold">-</span>
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const mailtoLink = `mailto:?subject=Demande de soumission - ${piece.NomPièce}&body=Bonjour,%0D%0A%0D%0ANous souhaitons recevoir une soumission pour la pièce suivante :%0D%0A%0D%0A- ${piece.NomPièce} (N°: ${piece.NumPièce})%0D%0A- Quantité demandée: ${piece.Qtéàcommander || 1}%0D%0A- Description: ${piece.DescriptionPièce || 'N/A'}%0D%0A%0D%0APourriez-vous nous faire parvenir vos meilleurs prix et délais de livraison ?%0D%0A%0D%0ACordialement,%0D%0AÉquipe Maintenance`;
+                        window.open(mailtoLink);
+                      }}
+                      className="text-blue-600 hover:text-blue-700"
+                      title="Demande de soumission par email"
+                    >
+                      <Mail className="h-4 w-4" />
                     </Button>
                     <Button
                       variant="outline"
@@ -817,6 +920,8 @@ function App() {
           <Route path="/fabricant" element={<Fabricant />} />
           <Route path="/commande" element={<Commande />} />
           <Route path="/to-orders" element={<ToOrders />} />
+          <Route path="/receptions" element={<Receptions />} />
+          <Route path="/historique" element={<Historique />} />
         </Routes>
       </BrowserRouter>
     </div>

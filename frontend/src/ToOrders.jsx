@@ -1,7 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "./components/ui/card";
 import { Button } from "./components/ui/button";
-import { Plus, Edit3, Users, FileText, PackagePlus } from "lucide-react";
+import { Plus, Edit3, Users, FileText, PackagePlus, Mail } from "lucide-react";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
 import { Badge } from "./components/ui/badge";
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "./components/ui/dialog";
@@ -196,6 +196,18 @@ function ToOrders() {
                   </div>
 
                   <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => {
+                        const mailtoLink = `mailto:?subject=Demande de soumission - ${order.NomPièce}&body=Bonjour,%0D%0A%0D%0ANous souhaitons recevoir une soumission pour la pièce suivante :%0D%0A%0D%0A- ${order.NomPièce} (N°: ${order.NumPièce})%0D%0A- Quantité demandée: ${order.Qtéàcommander || 1}%0D%0A- Description: ${order.DescriptionPièce || 'N/A'}%0D%0A- Prix unitaire actuel: ${order.Prix_unitaire ? order.Prix_unitaire.toLocaleString("fr-CA", { style: "currency", currency: "CAD" }) : 'N/A'}%0D%0A%0D%0APourriez-vous nous faire parvenir vos meilleurs prix et délais de livraison ?%0D%0A%0D%0ACordialement,%0D%0AÉquipe Maintenance`;
+                        window.open(mailtoLink);
+                      }}
+                      className="text-blue-600 hover:text-blue-700"
+                      title="Demande de soumission par email"
+                    >
+                      <Mail className="h-4 w-4" />
+                    </Button>
                     <Button
                       variant="outline"
                       size="sm"

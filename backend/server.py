@@ -128,7 +128,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="Afficheur Dynamique - API",
+    title="Inventaires Robot",
     version="2.0.0",
     lifespan=lifespan  # Tout dans une seule déclaration
 )
@@ -219,7 +219,6 @@ class FournisseurBase(BaseModel):
     CodePostal: Optional[str] = ""
     Pays: Optional[str] = ""
     NuméroTél: Optional[str] = ""
-    NumTélécopie: Optional[str] = ""
     Domaine: Optional[str] = ""
     contacts: List[Contact] = []
     Produit: Optional[str] = ""
@@ -441,13 +440,13 @@ async def create_contact(contact: ContactCreate, conn: asyncpg.Connection = Depe
 async def update_contact(contact_id: int, contact: ContactCreate, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
             row = await conn.fetchrow(
-                '''UPDATE "Contacts"
+                '''UPDATE "Contact"
                    SET "Nom" = $1,
                        "Titre" = $2,
                        "Email" = $3,
                        "Telephone" = $4,
                        "Cell" = $5,
-                       "RéfFournisseur" = $6,
+                       "RéfFournisseur" = $6
                  WHERE "RéfContact" = $7
                  RETURNING *''',
                 contact.Nom, contact.Titre, contact.Email, contact.Telephone,
@@ -691,125 +690,158 @@ async def get_pieces(limit: int = 50, offset: int = 0, conn: asyncpg.Connection 
         return []
 
 @api_router.get("/pieces/{piece_id}", response_model=Piece)
-async def get_piece(piece_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
+async def get_piece(piece_id: int, request: Request):  # ← Changé ici
+    conn = await request.app.state.pool.acquire()  # ← Ajouté
     try:
-            query = '''
-                SELECT p.*,
-                       f1."NomFournisseur" as fournisseur_principal_nom,
-                       f1."NomContact" as fournisseur_principal_contact,
-                       f1."NuméroTél" as fournisseur_principal_tel,
-                       f2."NomFournisseur" as autre_fournisseur_nom,
-                       f2."NomContact" as autre_fournisseur_contact,
-                       f2."NuméroTél" as autre_fournisseur_tel,
-                       f3."NomFabricant"
-                FROM "Pièce" p
-                LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
-                LEFT JOIN "Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfFournisseur"
-                LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
-                WHERE p."RéfPièce" = $1
-            '''
+        query = '''
+            SELECT p.*,
+                   f1."NomFournisseur" as fournisseur_principal_nom,
+                   f1."NomContact" as fournisseur_principal_contact,
+                   f1."NuméroTél" as fournisseur_principal_tel,
+                   f2."NomFournisseur" as autre_fournisseur_nom,
+                   f2."NomContact" as autre_fournisseur_contact,
+                   f2."NuméroTél" as autre_fournisseur_tel,
+                   f3."NomFabricant"
+            FROM "Pièce" p
+            LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
+            LEFT JOIN "Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfFournisseur"
+            LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
+            WHERE p."RéfPièce" = $1
+        '''
 
-            piece = await conn.fetchrow(query, piece_id)
-            if not piece:
-                raise HTTPException(status_code=404, detail="Pièce non trouvée")
+        piece = await conn.fetchrow(query, piece_id)
+        if not piece:
+            raise HTTPException(status_code=404, detail="Pièce non trouvée")
 
-            piece_dict = dict(piece)
+        piece_dict = dict(piece)
 
-            nom_piece = safe_string(piece_dict.get("NomPièce", ""))
-            if not nom_piece:
-                raise HTTPException(status_code=404, detail="Pièce invalide")
+        nom_piece = safe_string(piece_dict.get("NomPièce", ""))
+        if not nom_piece:
+            raise HTTPException(status_code=404, detail="Pièce invalide")
 
-            qty_inventaire = safe_int(piece_dict.get("QtéenInventaire", 0))
-            qty_minimum = safe_int(piece_dict.get("Qtéminimum", 0))
-            qty_max = safe_int(piece_dict.get("Qtémax", 100))
+        qty_inventaire = safe_int(piece_dict.get("QtéenInventaire", 0))
+        qty_minimum = safe_int(piece_dict.get("Qtéminimum", 0))
+        qty_max = safe_int(piece_dict.get("Qtémax", 100))
 
-            # Calculer automatiquement
-            qty_a_commander = calculate_qty_to_order(qty_inventaire, qty_minimum, qty_max)
-            statut_stock = get_stock_status(qty_inventaire, qty_minimum)
+        # Calculer automatiquement
+        qty_a_commander = calculate_qty_to_order(qty_inventaire, qty_minimum, qty_max)
+        statut_stock = get_stock_status(qty_inventaire, qty_minimum)
 
-            # Fournisseurs
-            fournisseur_principal = None
-            if piece_dict.get("fournisseur_principal_nom"):
-                fournisseur_principal = {
-                    "RéfFournisseur": piece_dict.get("RéfFournisseur"),
-                    "NomFournisseur": safe_string(piece_dict.get("fournisseur_principal_nom", "")),
-                    "NomContact": safe_string(piece_dict.get("fournisseur_principal_contact", "")),
-                    "NuméroTél": safe_string(piece_dict.get("fournisseur_principal_tel", ""))
-                }
+        # Fournisseurs
+        fournisseur_principal = None
+        if piece_dict.get("fournisseur_principal_nom"):
+            fournisseur_principal = {
+                "RéfFournisseur": piece_dict.get("RéfFournisseur"),
+                "NomFournisseur": safe_string(piece_dict.get("fournisseur_principal_nom", "")),
+                "NomContact": safe_string(piece_dict.get("fournisseur_principal_contact", "")),
+                "NuméroTél": safe_string(piece_dict.get("fournisseur_principal_tel", ""))
+            }
 
-            autre_fournisseur = None
-            if piece_dict.get("autre_fournisseur_nom"):
-                autre_fournisseur = {
-                    "RéfFournisseur": piece_dict.get("RéfAutreFournisseur"),
-                    "NomFournisseur": safe_string(piece_dict.get("autre_fournisseur_nom", "")),
-                    "NomContact": safe_string(piece_dict.get("autre_fournisseur_contact", "")),
-                    "NuméroTél": safe_string(piece_dict.get("autre_fournisseur_tel", ""))
-                }
+        autre_fournisseur = None
+        if piece_dict.get("autre_fournisseur_nom"):
+            autre_fournisseur = {
+                "RéfFournisseur": piece_dict.get("RéfAutreFournisseur"),
+                "NomFournisseur": safe_string(piece_dict.get("autre_fournisseur_nom", "")),
+                "NomContact": safe_string(piece_dict.get("autre_fournisseur_contact", "")),
+                "NuméroTél": safe_string(piece_dict.get("autre_fournisseur_tel", ""))
+            }
 
-            return Piece(
-                RéfPièce=piece_dict["RéfPièce"],
-                NomPièce=nom_piece,
-                DescriptionPièce=safe_string(piece_dict.get("DescriptionPièce", "")),
-                NumPièce=safe_string(piece_dict.get("NumPièce", "")),
-                RéfFournisseur=piece_dict.get("RéfFournisseur"),
-                RéfAutreFournisseur=piece_dict.get("RéfAutreFournisseur"),
-                NumPièceAutreFournisseur=safe_string(piece_dict.get("NumPièceAutreFournisseur", "")),
-                Lieuentreposage=safe_string(piece_dict.get("Lieuentreposage", "")),
-                QtéenInventaire=qty_inventaire,
-                Qtéminimum=qty_minimum,
-                Qtémax=qty_max,
-                Qtéàcommander=qty_a_commander,
-                Prix_unitaire=safe_float(piece_dict.get("Prix unitaire", 0)),
-                Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
-                SoumDem=safe_string(piece_dict.get("SoumDem", "")),
-                fournisseur_principal=fournisseur_principal,
-                autre_fournisseur=autre_fournisseur,
-                NomFabricant=safe_string(piece_dict.get("NomFabricant", "")),
-                RefFabricant=piece_dict.get("RefFabricant"),
-                statut_stock=statut_stock,
-                Created=piece_dict.get("Created"),
-                Modified=piece_dict.get("Modified")
-            )
+        return Piece(
+            RéfPièce=piece_dict["RéfPièce"],
+            NomPièce=nom_piece,
+            DescriptionPièce=safe_string(piece_dict.get("DescriptionPièce", "")),
+            NumPièce=safe_string(piece_dict.get("NumPièce", "")),
+            RéfFournisseur=piece_dict.get("RéfFournisseur"),
+            RéfAutreFournisseur=piece_dict.get("RéfAutreFournisseur"),
+            NumPièceAutreFournisseur=safe_string(piece_dict.get("NumPièceAutreFournisseur", "")),
+            Lieuentreposage=safe_string(piece_dict.get("Lieuentreposage", "")),
+            QtéenInventaire=qty_inventaire,
+            Qtéminimum=qty_minimum,
+            Qtémax=qty_max,
+            Qtéàcommander=qty_a_commander,
+            Prix_unitaire=safe_float(piece_dict.get("Prix unitaire", 0)),
+            Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
+            SoumDem=safe_string(piece_dict.get("SoumDem", "")),
+            fournisseur_principal=fournisseur_principal,
+            autre_fournisseur=autre_fournisseur,
+            NomFabricant=safe_string(piece_dict.get("NomFabricant", "")),
+            RefFabricant=piece_dict.get("RefFabricant"),
+            statut_stock=statut_stock,
+            Created=piece_dict.get("Created"),
+            Modified=piece_dict.get("Modified")
+        )
     except HTTPException:
         raise
     except Exception as e:
         print(f"Erreur get_piece {piece_id}: {e}")
         raise HTTPException(status_code=500, detail="Erreur serveur")
+    finally:
+        await request.app.state.pool.release(conn)
 
 @api_router.post("/pieces", response_model=Piece)
 async def create_piece(piece: PieceCreate, conn: asyncpg.Connection = Depends(get_db_connection)):
-        query = '''
+    query = '''
             INSERT INTO "Pièce" (
                 "NomPièce", "DescriptionPièce", "NumPièce", "RéfFournisseur",
                 "RéfAutreFournisseur", "NumPièceAutreFournisseur", "RefFabricant", 
                 "Lieuentreposage", "QtéenInventaire", "Qtéminimum", "Qtémax", 
                 "Prix unitaire", "Soumission LD", "SoumDem", "Created", "Modified"
             ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
-            RETURNING "RéfPièce"
+            RETURNING *
         '''
 
-        now = datetime.utcnow()
-        piece_id = await conn.fetchval(
-            query,
-            piece.NomPièce,
-            piece.DescriptionPièce or "",
-            piece.NumPièce or "",
-            piece.RéfFournisseur,
-            piece.RéfAutreFournisseur,
-            piece.NumPièceAutreFournisseur or "",
-            piece.RefFabricant,
-            piece.Lieuentreposage or "",
-            piece.QtéenInventaire,
-            piece.Qtéminimum,
-            piece.Qtémax,
-            piece.Prix_unitaire,
-            piece.Soumission_LD or "",
-            piece.SoumDem or "",
-            now,
-            now
-        )
+    now = datetime.utcnow()
+    row = await conn.fetchrow(
+        query,
+        piece.NomPièce,
+        piece.DescriptionPièce or "",
+        piece.NumPièce or "",
+        piece.RéfFournisseur,
+        piece.RéfAutreFournisseur,
+        piece.NumPièceAutreFournisseur or "",
+        piece.RefFabricant,
+        piece.Lieuentreposage or "",
+        piece.QtéenInventaire,
+        piece.Qtéminimum,
+        piece.Qtémax,
+        piece.Prix_unitaire,
+        piece.Soumission_LD or "",
+        piece.SoumDem or "",
+        now,
+        now
+    )
 
-        return await get_piece(piece_id)
+    # Reconstruire l'objet complet
+    piece_dict = dict(row)
+    qty_a_commander = calculate_qty_to_order(
+        piece_dict.get("QtéenInventaire", 0),
+        piece_dict.get("Qtéminimum", 0),
+        piece_dict.get("Qtémax", 100)
+    )
+
+    return Piece(
+        RéfPièce=piece_dict["RéfPièce"],
+        NomPièce=safe_string(piece_dict.get("NomPièce", "")),
+        DescriptionPièce=safe_string(piece_dict.get("DescriptionPièce", "")),
+        NumPièce=safe_string(piece_dict.get("NumPièce", "")),
+        RéfFournisseur=piece_dict.get("RéfFournisseur"),
+        RéfAutreFournisseur=piece_dict.get("RéfAutreFournisseur"),
+        NumPièceAutreFournisseur=safe_string(piece_dict.get("NumPièceAutreFournisseur", "")),
+        Lieuentreposage=safe_string(piece_dict.get("Lieuentreposage", "")),
+        QtéenInventaire=safe_int(piece_dict.get("QtéenInventaire", 0)),
+        Qtéminimum=safe_int(piece_dict.get("Qtéminimum", 0)),
+        Qtémax=safe_int(piece_dict.get("Qtémax", 100)),
+        Qtéàcommander=qty_a_commander,
+        Prix_unitaire=safe_float(piece_dict.get("Prix unitaire", 0)),
+        Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
+        SoumDem=safe_string(piece_dict.get("SoumDem", "")),
+        statut_stock=get_stock_status(
+            safe_int(piece_dict.get("QtéenInventaire", 0)),
+            safe_int(piece_dict.get("Qtéminimum", 0))
+        ),
+        Created=piece_dict.get("Created"),
+        Modified=piece_dict.get("Modified")
+    )
 
 @api_router.put("/pieces/{piece_id}", response_model=Piece)
 async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.Connection = Depends(get_db_connection)):
@@ -848,7 +880,85 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
         '''
 
         await conn.execute(query, *values)
-        return await get_piece(piece_id)
+        
+        # Récupérer la pièce mise à jour directement
+        query_get = '''
+            SELECT p.*,
+                   f1."NomFournisseur" as fournisseur_principal_nom,
+                   f1."NomContact" as fournisseur_principal_contact,
+                   f1."NuméroTél" as fournisseur_principal_tel,
+                   f2."NomFournisseur" as autre_fournisseur_nom,
+                   f2."NomContact" as autre_fournisseur_contact,
+                   f2."NuméroTél" as autre_fournisseur_tel,
+                   f3."NomFabricant"
+            FROM "Pièce" p
+            LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
+            LEFT JOIN "Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfFournisseur"
+            LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
+            WHERE p."RéfPièce" = $1
+        '''
+
+        piece = await conn.fetchrow(query_get, piece_id)
+        if not piece:
+            raise HTTPException(status_code=404, detail="Pièce non trouvée")
+
+        piece_dict = dict(piece)
+
+        nom_piece = safe_string(piece_dict.get("NomPièce", ""))
+        if not nom_piece:
+            raise HTTPException(status_code=404, detail="Pièce invalide")
+
+        qty_inventaire = safe_int(piece_dict.get("QtéenInventaire", 0))
+        qty_minimum = safe_int(piece_dict.get("Qtéminimum", 0))
+        qty_max = safe_int(piece_dict.get("Qtémax", 100))
+
+        # Calculer automatiquement
+        qty_a_commander = calculate_qty_to_order(qty_inventaire, qty_minimum, qty_max)
+        statut_stock = get_stock_status(qty_inventaire, qty_minimum)
+
+        # Fournisseurs
+        fournisseur_principal = None
+        if piece_dict.get("fournisseur_principal_nom"):
+            fournisseur_principal = {
+                "RéfFournisseur": piece_dict.get("RéfFournisseur"),
+                "NomFournisseur": safe_string(piece_dict.get("fournisseur_principal_nom", "")),
+                "NomContact": safe_string(piece_dict.get("fournisseur_principal_contact", "")),
+                "NuméroTél": safe_string(piece_dict.get("fournisseur_principal_tel", ""))
+            }
+
+        autre_fournisseur = None
+        if piece_dict.get("autre_fournisseur_nom"):
+            autre_fournisseur = {
+                "RéfFournisseur": piece_dict.get("RéfAutreFournisseur"),
+                "NomFournisseur": safe_string(piece_dict.get("autre_fournisseur_nom", "")),
+                "NomContact": safe_string(piece_dict.get("autre_fournisseur_contact", "")),
+                "NuméroTél": safe_string(piece_dict.get("autre_fournisseur_tel", ""))
+            }
+
+        return Piece(
+            RéfPièce=piece_dict["RéfPièce"],
+            NomPièce=nom_piece,
+            DescriptionPièce=safe_string(piece_dict.get("DescriptionPièce", "")),
+            NumPièce=safe_string(piece_dict.get("NumPièce", "")),
+            RéfFournisseur=piece_dict.get("RéfFournisseur"),
+            RéfAutreFournisseur=piece_dict.get("RéfAutreFournisseur"),
+            NumPièceAutreFournisseur=safe_string(piece_dict.get("NumPièceAutreFournisseur", "")),
+            Lieuentreposage=safe_string(piece_dict.get("Lieuentreposage", "")),
+            QtéenInventaire=qty_inventaire,
+            Qtéminimum=qty_minimum,
+            Qtémax=qty_max,
+            Qtéàcommander=qty_a_commander,
+            Prix_unitaire=safe_float(piece_dict.get("Prix unitaire", 0)),
+            Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
+            SoumDem=safe_string(piece_dict.get("SoumDem", "")),
+            fournisseur_principal=fournisseur_principal,
+            autre_fournisseur=autre_fournisseur,
+            NomFabricant=safe_string(piece_dict.get("NomFabricant", "")),
+            RefFabricant=piece_dict.get("RefFabricant"),
+            statut_stock=statut_stock,
+            Created=piece_dict.get("Created"),
+            Modified=piece_dict.get("Modified")
+        )
 
 @api_router.delete("/pieces/{piece_id}")
 async def delete_piece(piece_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
@@ -888,16 +998,16 @@ async def get_fournisseurs(conn: asyncpg.Connection = Depends(get_db_connection)
                 result.append(Fournisseur(
                     RéfFournisseur=f_dict["RéfFournisseur"],
                     NomFournisseur=safe_string(f_dict.get("NomFournisseur", "")),
-                    NomContact=safe_string(f_dict.get("NomContact", "")),
-                    TitreContact=safe_string(f_dict.get("TitreContact", "")),
                     Adresse=safe_string(f_dict.get("Adresse", "")),
                     Ville=safe_string(f_dict.get("Ville", "")),
                     CodePostal=safe_string(f_dict.get("CodePostal", "")),
                     Pays=safe_string(f_dict.get("Pays", "")),
                     NuméroTél=safe_string(f_dict.get("NuméroTél", "")),
-                    NumTélécopie=safe_string(f_dict.get("NumTélécopie", "")),
                     contacts=[c.model_dump() for c in contact_list],
                     Domaine=safe_string(f_dict.get("Domaine", "")),
+                    Produit=safe_string(f_dict.get("Produit", "")),
+                    Marque=safe_string(f_dict.get("Marque", "")),
+                    NumSap=safe_string(f_dict.get("NumSap", ""))
                 ))
 
             return result
@@ -910,23 +1020,24 @@ async def get_fournisseurs(conn: asyncpg.Connection = Depends(get_db_connection)
 async def create_fournisseur(fournisseur: FournisseurCreate, conn: asyncpg.Connection = Depends(get_db_connection)):
         query = '''
             INSERT INTO "Fournisseurs" (
-                "NomFournisseur", "NomContact", "TitreContact", "Adresse",
-                "Ville", "CodePostal", "Pays", "NuméroTél", "NumTélécopie"
-            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9)
+                "NomFournisseur", "Adresse", "Ville", "CodePostal",
+                "Pays", "NuméroTél", "Domaine", "Produit", "Marque", "NumSap"
+            ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)
             RETURNING "RéfFournisseur"
         '''
 
         fournisseur_id = await conn.fetchval(
             query,
             fournisseur.NomFournisseur,
-            fournisseur.NomContact or "",
-            fournisseur.TitreContact or "",
             fournisseur.Adresse or "",
             fournisseur.Ville or "",
             fournisseur.CodePostal or "",
             fournisseur.Pays or "",
             fournisseur.NuméroTél or "",
-            fournisseur.NumTélécopie or ""
+            fournisseur.Domaine or "",
+            fournisseur.NumSap or "",
+            fournisseur.Marque or "",
+            fournisseur.Produit or ""
         )
 
         created_fournisseur = await conn.fetchrow(
@@ -938,14 +1049,16 @@ async def create_fournisseur(fournisseur: FournisseurCreate, conn: asyncpg.Conne
         return Fournisseur(
             RéfFournisseur=f_dict["RéfFournisseur"],
             NomFournisseur=safe_string(f_dict.get("NomFournisseur", "")),
-            NomContact=safe_string(f_dict.get("NomContact", "")),
-            TitreContact=safe_string(f_dict.get("TitreContact", "")),
             Adresse=safe_string(f_dict.get("Adresse", "")),
             Ville=safe_string(f_dict.get("Ville", "")),
             CodePostal=safe_string(f_dict.get("CodePostal", "")),
             Pays=safe_string(f_dict.get("Pays", "")),
             NuméroTél=safe_string(f_dict.get("NuméroTél", "")),
-            NumTélécopie=safe_string(f_dict.get("NumTélécopie", ""))
+            Domaine=safe_string(f_dict.get("Domaine", "")),
+            Produit=safe_string(f_dict.get("Produit", "")),
+            Marque=safe_string(f_dict.get("Marque", "")),
+            NumSap=safe_string(f_dict.get("NumSap", "")),
+            contacts=[]
         )
 
 
@@ -955,45 +1068,65 @@ async def update_fournisseur(RefFournisseur_id: int, fournisseur: FournisseurBas
             row = await conn.fetchrow(
                 '''UPDATE "Fournisseurs"
                    SET "NomFournisseur" = $1,
-                       "NomContact" = $2,
-                       "TitreContact" = $3,
-                       "Adresse" = $4,
-                       "Ville" = $5,
-                       "CodePostal" = $6,
-                       "Pays" = $7,
-                       "NuméroTél" = $8,
-                       "NumTélécopie" = $9,
-                       "Domaine" = $10
+                       "Adresse" = $2,
+                       "Ville" = $3,
+                       "CodePostal" = $4,
+                       "Pays" = $5,
+                       "NuméroTél" = $6,
+                       "Domaine" = $7,
+                       "Produit" = $8,
+                       "Marque" = $9,
+                       "NumSap" = $10
                    WHERE "RéfFournisseur" = $11
                  RETURNING *''',
                 fournisseur.NomFournisseur,
-                fournisseur.NomContact,
-                fournisseur.TitreContact,
-                fournisseur.Adresse,
-                fournisseur.Ville,
-                fournisseur.CodePostal,
-                fournisseur.Pays,
-                fournisseur.NuméroTél,
-                fournisseur.NumTélécopie,
+                fournisseur.Adresse or "",
+                fournisseur.Ville or "",
+                fournisseur.CodePostal or "",
+                fournisseur.Pays or "",
+                fournisseur.NuméroTél or "",
                 fournisseur.Domaine or "",
+                fournisseur.Produit or "",
+                fournisseur.Marque or "",
+                fournisseur.NumSap or "",
                 RefFournisseur_id
             )
             if not row:
                 raise HTTPException(status_code=404, detail="Fournisseur non trouvé")
 
             f_dict = dict(row)
+            
+            # Charger les contacts liés
+            contacts = await conn.fetch(
+                'SELECT * FROM "Contact" WHERE "RéfFournisseur" = $1',
+                f_dict["RéfFournisseur"]
+            )
+
+            contact_list = [
+                Contact(
+                    RéfContact=c["RéfContact"],
+                    Nom=safe_string(c.get("Nom", "")),
+                    Titre=safe_string(c.get("Titre", "")),
+                    Email=safe_string(c.get("Email", "")),
+                    Telephone=safe_string(c.get("Telephone", "")),
+                    Cell=safe_string(c.get("Cell", "")),
+                    RéfFournisseur=c.get("RéfFournisseur"),
+                ) for c in contacts
+            ]
+
             return Fournisseur(
                 RéfFournisseur=f_dict["RéfFournisseur"],
                 NomFournisseur=safe_string(f_dict.get("NomFournisseur", "")),
-                NomContact=safe_string(f_dict.get("NomContact", "")),
-                TitreContact=safe_string(f_dict.get("TitreContact", "")),
                 Adresse=safe_string(f_dict.get("Adresse", "")),
                 Ville=safe_string(f_dict.get("Ville", "")),
                 CodePostal=safe_string(f_dict.get("CodePostal", "")),
                 Pays=safe_string(f_dict.get("Pays", "")),
                 NuméroTél=safe_string(f_dict.get("NuméroTél", "")),
-                NumTélécopie=safe_string(f_dict.get("NumTélécopie", "")),
-                Domaine=safe_string(f_dict.get("Domaine", ""))
+                Domaine=safe_string(f_dict.get("Domaine", "")),
+                Produit=safe_string(f_dict.get("Produit", "")),
+                Marque=safe_string(f_dict.get("Marque", "")),
+                NumSap=safe_string(f_dict.get("NumSap", "")),
+                contacts=[c.model_dump() for c in contact_list]
             )
     except Exception as e:
         print(f"Erreur update_fournisseur: {e}")
