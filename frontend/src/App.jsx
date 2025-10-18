@@ -1,9 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./App.css";
-import Commande from "./Orders";
+import ToOrders from "./ToOrders";  // Pièces à commander
 import Fournisseurs from "./Fournisseur";
 import Fabricant from "./Fabricant";
-import ToOrders from "./ToOrders";
 import Historique from "./Historique";
 import Receptions from "./Receptions";
 import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
@@ -73,15 +72,15 @@ const Navigation = () => {
                 Fabricant
               </Link>
               <Link
-                to="/commande"
+                to="/to-orders"  // ✅ Route cohérente
                 className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  location.pathname === '/commande'
+                  location.pathname === '/to-orders'
                     ? 'bg-rio-red text-white'
                     : 'text-gray-600 hover:text-rio-red hover:bg-gray-50'
                 }`}
               >
-                <DollarSign className="h-4 w-4 inline mr-2" />
-                Commandes
+                <Package className="h-4 w-4 inline mr-2" />
+                Commander
               </Link>
               <Link
                 to="/receptions"
@@ -903,7 +902,6 @@ function App() {
           <Route path="/" element={<Dashboard />} />
           <Route path="/fournisseurs" element={<Fournisseurs />} />
           <Route path="/fabricant" element={<Fabricant />} />
-          <Route path="/commande" element={<Commande />} />
           <Route path="/to-orders" element={<ToOrders />} />
           <Route path="/receptions" element={<Receptions />} />
           <Route path="/historique" element={<Historique />} />

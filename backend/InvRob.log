@@ -1,13 +1,13 @@
-2025-10-17 20:11:34,136 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
-2025-10-17 20:11:34,545 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
-2025-10-17 20:11:34,638 - uvicorn.error - INFO - Started server process [46088]
-2025-10-17 20:11:34,638 - uvicorn.error - INFO - Waiting for application startup.
-2025-10-17 20:11:35,697 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2025-10-17 20:11:35,707 - Inventaire-Robot - INFO - \u2705 17 équipements trouvés
-2025-10-17 20:11:35,711 - uvicorn.error - INFO - Application startup complete.
-2025-10-17 20:11:35,712 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-2025-10-17 20:56:46,331 - uvicorn.error - INFO - Shutting down
-2025-10-17 20:56:46,438 - uvicorn.error - INFO - Waiting for application shutdown.
-2025-10-17 20:56:46,446 - Inventaire-Robot - INFO - Pool PostgreSQL fermé.
-2025-10-17 20:56:46,447 - uvicorn.error - INFO - Application shutdown complete.
-2025-10-17 20:56:46,447 - uvicorn.error - INFO - Finished server process [46088]
+2025-10-18 18:34:54,856 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
+2025-10-18 18:34:54,902 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
+2025-10-18 18:34:54,945 - uvicorn.error - INFO - Started server process [64504]
+2025-10-18 18:34:54,945 - uvicorn.error - INFO - Waiting for application startup.
+2025-10-18 18:34:55,023 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2025-10-18 18:34:55,034 - Inventaire-Robot - INFO - \u2705 18 équipements trouvés
+2025-10-18 18:34:55,038 - uvicorn.error - INFO - Application startup complete.
+2025-10-18 18:34:55,039 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-10-18 19:12:53,137 - uvicorn.error - INFO - Shutting down
+2025-10-18 19:12:53,258 - uvicorn.error - INFO - Waiting for application shutdown.
+2025-10-18 19:12:53,266 - Inventaire-Robot - INFO - Pool PostgreSQL fermé.
+2025-10-18 19:12:53,267 - uvicorn.error - INFO - Application shutdown complete.
+2025-10-18 19:12:53,268 - uvicorn.error - INFO - Finished server process [64504]

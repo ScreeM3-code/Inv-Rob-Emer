@@ -421,11 +421,11 @@ function ToOrders() {
               
               <div className="grid grid-cols-2 gap-4">
                 <div>
-                  <Label>Quantité à commander</Label>
+                  <Label>Quantité commander</Label>
                   <Input
                     type="number"
-                    value={goOrder.Qtéàcommander ?? 0}
-                    onChange={(e) => setGoOrder({ ...goOrder, Qtéàcommander: parseInt(e.target.value) || 0 })}
+                    value={goOrder.Qtécommander ?? 0}
+                    onChange={(e) => setGoOrder({ ...goOrder, Qtécommander: parseInt(e.target.value) || 0 })}
                   />
                 </div>
                 <div>
@@ -465,19 +465,45 @@ function ToOrders() {
               <Button 
                 onClick={async () => {
                   try {
+                    // 1. Récupérer l'utilisateur actuel
+                    const userResponse = await fetch(`${API}/current-user`);
+                    const userData = await userResponse.json();
+                    const user = userData.user;
+
+                    // 2. Préparer les données de la commande
                     const commandeData = {
                       ...goOrder,
                       Qtécommandée: goOrder.Qtéàcommander,
                       Qtéarecevoir: goOrder.Qtéàcommander,
-                      Qtéreçue: 0
+                      Qtéreçue: 0,
+                      Datecommande: goOrder.Datecommande || new Date().toISOString().split('T')[0]
                     };
                     
-                    // Retire les champs calculés/affichage
+                    // Retirer les champs calculés/affichage
                     delete commandeData.NomFabricant;
                     delete commandeData.fournisseur_principal;
                     delete commandeData.autre_fournisseur;
+                    delete commandeData.statut_stock;
+                    delete commandeData.Qtéàcommander;
                     
+                    // 3. Mettre à jour la pièce
                     await axios.put(`${API}/pieces/${goOrder.RéfPièce}`, commandeData);
+
+                    // 4. Ajouter une entrée dans l'historique
+                    const historyEntry = {
+                      DateCMD: new Date().toISOString(),
+                      Opération: 'Achat',
+                      RéfPièce: goOrder.RéfPièce,
+                      nompiece: goOrder.NomPièce,
+                      numpiece: goOrder.NumPièce,
+                      description: goOrder.DescriptionPièce || '',
+                      qtécommande: goOrder.Qtéàcommander.toString(),
+                      User: user,
+                    };
+
+                    await axios.post(`${API}/historique`, historyEntry);
+
+                    // 5. Fermer le dialog et recharger les données
                     setGoOrder(null);
                     loadData();
                   } catch (error) {
