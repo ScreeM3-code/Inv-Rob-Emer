@@ -8,17 +8,22 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Label } from "./components/ui/label";
 import { Input } from "./components/ui/input";
 import axios from "axios";
+import HistoriqueDialog from "@/components/commandes/HistoriqueDialog";
+
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-function ToOrders() {
+function Commandes() {
   const [toorders, setToOrders] = useState([]);
   const [fournisseurs, setFournisseurs] = useState([]);
   const [editingOrder, setEditingOrder] = useState(null);
   const [editingGoOrder, setEditingGoOrder] = useState(null); 
   const [goOrder, setGoOrder] = useState(null);
   const [fabricants, setFabricants] = useState([]);
+  const [viewingHistoryFor, setViewingHistoryFor] = useState(null);
+  const [historyData, setHistoryData] = useState([]);
+  const [historyLoading, setHistoryLoading] = useState(false);
   const [currentPage, setCurrentPage] = useState(1);
 
   const loadData = async (page = 1) => {
@@ -50,6 +55,46 @@ function ToOrders() {
     setCurrentPage(page);
   };
 
+  const handleViewHistory = async (piece) => {
+    // Correction: use API instead of undefined URL, handle non-JSON gracefully
+    console.log("🔍 Ouverture historique pour pièce:", piece.RéfPièce); // DEBUG
+    setViewingHistoryFor(piece);
+    setHistoryLoading(true);
+    setHistoryData([]);
+    try {
+      const response = await fetch(`${API}/historique/${piece.RéfPièce}`);
+      if (!response.ok) {
+        throw new Error("Erreur lors du chargement de l'historique de la pièce.");
+      }
+
+      // Handle HTML/text or bad JSON response
+      const contentType = response.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+        const data = await response.json();
+        console.log("📊 Données reçues de l'API:", data); // DEBUG
+        console.log("📊 Nombre de lignes:", data.length); // DEBUG
+        setHistoryData(data);
+      } else {
+        const text = await response.text();
+        if (text && text.startsWith('<!DOCTYPE')) {
+          // Server misrouted, or error page: treat as error
+          throw new Error("Réponse inattendue du serveur (HTML au lieu de JSON).");
+        }
+        // Try parsing anyway, fallback on empty or show error
+        try {
+          const data = JSON.parse(text);
+          setHistoryData(data);
+        } catch (parseErr) {
+          throw new Error("La réponse de l'historique est invalide ou non parsable.");
+        }
+      }
+    } catch (err) {
+      console.error("Erreur chargement historique:", err);
+      setHistoryData([]); // reset to empty in case of any error
+    } finally {
+      setHistoryLoading(false);
+    }
+  };
 
   // Mettre à jour une commande/pièce
   const handleUpdateOrder = async () => {
@@ -196,6 +241,22 @@ function ToOrders() {
                   </div>
 
                   <div className="flex space-x-2">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={() => handleViewHistory(order)}
+                      title="Voir l'historique"
+                    >
+                      <FileText className="h-4 w-4" />
+                    </Button>
+                    {viewingHistoryFor && viewingHistoryFor.RéfPièce === order.RéfPièce && (
+                      <HistoriqueDialog
+                        piece={viewingHistoryFor}
+                        history={historyData}
+                        isLoading={historyLoading}
+                        onOpenChange={() => setViewingHistoryFor(null)}
+                      />
+                    )}
                     <Button
                       variant="outline"
                       size="sm"
@@ -524,4 +585,4 @@ function ToOrders() {
   );
 }
 
-export default ToOrders;
+export default Commandes;

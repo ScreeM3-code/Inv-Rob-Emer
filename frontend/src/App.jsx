@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import "./App.css";
 import ToOrders from "./ToOrders";
 import Fournisseurs from "./Fournisseur";
@@ -15,8 +15,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import { Label } from "./components/ui/label";
 import { Textarea } from "./components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
-import { Plus, Package, Edit3, Trash2, AlertTriangle, TrendingUp, Search, Users, Building2, DollarSign, FileText, Phone, MapPin, Cog, Store } from "lucide-react";
+import { Plus, Package, Loader2, Edit3, Trash2, AlertTriangle, TrendingUp, Search, Users, Building2, DollarSign, FileText, Phone, MapPin, Cog, Store } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { PieceCard } from "@/components/inventaire/PieceCard";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -121,7 +122,11 @@ const Dashboard = () => {
   const [searchTerm, setSearchTerm] = useState("");
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingPiece, setEditingPiece] = useState(null);
-  const [currentPage, setCurrentPage] = useState(0);
+  const [currentPage, setCurrentPage] = useState(1);
+  const [filters, setFilters] = useState({
+    statut: "tous",
+    alerte: "tous"
+  });
   const [fabricants, setFabricants] = useState([]);
   const [newPiece, setNewPiece] = useState({
     NomPièce: "",
@@ -152,7 +157,9 @@ const Dashboard = () => {
       const cleanedSearch = search.trim();
       const piecesUrl = cleanedSearch
         ? `${API}/pieces?limit=20&offset=${page * 20}&search=${encodeURIComponent(cleanedSearch)}`
-        : `${API}/pieces?limit=20&offset=${page * 20}`;
+        : `${API}/pieces`;
+
+      console.log('🔍 URL appelée:', piecesUrl); // Debug
 
       const [piecesRes, fournisseursRes, statsRes, fabricantsRes] = await Promise.all([
         axios.get(piecesUrl),
@@ -161,21 +168,29 @@ const Dashboard = () => {
         axios.get(`${API}/fabricant`),
       ]);
 
+      console.log('📦 Pièces reçues:', piecesRes.data?.length, 'pièces'); // Debug
+      console.log('📊 Stats:', statsRes.data); // Debug
+
       setPieces(piecesRes.data || []);
       setFournisseurs(fournisseursRes.data || []);
-      setStats(statsRes.data || []);
+      setStats(statsRes.data || { total_pieces: 0, stock_critique: 0, valeur_stock: 0, pieces_a_commander: 0 });
       setFabricants(fabricantsRes.data || []);
     } catch (error) {
-      console.error("Erreur lors du chargement:", error);
+      console.error("❌ Erreur lors du chargement:", error);
+      console.error("❌ Détails:", error.response?.data); // Debug
     } finally {
       setLoading(false);
     }
   };
 
   useEffect(() => {
+    // Délai uniquement pour la recherche (pas au premier chargement)
+    if (searchTerm === '' && currentPage === 0) return; // Skip le premier chargement
+    
     const timer = setTimeout(() => {
       loadData(currentPage, searchTerm);
-    }, 700);
+    }, 700); // Réduit à 300ms pour meilleure réactivité
+    
     return () => clearTimeout(timer);
   }, [currentPage, searchTerm]);
 
@@ -242,27 +257,39 @@ const Dashboard = () => {
   // Ajouter une pièce
   const handleAddPiece = async () => {
     try {
+      // Validation basique
+      if (!newPiece.NomPièce?.trim()) {
+        alert("Le nom de la pièce est obligatoire");
+        return;
+      }
+
       const cleanedPiece = {
-        NomPièce: newPiece.NomPièce || "",
-        DescriptionPièce: newPiece.DescriptionPièce || "",
-        NumPièce: newPiece.NumPièce || "",
-        RéfFournisseur: newPiece.RéfFournisseur || 0,
-        RéfAutreFournisseur: newPiece.RéfAutreFournisseur || 0,
-        NumPièceAutreFournisseur: newPiece.NumPièceAutreFournisseur || "",
-        RefFabricant: newPiece.RefFabricant || 0,
-        Lieuentreposage: newPiece.Lieuentreposage || "",
-        QtéenInventaire: newPiece.QtéenInventaire ?? 0,
-        Qtéminimum: newPiece.Qtéminimum ?? 0,
-        Qtémax: newPiece.Qtémax ?? 100,
-        Prix_unitaire: newPiece.Prix_unitaire ?? 0,
-        Soumission_LD: newPiece.Soumission_LD || "",
-        SoumDem: newPiece.SoumDem || ""
+        NomPièce: newPiece.NomPièce.trim(),
+        DescriptionPièce: newPiece.DescriptionPièce?.trim() || "",
+        NumPièce: newPiece.NumPièce?.trim() || "",
+        RéfFournisseur: newPiece.RéfFournisseur || null,
+        RéfAutreFournisseur: newPiece.RéfAutreFournisseur || null,
+        NumPièceAutreFournisseur: newPiece.NumPièceAutreFournisseur?.trim() || "",
+        RefFabricant: newPiece.RefFabricant || null,
+        Lieuentreposage: newPiece.Lieuentreposage?.trim() || "",
+        QtéenInventaire: parseInt(newPiece.QtéenInventaire) || 0,
+        Qtéminimum: parseInt(newPiece.Qtéminimum) || 0,
+        Qtémax: parseInt(newPiece.Qtémax) || 100,
+        Prix_unitaire: parseFloat(newPiece.Prix_unitaire) || 0,
+        Soumission_LD: newPiece.Soumission_LD?.trim() || "",
+        SoumDem: newPiece.SoumDem?.trim() || ""
       };
 
-      await axios.post(`${API}/pieces`, cleanedPiece);
-      loadData(currentPage);
+      console.log('➕ Création de pièce:', cleanedPiece); // Debug
 
-      // reset form
+      const response = await axios.post(`${API}/pieces`, cleanedPiece);
+      
+      console.log('✅ Pièce créée:', response.data); // Debug
+
+      // Fermer le dialog
+      setIsAddDialogOpen(false);
+      
+      // Reset form
       setNewPiece({
         NomPièce: "",
         DescriptionPièce: "",
@@ -279,11 +306,14 @@ const Dashboard = () => {
         Soumission_LD: "",
         SoumDem: ""
       });
+
+      // Recharger les données
+      await loadData(currentPage, searchTerm);
+      
     } catch (error) {
-      console.error(
-        "Erreur lors de l'ajout:",
-        error.response?.data || error.message
-      );
+      console.error("❌ Erreur lors de l'ajout:", error);
+      console.error("❌ Réponse serveur:", error.response?.data);
+      alert("Erreur lors de l'ajout: " + (error.response?.data?.detail || error.message));
     }
   };
 
@@ -334,29 +364,79 @@ const Dashboard = () => {
     }
   };
 
-  const getStockBadge = (statut) => {
-    switch (statut) {
-      case "critique":
-        return <Badge className="bg-red-500 text-white">Stock Critique</Badge>;
-      case "faible":
-        return <Badge className="bg-yellow-500 text-white">Stock Faible</Badge>;
-      default:
-        return <Badge className="bg-green-500 text-white">Stock OK</Badge>;
-    }
-  };
+  // Fonction de filtrage améliorée
+  const filteredPieces = pieces.filter(piece => {
+    // Filtre de recherche
+    const matchSearch = searchTerm === '' ||
+      piece.NomPièce?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      piece.NumPièce?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      piece.NumPièceAutreFournisseur?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      piece.DescriptionPièce?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Filtre de statut
+    const matchStatut = filters.statut === "tous" || 
+      (filters.statut === "ok" && piece.stockStatus === "ok") ||
+      (filters.statut === "faible" && piece.stockStatus === "faible") ||
+      (filters.statut === "critique" && piece.stockStatus === "critique");
+    
+    // Filtre d'alerte
+    const matchAlerte = filters.alerte === "tous" ||
+      (filters.alerte === "alerte" && piece.QtéenInventaire <= piece.Qtéminimum) ||
+      (filters.alerte === "normal" && piece.QtéenInventaire > piece.Qtéminimum);
+    
+    return matchSearch && matchStatut && matchAlerte;
+  });
 
-  if (loading) {
-    return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <div className="text-xl text-gray-600">Chargement des données...</div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="min-h-screen bg-gray-50">
+   return (
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Actions */}
+        {/* Stats */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">
+                Total Pièces
+              </CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.total_pieces.toLocaleString()}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Stock Critique</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{stats.stock_critique.toLocaleString()}</div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Valeur Stock</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.valeur_stock.toLocaleString('fr-CA', {style: 'currency', currency: 'CAD'})}</div>
+            </CardContent>
+          </Card>
+          <Card
+            className="cursor-pointer hover:shadow-lg transition"
+            onClick={() => navigate("/to-orders")}
+          >
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">À Commander</CardTitle>
+              <Package className="h-4 w-4 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">
+                {stats.pieces_a_commander.toLocaleString()}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+         {/* Actions */}
         <div className="flex justify-end space-x-4 mb-6">
           <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
             <DialogTrigger asChild>
@@ -457,30 +537,21 @@ const Dashboard = () => {
                 </div>
 
                 {/* Fabricant */}
-                  <div className="border-t pt-4">
-                    <Label>Fabricant</Label>
-                    <Select
-                      value={editingPiece.RefFabricant?.toString() || ""}
-                      onValueChange={(value) =>
-                        setEditingPiece({
-                          ...editingPiece,
-                          RefFabricant: value ? parseInt(value) : null
-                        })
-                      }
-                    >
-                      <SelectTrigger>
-                        <SelectValue placeholder="Sélectionner un fabricant" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="">Aucun fabricant</SelectItem>
-                        {fabricants.map((fab) => (
-                          <SelectItem key={fab.RefFabricant} value={fab.RefFabricant.toString()}>
-                            {fab.NomFabricant}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
+                <div className="border-t pt-4">
+                  <Label>Fabricant</Label>
+                  <Select value={newPiece.RefFabricant?.toString() || ""} onValueChange={(value) => setNewPiece({...newPiece, RefFabricant: value ? parseInt(value) : null})}>
+                    <SelectTrigger>
+                      <SelectValue placeholder="Sélectionner un fabricant" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {fabricants.map((fab) => (
+                        <SelectItem key={fab.RefFabricant} value={fab.RefFabricant.toString()}>
+                          {fab.NomFabricant}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 {/* Quantités et stockage */}
                 <div className="border-t pt-4">
@@ -543,183 +614,93 @@ const Dashboard = () => {
           </Dialog>
         </div>
 
-        {/* Stats */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">
-                Total Pièces
-              </CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.total_pieces.toLocaleString()}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Stock Critique</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-red-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-red-600">{stats.stock_critique.toLocaleString()}</div>
-            </CardContent>
-          </Card>
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Valeur Stock</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{stats.valeur_stock.toLocaleString('fr-CA', {style: 'currency', currency: 'CAD'})}</div>
-            </CardContent>
-          </Card>
-          <Card
-            className="cursor-pointer hover:shadow-lg transition"
-            onClick={() => navigate("/to-orders")}
-          >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">À Commander</CardTitle>
-              <Package className="h-4 w-4 text-yellow-500" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
-                {stats.pieces_a_commander.toLocaleString()}
+        {/* Search et Filtres */}
+        <Card className="mb-6 bg-white/90 backdrop-blur-sm border-0 shadow-lg">
+          <CardContent className="p-6">
+            <div className="flex flex-col lg:flex-row gap-4 items-center">
+              <div className="flex-1 relative">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <Input
+                  placeholder="Rechercher par nom ou référence..."
+                  value={searchTerm}
+                  onChange={(e) => setSearchTerm(e.target.value)}
+                  className="pl-10 bg-white/50"
+                />
               </div>
-            </CardContent>
-          </Card>
-        </div>
+              
+              <div className="flex items-center gap-2 text-sm text-slate-600">
+                <span className="font-medium">Filtres:</span>
+                <Select
+                  value={filters.statut}
+                  onValueChange={(value) => setFilters({...filters, statut: value})}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Tous statuts" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tous">Tous statuts</SelectItem>
+                    <SelectItem value="actif">Actif</SelectItem>
+                    <SelectItem value="obsolete">Obsolète</SelectItem>
+                    <SelectItem value="discontinue">Discontinué</SelectItem>
+                  </SelectContent>
+                </Select>
+                
+                <Select
+                  value={filters.alerte}
+                  onValueChange={(value) => setFilters({...filters, alerte: value})}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Tous stocks" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tous">Tous statuts</SelectItem>
+                    <SelectItem value="ok">Stock OK</SelectItem>
+                    <SelectItem value="faible">Stock Faible</SelectItem>
+                    <SelectItem value="critique">Stock Critique</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Search */}
-        <div className="mb-6">
-          <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-400 h-4 w-4" />
-            <Input
-              placeholder="Rechercher une pièce (nom, numéro, description)..."
-              value={searchTerm}
-              onChange={(e) => setSearchTerm(e.target.value)}
-              className="pl-10"
-            />
+        {/* Liste des pièces en grille */}
+        {loading ? (
+           <div className="flex justify-center py-10"><Loader2 className="w-8 h-8 animate-spin text-blue-600"/></div>
+        ) : (
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+            {filteredPieces.map((piece) => {
+              const fournisseur = fournisseurs.find(f => f.RéfFournisseur === piece.RéfFournisseur);
+              const autreFournisseur = fournisseurs.find(f => f.RéfFournisseur === piece.RéfAutreFournisseur);
+              const fabricant = fabricants.find(f => f.RefFabricant === piece.RefFabricant);
+              return (
+                <PieceCard
+                  key={piece.RéfPièce}
+                  piece={piece}
+                  fournisseur={fournisseur}
+                  autreFournisseur={autreFournisseur}
+                  fabricant={fabricant}
+                  onEdit={() => {setEditingPiece(piece); setIsFormOpen(true)}}
+                  onDelete={() => handleDeletePiece(piece.RéfPièce)}
+                  onQuickRemove={() => handleQuickRemove(piece)}
+                />
+              )
+            })}
           </div>
-        </div>
+        )}
 
-        {/* Liste des pièces */}
-        <div className="grid gap-4">
-          {pieces.map((piece) => (
-            <Card key={piece.RéfPièce} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between">
-                  <div className="flex-1">
-                    <div className="flex items-center space-x-4 mb-4">
-                      <div>
-                        <h2 className="font-semibold text-lg flex items-center">
-                          {piece.NomPièce}
-                        </h2>
-                        <h3>
-                          {getStockBadge(piece.statut_stock)}
-                        </h3>
-                        <p className="text-sm text-gray-600">
-                          N° {piece.NumPièce}
-                        </p>
-                        {piece.DescriptionPièce && (
-                          <p className="text-sm text-gray-500 mt-1">{piece.DescriptionPièce}</p>
-                        )}
-                      </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 text-sm">
-                      <div>
-                        <span className="text-gray-500">À commander:</span>
-                        <div className="font-semibold text-yellow-600">{piece.Qtéàcommander}</div>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Inventaire:</span>
-                        <div className="font-semibold text-yellow-600">{piece.QtéenInventaire}</div>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Min:</span>
-                        <div className="font-semibold text-yellow-600">{piece.Qtéminimum}</div>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Emplacement:</span>
-                        <div className="font-semibold">{piece.Lieuentreposage || "Non défini"}</div>
-                      </div>
-                      <div>
-                        <span className="text-gray-500">Prix unitaire:</span>
-                        <div className="font-semibold">{piece.Prix_unitaire.toLocaleString('fr-CA', {style: 'currency', currency: 'CAD'})}</div>
-                      </div>
-                    </div>
-
-                    {/* Fournisseurs - Affichage simplifié */}
-                    {(piece.fournisseur_principal || piece.autre_fournisseur || piece.NomFabricant) && (
-                      <div className="mt-4 pt-4 border-t border-gray-200">
-                        <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
-                          <Users className="h-4 w-4 mr-2" />
-                          Fournisseurs
-                        </h4>
-                        <div className="flex flex-wrap gap-2">
-                          {piece.fournisseur_principal && (
-                            <Badge
-                              variant="outline"
-                              className="text-rio-red border-rio-red"
-                            >
-                              Principal: {
-                                piece.fournisseur_principal.NomFournisseur
-                              }
-                            </Badge>
-                          )}
-                          {piece.autre_fournisseur && (
-                            <Badge variant="outline" className="text-blue-600 border-blue-600">
-                              Autre: {piece.autre_fournisseur.NomFournisseur}
-                            </Badge>
-                          )}
-                          {piece.NomFabricant && (
-                            <Badge variant="outline" className="bg-indigo-600 text-white">
-                              Fabricant: {piece.NomFabricant}
-                            </Badge>
-                          )}
-                        </div>
-                        {piece.NumPièceAutreFournisseur && (
-                          <p className="text-xs text-gray-500 mt-1">
-                            N° autre fournisseur: {piece.NumPièceAutreFournisseur}
-                          </p>
-                        )}
-                      </div>
-                    )}
-                  </div>
-
-                  <div className="flex space-x-2">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => setEditingPiece(piece)}
-                    >
-                      <Edit3 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleQuickRemove(piece)}
-                      disabled={piece.QtéenInventaire <= 0}
-                      className="text-orange-600 hover:text-orange-700 disabled:opacity-50 disabled:cursor-not-allowed"
-                      title="Supprimer 1 unité de l'inventaire"
-                    >
-                      <span className="text-sm font-bold">-</span>
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeletePiece(piece.RéfPièce)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {/* Message si aucune pièce */}
+        {!loading && filteredPieces.length === 0 && (
+          <div className="text-center py-12">
+            <Package className="mx-auto h-12 w-12 text-gray-400" />
+            <h3 className="mt-2 text-sm font-medium text-gray-900">Aucune pièce trouvée</h3>
+            <p className="mt-1 text-sm text-gray-500">
+              {searchTerm || filters.statut !== "tous" || filters.alerte !== "tous" 
+                ? "Essayez de modifier vos filtres de recherche." 
+                : "Commencez par ajouter une nouvelle pièce."}
+            </p>
+          </div>
+        )}
 
         {/* Navigation pagination */}
         <div className="flex justify-center space-x-4 mt-8">
@@ -969,7 +950,8 @@ const Dashboard = () => {
         </Dialog>
       )}
     </div>
-  )
+  );
+};
   
   function App() {
     return (
@@ -987,5 +969,5 @@ const Dashboard = () => {
         </BrowserRouter>
     </div>
   );
-}};
+}
 export default App;

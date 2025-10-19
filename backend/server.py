@@ -347,7 +347,7 @@ def get_stock_status(qty_inventaire: int, qty_minimum: int) -> str:
 
     if qty_inventaire < qty_minimum:
         return "critique"
-    elif qty_inventaire <= qty_minimum:
+    elif qty_inventaire == qty_minimum:
         return "faible"
     else:
         return "ok"
@@ -370,13 +370,13 @@ async def get_historique(conn: asyncpg.Connection = Depends(get_db_connection)):
     rows = await conn.fetch('SELECT * FROM "historique" ORDER BY "id" DESC')
     return [HistoriqueResponse(**dict(r)) for r in rows]
 
-@api_router.get("/historique", response_model=List[HistoriqueResponse])
-async def get_historique(refpiece: Optional[int] = None, conn: asyncpg.Connection = Depends(get_db_connection)):
-        if refpiece is not None:
-            rows = await conn.fetch('SELECT * FROM "historique" WHERE "RéfPièce" = $1 ORDER BY "id" DESC', refpiece)
-        else:
-            rows = await conn.fetch('SELECT * FROM "historique" ORDER BY "id" DESC')
-        return [HistoriqueResponse(**dict(r)) for r in rows]
+@api_router.get("/historique/{piece_id}", response_model=List[HistoriqueResponse])
+async def get_historique(piece_id: Optional[int] = None, conn: asyncpg.Connection = Depends(get_db_connection)):
+    rows = await conn.fetch(
+        'SELECT * FROM "historique" WHERE "RéfPièce" = $1 ORDER BY "id" DESC',
+        piece_id
+        )
+    return [HistoriqueResponse(**dict(row)) for row in rows]
 
 
 @api_router.post("/historique", response_model=HistoriqueResponse)
