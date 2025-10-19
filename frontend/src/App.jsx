@@ -293,85 +293,32 @@ const Dashboard = () => {
       alert("Impossible de déterminer la pièce à mettre à jour.");
       return;
     }
+    
     try {
-      // Préparation d'une copie propre (profond) pour nettoyage
-      const {
-        RéfPièce,
-        NomPièce,
-        DescriptionPièce,
-        NumPièce,
-        RéfFournisseur,
-        RéfAutreFournisseur,
-        NumPièceAutreFournisseur,
-        RefFabricant,
-        Lieuentreposage,
-        QtéenInventaire,
-        Qtéminimum,
-        Qtémax,
-        Prix_unitaire,
-        Soumission_LD,
-        SoumDem
-      } = editingPiece;
-
-      // Pour éviter d'envoyer des valeurs vides/littérales dans la DB, s'assurer des types corrects et defaults même si "" dans formulaire
+      // Préparer les données à envoyer (uniquement les champs modifiables)
       const dataToSend = {
-        NomPièce: NomPièce || "",
-        DescriptionPièce: DescriptionPièce || "",
-        NumPièce: NumPièce || "",
-        RéfFournisseur:
-          RéfFournisseur === "" || RéfFournisseur === null
-            ? null
-            : Number(RéfFournisseur),
-        RéfAutreFournisseur:
-          RéfAutreFournisseur === "" || RéfAutreFournisseur === null
-            ? null
-            : Number(RéfAutreFournisseur),
-        NumPièceAutreFournisseur: NumPièceAutreFournisseur || "",
-        RefFabricant:
-          RefFabricant === "" || RefFabricant === null
-            ? null
-            : Number(RefFabricant),
-        Lieuentreposage: Lieuentreposage || "",
-        QtéenInventaire:
-          QtéenInventaire === "" || QtéenInventaire === undefined || isNaN(QtéenInventaire)
-            ? 0
-            : Number(QtéenInventaire),
-        Qtéminimum:
-          Qtéminimum === "" || Qtéminimum === undefined || isNaN(Qtéminimum)
-            ? 0
-            : Number(Qtéminimum),
-        Qtémax:
-          Qtémax === "" || Qtémax === undefined || isNaN(Qtémax)
-            ? 100
-            : Number(Qtémax),
-        Prix_unitaire:
-          Prix_unitaire === "" || Prix_unitaire === undefined || isNaN(Prix_unitaire)
-            ? 0
-            : Number(Prix_unitaire),
-        Soumission_LD: Soumission_LD || "",
-        SoumDem: SoumDem || ""
+        NomPièce: editingPiece.NomPièce || "",
+        DescriptionPièce: editingPiece.DescriptionPièce || "",
+        NumPièce: editingPiece.NumPièce || "",
+        RéfFournisseur: editingPiece.RéfFournisseur || null,
+        RéfAutreFournisseur: editingPiece.RéfAutreFournisseur || null,
+        NumPièceAutreFournisseur: editingPiece.NumPièceAutreFournisseur || "",
+        RefFabricant: editingPiece.RefFabricant || null,
+        Lieuentreposage: editingPiece.Lieuentreposage || "",
+        QtéenInventaire: parseInt(editingPiece.QtéenInventaire) || 0,
+        Qtéminimum: parseInt(editingPiece.Qtéminimum) || 0,
+        Qtémax: parseInt(editingPiece.Qtémax) || 100,
+        Prix_unitaire: parseFloat(editingPiece.Prix_unitaire) || 0,
+        Soumission_LD: editingPiece.Soumission_LD || "",
+        SoumDem: editingPiece.SoumDem || ""
       };
 
-      // Suppression des champs parasites qui ne doivent pas être updatés (backend)
-      // (envoie explicitement que ce qui doit l'être)
-      // (Ignorer les clés calculées ou presentation-only)
-      // RéfPièce n'est pas obligatoire dans le body si envoyé en URL
-      // Il est préférable de NE PAS faire ...editingPiece mais uniquement le body attendu
-
-      await axios.put(`${API}/pieces/${RéfPièce}`, dataToSend);
+      await axios.put(`${API}/pieces/${editingPiece.RéfPièce}`, dataToSend);
       setEditingPiece(null);
       loadData(currentPage);
     } catch (error) {
-      console.error(
-        "Erreur lors de la mise à jour:",
-        error.response?.data || error.message
-      );
-      alert(
-        "Erreur: " +
-          (error.response?.data?.detail ||
-            error.response?.data?.message ||
-            error.message)
-      );
+      console.error("Erreur lors de la mise à jour:", error.response?.data || error.message);
+      alert("Erreur: " + (error.response?.data?.detail || error.response?.data?.message || error.message));
     }
   };
 
@@ -510,29 +457,30 @@ const Dashboard = () => {
                 </div>
 
                 {/* Fabricant */}
-                <div className="border-t pt-4">
-                  <Label>Fabricant</Label>
-                  <Select
-                    value={newPiece.RefFabricant?.toString() || ""}
-                    onValueChange={(value) =>
-                      setNewPiece({
-                        ...newPiece,
-                        RefFabricant: value ? parseInt(value) : null
-                      })
-                    }
-                  >
-                    <SelectTrigger>
-                      <SelectValue placeholder="Sélectionner un fabricant" />
-                    </SelectTrigger>
-                    <SelectContent>
-                      {fabricants.map((fab) => (
-                        <SelectItem key={fab.RefFabricant} value={fab.RefFabricant.toString()}>
-                          {fab.NomFabricant}
-                        </SelectItem>
-                      ))}
-                    </SelectContent>
-                  </Select>
-                </div>
+                  <div className="border-t pt-4">
+                    <Label>Fabricant</Label>
+                    <Select
+                      value={editingPiece.RefFabricant?.toString() || ""}
+                      onValueChange={(value) =>
+                        setEditingPiece({
+                          ...editingPiece,
+                          RefFabricant: value ? parseInt(value) : null
+                        })
+                      }
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Sélectionner un fabricant" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="">Aucun fabricant</SelectItem>
+                        {fabricants.map((fab) => (
+                          <SelectItem key={fab.RefFabricant} value={fab.RefFabricant.toString()}>
+                            {fab.NomFabricant}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
 
                 {/* Quantités et stockage */}
                 <div className="border-t pt-4">
@@ -1020,7 +968,9 @@ const Dashboard = () => {
           </DialogContent>
         </Dialog>
       )}
-    };
+    </div>
+  )
+  
   function App() {
     return (
       <div className="App">
@@ -1037,5 +987,5 @@ const Dashboard = () => {
         </BrowserRouter>
     </div>
   );
-
+}};
 export default App;
