@@ -575,7 +575,6 @@ async def get_stats(conn: asyncpg.Connection = Depends(get_db_connection)):
                   AND "QtéenInventaire" < "Qtéminimum"
                   AND "Qtéminimum" > 0
                   AND "Qtéminimum" IS NOT NULL
-                  AND "Qtéàcommander" > 0 
                   '''
             ) or 0
 
@@ -1229,7 +1228,6 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
                  AND p."QtéenInventaire" < p."Qtéminimum"
                  AND p."Qtéminimum" > 0
                  AND p."Qtéminimum" IS NOT NULL
-                 AND p."Qtéàcommander" > 0
             ''')
 
             result = []

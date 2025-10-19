@@ -1,13 +1,8 @@
-2025-10-18 18:34:54,856 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
-2025-10-18 18:34:54,902 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
-2025-10-18 18:34:54,945 - uvicorn.error - INFO - Started server process [64504]
-2025-10-18 18:34:54,945 - uvicorn.error - INFO - Waiting for application startup.
-2025-10-18 18:34:55,023 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2025-10-18 18:34:55,034 - Inventaire-Robot - INFO - \u2705 18 équipements trouvés
-2025-10-18 18:34:55,038 - uvicorn.error - INFO - Application startup complete.
-2025-10-18 18:34:55,039 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-2025-10-18 19:12:53,137 - uvicorn.error - INFO - Shutting down
-2025-10-18 19:12:53,258 - uvicorn.error - INFO - Waiting for application shutdown.
-2025-10-18 19:12:53,266 - Inventaire-Robot - INFO - Pool PostgreSQL fermé.
-2025-10-18 19:12:53,267 - uvicorn.error - INFO - Application shutdown complete.
-2025-10-18 19:12:53,268 - uvicorn.error - INFO - Finished server process [64504]
+2025-10-19 08:18:07,024 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
+2025-10-19 08:18:07,125 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
+2025-10-19 08:18:07,176 - uvicorn.error - INFO - Started server process [32920]
+2025-10-19 08:18:07,177 - uvicorn.error - INFO - Waiting for application startup.
+2025-10-19 08:18:07,232 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2025-10-19 08:18:07,254 - Inventaire-Robot - INFO - \u2705 18 équipements trouvés
+2025-10-19 08:18:07,269 - uvicorn.error - INFO - Application startup complete.
+2025-10-19 08:18:07,270 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
