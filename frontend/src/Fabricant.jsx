@@ -19,6 +19,22 @@ function Fabricant() {
   const [currentPage, setCurrentPage] = useState(0);
   const [editingFabricant, setEditingFabricant] = useState(null);
   const [isAddFabricantOpen, setIsAddFabricantOpen] = useState(false);
+  const filteredFabricants = fabricants.filter(f => {
+    const searchLower = searchTerm.toLowerCase();
+    
+    // Recherche dans le nom
+    const matchNom = f.NomFabricant?.toLowerCase().includes(searchLower);
+    
+    // Recherche dans le domaine
+    const matchDomaine = f.Domaine?.toLowerCase().includes(searchLower);
+    
+    // Recherche dans le contact
+    const matchContact = f.NomContact?.toLowerCase().includes(searchLower);
+    const matchTitre = f.TitreContact?.toLowerCase().includes(searchLower);
+    const matchEmail = f.Email?.toLowerCase().includes(searchLower);
+    
+    return matchNom || matchDomaine || matchContact || matchTitre || matchEmail;
+  });
   const [NewFabricant, setNewFabricant] = useState({
     NomFabricant: "",
     NomContact: "",
@@ -45,6 +61,7 @@ function Fabricant() {
   const loadFabricant = async () => {
     try {
       const res = await axios.get(`${API}/fabricant`);
+      console.log("📦 Fabricants chargés:", res.data); // DEBUG
       setFabricant(res.data || []);
     } catch (error) {
       console.error("Erreur chargement fabricant:", error);
@@ -83,6 +100,17 @@ function Fabricant() {
         {/* Header avec bouton */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">Fabricant</h2>
+          {/* Liste des Fabricants */}
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                {fabricant.map((f) => (
+                  <FabricantCard
+                    key={f.RefFabricant}
+                    fabricant={f}
+                    onEdit={() => setEditingFabricant(f)}
+                    onDelete={() => handleDeleteFabricant(f.RefFabricant)}
+                  />
+                ))}
+              </div>
             <Dialog open={isAddFabricantOpen} onOpenChange={setIsAddFabricantOpen}>
               <DialogTrigger asChild>
                 <Button onClick={() => setOpenAdd(true)} className="bg-rio-red hover:bg-rio-red-dark">

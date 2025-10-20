@@ -23,6 +23,34 @@ function Fournisseurs() {
   const [editingFournisseur, setEditingFournisseur] = useState(null);
   const [managingContactsFor, setManagingContactsFor] = useState(null);
   const [isEditFournisseurOpen, setIsEditFournisseurOpen] = useState(false);
+  const filteredFournisseurs = fournisseurs.filter(f => {
+    const searchLower = searchTerm.toLowerCase();
+    
+    // Recherche dans le nom du fournisseur
+    const matchNom = f.NomFournisseur?.toLowerCase().includes(searchLower);
+    
+    // Recherche dans l'adresse
+    const matchAdresse = f.Adresse?.toLowerCase().includes(searchLower);
+    const matchVille = f.Ville?.toLowerCase().includes(searchLower);
+    
+    // Recherche dans le téléphone
+    const matchTel = f.NuméroTél?.toLowerCase().includes(searchLower);
+    
+    // Recherche dans les produits et marques
+    const matchProduit = f.Produit?.toLowerCase().includes(searchLower);
+    const matchMarque = f.Marque?.toLowerCase().includes(searchLower);
+    
+    // Recherche dans les contacts
+    const matchContacts = f.contacts?.some(contact => 
+      contact.Nom?.toLowerCase().includes(searchLower) ||
+      contact.Email?.toLowerCase().includes(searchLower) ||
+      contact.Telephone?.toLowerCase().includes(searchLower) ||
+      contact.Titre?.toLowerCase().includes(searchLower)
+    );
+  
+  return matchNom || matchAdresse || matchVille || matchTel || 
+        matchProduit || matchMarque || matchContacts;
+});
   const [editedFournisseur, setEditedFournisseur] = useState({
     NomFournisseur: "",
     Adresse: "",
@@ -67,6 +95,7 @@ function Fournisseurs() {
   const loadFournisseurs = async () => {
     try {
       const res = await axios.get(`${API}/fournisseurs`);
+      console.log("🏢 Fournisseurs chargés:", res.data); // DEBUG
       setFournisseurs(res.data || []);
     } catch (error) {
       console.error("Erreur chargement fournisseurs:", error);
@@ -181,6 +210,33 @@ function Fournisseurs() {
         {/* Header avec bouton */}
         <div className="flex justify-between items-center mb-6">
           <h2 className="text-xl font-semibold">Fournisseurs</h2>
+          {!loading && !error && filteredFournisseurs.length === 0 && (
+            <div className="text-center py-12">
+              <div className="mx-auto w-24 h-24 mb-4 text-slate-300">
+                <Search className="w-full h-full" />
+              </div>
+              <h3 className="text-lg font-semibold text-slate-900 mb-2">
+                Aucun fournisseur trouvé
+              </h3>
+              <p className="text-slate-600">
+                {searchTerm 
+                  ? `Aucun résultat pour "${searchTerm}"`
+                  : "Commencez par ajouter un fournisseur"}
+              </p>
+            </div>
+          )}
+          {/* Liste des fournisseurs */}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+            {fournisseurs.map((f) => (
+              <FournisseurCard
+                key={f.RéfFournisseur}
+                fournisseur={f}
+                onEdit={() => openEditFournisseur(f)}
+                onDelete={() => handleDeleteFournisseur(f.RéfFournisseur)}
+                onManageContacts={() => setManagingContactsFor(f)}
+              />
+            ))}
+          </div>
           <Dialog open={isAddFournisseurOpen} onOpenChange={setIsAddFournisseurOpen}>
             <DialogTrigger asChild>
               <Button className="bg-rio-red hover:bg-rio-red-dark">Ajouter fournisseur</Button>
