@@ -123,6 +123,28 @@ const Dashboard = () => {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingPiece, setEditingPiece] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const filteredPieces = pieces.filter(piece => {
+    // Filtre de recherche
+    const matchSearch = searchTerm === '' ||
+      piece.NomPièce?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      piece.NumPièce?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      piece.NumPièceAutreFournisseur?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      piece.DescriptionPièce?.toLowerCase().includes(searchTerm.toLowerCase());
+    
+    // Filtre de statut
+    const matchStatut = filters.statut === "tous" || 
+      (filters.statut === "ok" && piece.stockStatus === "ok") ||
+      (filters.statut === "faible" && piece.stockStatus === "faible") ||
+      (filters.statut === "critique" && piece.stockStatus === "critique");
+    
+    // Filtre d'alerte
+    const matchAlerte = filters.alerte === "tous" ||
+      (filters.alerte === "alerte" && piece.QtéenInventaire <= piece.Qtéminimum) ||
+      (filters.alerte === "normal" && piece.QtéenInventaire > piece.Qtéminimum);
+    
+    return matchSearch && matchStatut && matchAlerte;
+  });
+  
   const [filters, setFilters] = useState({
     statut: "tous",
     alerte: "tous"
@@ -364,28 +386,7 @@ const Dashboard = () => {
     }
   };
 
-  // Fonction de filtrage améliorée
-  const filteredPieces = pieces.filter(piece => {
-    // Filtre de recherche
-    const matchSearch = searchTerm === '' ||
-      piece.NomPièce?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      piece.NumPièce?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      piece.NumPièceAutreFournisseur?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      piece.DescriptionPièce?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // Filtre de statut
-    const matchStatut = filters.statut === "tous" || 
-      (filters.statut === "ok" && piece.stockStatus === "ok") ||
-      (filters.statut === "faible" && piece.stockStatus === "faible") ||
-      (filters.statut === "critique" && piece.stockStatus === "critique");
-    
-    // Filtre d'alerte
-    const matchAlerte = filters.alerte === "tous" ||
-      (filters.alerte === "alerte" && piece.QtéenInventaire <= piece.Qtéminimum) ||
-      (filters.alerte === "normal" && piece.QtéenInventaire > piece.Qtéminimum);
-    
-    return matchSearch && matchStatut && matchAlerte;
-  });
+
 
    return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
