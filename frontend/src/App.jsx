@@ -1,11 +1,5 @@
-import React, { useState, useEffect, useCallback } from "react";
+import React, { useState, useEffect } from "react";
 import "./App.css";
-import ToOrders from "./ToOrders";
-import Fournisseurs from "./Fournisseur";
-import Fabricant from "./Fabricant";
-import Historique from "./Historique";
-import Receptions from "./Receptions";
-import { BrowserRouter, Routes, Route, Link, useLocation } from "react-router-dom";
 import axios from "axios";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
@@ -22,98 +16,7 @@ import { PieceCard } from "@/components/inventaire/PieceCard";
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-const Navigation = () => {
-  const location = useLocation();
-
-  return (
-    <header className="bg-white shadow-sm border-b border-gray-200">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div className="flex justify-between items-center py-6">
-          <div className="flex items-center space-x-8">
-            <div className="flex items-center space-x-4">
-              <Package className="h-8 w-8 text-rio-red" />
-              <div>
-                <h1 className="text-2xl font-bold text-gray-900">Inventaire Robots</h1>
-                <p className="text-sm text-gray-600">Maintenance</p>
-              </div>
-            </div>
-
-            <nav className="flex space-x-6">
-              <Link
-                to="/"
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  location.pathname === '/'
-                    ? 'bg-rio-red text-white'
-                    : 'text-gray-600 hover:text-rio-red hover:bg-gray-50'
-                }`}
-              >
-                <Package className="h-4 w-4 inline mr-2" />
-                Inventaire
-              </Link>
-              <Link
-                to="/fournisseurs"
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  location.pathname === '/fournisseurs'
-                    ? 'bg-rio-red text-white'
-                    : 'text-gray-600 hover:text-rio-red hover:bg-gray-50'
-                }`}
-              >
-                <Store className="h-4 w-4 inline mr-2" />
-                Fournisseurs
-              </Link>
-              <Link
-                to="/fabricant"
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  location.pathname === '/fabricant'
-                    ? 'bg-rio-red text-white'
-                    : 'text-gray-600 hover:text-rio-red hover:bg-gray-50'
-                }`}
-              >
-                <Cog className="h-4 w-4 inline mr-2" />
-                Fabricant
-              </Link>
-              <Link
-                to="/to-orders"
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  location.pathname === '/to-orders'
-                    ? 'bg-rio-red text-white'
-                    : 'text-gray-600 hover:text-rio-red hover:bg-gray-50'
-                }`}
-              >
-                <Package className="h-4 w-4 inline mr-2" />
-                Commander
-              </Link>
-              <Link
-                to="/receptions"
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  location.pathname === '/receptions'
-                    ? 'bg-rio-red text-white'
-                    : 'text-gray-600 hover:text-rio-red hover:bg-gray-50'
-                }`}
-              >
-                <Package className="h-4 w-4 inline mr-2" />
-                Réceptions
-              </Link>
-              <Link
-                to="/historique"
-                className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
-                  location.pathname === '/historique'
-                    ? 'bg-rio-red text-white'
-                    : 'text-gray-600 hover:text-rio-red hover:bg-gray-50'
-                }`}
-              >
-                <FileText className="h-4 w-4 inline mr-2" />
-                Historique
-              </Link>
-            </nav>
-          </div>
-        </div>
-      </div>
-    </header>
-  );
-};
-
-const Dashboard = () => {
+function Dashboard () {
   const [pieces, setPieces] = useState([]);
   const navigate = useNavigate();
   const [fournisseurs, setFournisseurs] = useState([]);
@@ -952,23 +855,5 @@ const Dashboard = () => {
       )}
     </div>
   );
-};
-  
-  function App() {
-    return (
-      <div className="App">
-        <BrowserRouter>
-          <Navigation />
-          <Routes>
-            <Route path="/" element={<Dashboard />} />
-            <Route path="/fournisseurs" element={<Fournisseurs />} />
-            <Route path="/fabricant" element={<Fabricant />} />
-            <Route path="/to-orders" element={<ToOrders />} />
-            <Route path="/receptions" element={<Receptions />} />
-            <Route path="/historique" element={<Historique />} />
-          </Routes>
-        </BrowserRouter>
-    </div>
-  );
 }
-export default App;
+export default Dashboard;
