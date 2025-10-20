@@ -7,6 +7,8 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import axios from "axios";
 import { Plus, Package, Edit3, Trash2, AlertTriangle, TrendingUp, Search, Users, Building, DollarSign, FileText, Phone, MapPin } from "lucide-react"
 import { Textarea } from "./components/ui/textarea";
+import FabricantCard from "./components/fabricants/FabricantCard";
+import FabricantFormDialog from "./components/fabricants/FabricantFormDialog";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -15,6 +17,7 @@ function Fabricant() {
   const [fabricant, setFabricant] = useState([]);
   const [openAdd, setOpenAdd] = useState(false);
   const [currentPage, setCurrentPage] = useState(0);
+  const [editingFabricant, setEditingFabricant] = useState(null);
   const [isAddFabricantOpen, setIsAddFabricantOpen] = useState(false);
   const [NewFabricant, setNewFabricant] = useState({
     NomFabricant: "",
@@ -29,6 +32,15 @@ function Fabricant() {
     loadFabricant();
   }, []);
 
+  const handleUpdateFabricant = async (formData) => {
+    try {
+      await axios.put(`${API}/fabricant/${editingFabricant.RefFabricant}`, formData);
+      setEditingFabricant(null);
+      loadFabricant();
+    } catch (error) {
+      console.error("Erreur modification fabricant:", error);
+    }
+  };
 
   const loadFabricant = async () => {
     try {
@@ -135,47 +147,20 @@ function Fabricant() {
         </div>
 
         {/* Liste des Fabricant */}
-        <div className="grid gap-4">
-          {fabricant.map((f) => (
-            <Card key={f.RefFabricant} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-center space-x-4">
-                  {f.Domaine ? (
-                    <img
-                      src={`https://logo.clearbit.com/${f.Domaine}`}
-                      alt={f.NomFournisseur}
-                      className="h-10 w-10 rounded"
-                      onError={(e) => { e.target.src = "/logos/default.png"; }}
-                    />
-                  ) : (
-                    <Building className="h-10 w-10 text-rio-red" />
-                  )}
-      
-                  <div className="flex-1">
-                    <h3 className="font-semibold text-lg">{f.NomFabricant}</h3>
-                      {f.NomContact && (
-                        <p className="text-gray-600">{f.NomContact} {f.TitreContact && `- ${f.TitreContact}`}</p>
-                        )}
-                    <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                    </div>
-                  </div>
+        {isAddFabricantOpen && (
+          <FabricantFormDialog
+            onSave={handleAddFabricant}
+            onCancel={() => setIsAddFabricantOpen(false)}
+          />
+        )}
 
-                  <div className="flex space-x-2">
-                      <Button
-                        variant="outline"
-                        size="sm"
-                        onClick={() => handleDeleteFabricant(f.RefFabricant)}
-                        className="text-red-600 hover:text-red-700"
-                      >
-                        <Trash2 className="h-4 w-4" />
-                        </Button>
-                    
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {editingFabricant && (
+          <FabricantFormDialog
+            fabricant={editingFabricant}
+            onSave={handleUpdateFabricant}
+            onCancel={() => setEditingFabricant(null)}
+          />
+        )}
       </div>
      </div>
   );

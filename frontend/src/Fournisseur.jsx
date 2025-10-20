@@ -7,6 +7,9 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogT
 import axios from "axios";
 import { Building2, Trash2, Phone, MapPin, Edit3 } from "lucide-react";
 import { Textarea } from "./components/ui/textarea";
+import FournisseurCard from "./components/fournisseurs/FournisseurCard";
+import FournisseurFormDialog from "./components/fournisseurs/FournisseurFormDialog";
+import ContactManagerDialog from "./components/fournisseurs/ContactManagerDialog";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -18,6 +21,7 @@ function Fournisseurs() {
   const [isEditContactOpen, setIsEditContactOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingFournisseur, setEditingFournisseur] = useState(null);
+  const [managingContactsFor, setManagingContactsFor] = useState(null);
   const [isEditFournisseurOpen, setIsEditFournisseurOpen] = useState(false);
   const [editedFournisseur, setEditedFournisseur] = useState({
     NomFournisseur: "",
@@ -70,21 +74,9 @@ function Fournisseurs() {
   };
 
   // Ajouter un fournisseur
-  const handleAddFournisseur = async () => {
+  const handleAddFournisseur = async (formData) => {
     try {
-      await axios.post(`${API}/fournisseurs`, NewFournisseur);
-      setNewFournisseur({
-        NomFournisseur: "",
-        Adresse: "",
-        Ville: "",
-        CodePostal: "",
-        Pays: "",
-        NuméroTél: "",
-        Domaine: "",
-        Produit: "",
-        Marque: "",
-        NumSap: ""
-      });
+      await axios.post(`${API}/fournisseurs`, formData);
       setIsAddFournisseurOpen(false);
       loadFournisseurs();
     } catch (error) {
@@ -129,14 +121,29 @@ function Fournisseurs() {
   };
 
   // Modifier un fournisseur
-  const handleUpdateFournisseur = async () => {
+  const handleUpdateFournisseur = async (formData) => {
     try {
-      await axios.put(`${API}/fournisseurs/${editingFournisseur.RéfFournisseur}`, editingFournisseur);
-      setIsEditFournisseurOpen(false);
+      await axios.put(`${API}/fournisseurs/${editingFournisseur.RéfFournisseur}`, formData);
       setEditingFournisseur(null);
+      setIsEditFournisseurOpen(false);
       loadFournisseurs();
     } catch (error) {
       console.error("Erreur modification fournisseur:", error);
+    }
+  };
+
+  const handleSaveContact = async (contactData) => {
+    try {
+      if (contactData.RéfContact) {
+        // Modifier
+        await axios.put(`${API}/contacts/${contactData.RéfContact}`, contactData);
+      } else {
+        // Ajouter
+        await axios.post(`${API}/contacts`, contactData);
+      }
+      loadFournisseurs();
+    } catch (error) {
+      console.error("Erreur sauvegarde contact:", error);
     }
   };
 
@@ -242,115 +249,36 @@ function Fournisseurs() {
         </div>
 
         {/* Liste des fournisseurs */}
-        <div className="grid gap-4">
-          {fournisseurs.map((f) => (
-            <Card key={f.RéfFournisseur} className="hover:shadow-md transition-shadow">
-              <CardContent className="p-6">
-                <div className="flex items-start justify-between mb-4">
-                  <div className="flex items-center space-x-4">
-                    {f.Domaine ? (
-                      <img
-                        src={`https://logo.clearbit.com/${f.Domaine}`}
-                        alt={f.NomFournisseur}
-                        className="h-10 w-10 rounded"
-                        onError={(e) => { e.target.src = "/logos/default.png"; }}
-                      />
-                    ) : (
-                      <Building2 className="h-10 w-10 text-rio-red" />
-                    )}
-    
-                    <div className="flex-1">
-                      <h3 className="font-semibold text-lg">{f.NomFournisseur}</h3>
-                    </div>
-                  </div>
-                  
-                  <div className="flex space-x-2">
-                    <Button 
-                      variant="outline" size="sm" onClick={() => openEditFournisseur(f)}>
-                      <Edit3 className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      onClick={() => handleDeleteFournisseur(f.RéfFournisseur)}
-                      className="text-red-600 hover:text-red-700"
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-                
-                <div className="mt-2 grid grid-cols-2 md:grid-cols-4 gap-4 text-sm">
-                  {f.NuméroTél && (
-                    <div className="flex items-center">
-                      <Phone className="h-4 w-4 mr-2 text-gray-500" />
-                      <span>{f.NuméroTél}</span>
-                    </div>
-                  )}
-                  {f.Ville && (
-                    <div className="flex items-center">
-                      <MapPin className="h-4 w-4 mr-2 text-gray-500" />
-                      <span>{f.Ville}, {f.Pays}</span>
-                    </div>
-                  )}
-                  {f.Domaine && (
-                    <div>
-                      <span className="text-gray-500">Domaine:</span>
-                      <div className="font-medium">{f.Domaine}</div>
-                    </div>
-                  )}
-                  {f.Produit && (
-                    <div>
-                      <span className="text-gray-500">Produit:</span>
-                      <div className="font-medium">{f.Produit}</div>
-                    </div>
-                  )}
-                  {f.Marque && (
-                    <div>
-                      <span className="text-gray-500">Marque:</span>
-                      <div className="font-medium">{f.Marque}</div>
-                    </div>
-                  )}
-                  {f.NumSap && (
-                    <div>
-                      <span className="text-gray-500">SAP:</span>
-                      <div className="font-medium">{f.NumSap}</div>
-                    </div>
-                  )}
-                  {f.Adresse && (
-                    <div className="col-span-2">
-                      <span className="text-gray-500">Adresse:</span>
-                      <div>{f.Adresse}</div>
-                    </div>
-                  )}
-                </div>
+        {/* Dialogs */}
+        {isAddFournisseurOpen && (
+          <FournisseurFormDialog
+            onSave={(formData) => {
+              handleAddFournisseur(formData);
+              setIsAddFournisseurOpen(false);
+            }}
+            onCancel={() => setIsAddFournisseurOpen(false)}
+          />
+        )}
 
-                {/* Contacts */}
-                {f.contacts && f.contacts.length > 0 && (
-                  <div className="mt-4">
-                    <h4 className="font-medium">Contacts</h4>
-                    <ul className="text-sm text-gray-600 space-y-2">
-                      {f.contacts.map((c) => (
-                        <li key={c.RéfContact} className="flex justify-between items-center">
-                          <span>
-                            {c.Nom} {c.Titre && `(${c.Titre})`} - {c.Email} - {c.Telephone}
-                          </span>
-                          <div className="flex space-x-2">
-                            <Button variant="outline" size="sm" onClick={() => openEditContact(c)}>Modifier</Button>
-                            <Button variant="outline" size="sm" className="text-red-600 hover:text-red-700" onClick={() => handleDeleteContact(c.RéfContact)}>Supprimer</Button>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  </div>
-                )}
-                <Button variant="outline" size="sm" className="mt-2" onClick={() => openAddContact(f.RéfFournisseur)}>
-                  Ajouter Contact
-                </Button>
-              </CardContent>
-            </Card>
-          ))}
-        </div>
+        {isEditFournisseurOpen && editingFournisseur && (
+          <FournisseurFormDialog
+            fournisseur={editingFournisseur}
+            onSave={(formData) => {
+              handleUpdateFournisseur(formData);
+              setIsEditFournisseurOpen(false);
+            }}
+            onCancel={() => setIsEditFournisseurOpen(false)}
+          />
+        )}
+
+        {managingContactsFor && (
+          <ContactManagerDialog
+            fournisseur={managingContactsFor}
+            onSaveContact={handleSaveContact}
+            onDeleteContact={handleDeleteContact}
+            onCancel={() => setManagingContactsFor(null)}
+          />
+        )}
       </div>
 
       {/* Dialog Ajouter Contact */}
