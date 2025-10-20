@@ -1,25 +1,88 @@
-import React, { useEffect, useState } from "react";
-import { Card, CardContent } from "./components/ui/card";
-import { Button } from "./components/ui/button";
-import { Label } from "./components/ui/label";
-import { Input } from "./components/ui/input";
-import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./components/ui/dialog";
-import axios from "axios";
-import { Plus, Package, Edit3, Trash2, AlertTriangle, TrendingUp, Search, Users, Building, DollarSign, FileText, Phone, MapPin } from "lucide-react"
-import { Textarea } from "./components/ui/textarea";
-import FabricantCard from "./components/fabricants/FabricantCard";
-import FabricantFormDialog from "./components/fabricants/FabricantFormDialog";
+import React, { useState, useEffect, useCallback } from "react";
+import { Button } from "@/components/ui/button";
+import { Plus, Loader2, Factory, Search, X } from "lucide-react";
+import { Input } from "@/components/ui/input";
+import FabricantCard from "@/components/fabricants/FabricantCard";
+import FabricantFormDialog from "@/components/fabricants/FabricantFormDialog";
 
-const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
-const API = `${BACKEND_URL}/api`;
+const API_URL = "http://localhost:8000/api";
 
-function Fabricant() {
-  const [fabricant, setFabricant] = useState([]);
-  const [openAdd, setOpenAdd] = useState(false);
-  const [currentPage, setCurrentPage] = useState(0);
+export default function FabricantsPage() {
+  const [fabricants, setFabricants] = useState([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState(null);
+  const [searchTerm, setSearchTerm] = useState("");
   const [editingFabricant, setEditingFabricant] = useState(null);
-  const [isAddFabricantOpen, setIsAddFabricantOpen] = useState(false);
+  const [isFormOpen, setIsFormOpen] = useState(false);
+
+  const loadFabricants = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await fetch(`${API_URL}/fabricant`);
+      if (!response.ok) throw new Error("Erreur réseau");
+      const data = await response.json();
+      console.log("📦 Fabricants chargés:", data); // DEBUG
+      setFabricants(data || []);
+    } catch (err) {
+      console.error("Erreur chargement fabricants:", err);
+      setError("Impossible de charger les fabricants.");
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadFabricants();
+  }, [loadFabricants]);
+  
+  const handleSave = async (fabricantData) => {
+    try {
+        const url = fabricantData.RefFabricant 
+            ? `${API_URL}/fabricant/${fabricantData.RefFabricant}`
+            : `${API_URL}/fabricant`;
+        
+        const method = fabricantData.RefFabricant ? 'PUT' : 'POST';
+
+        const response = await fetch(url, {
+            method: method,
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(fabricantData)
+        });
+
+        if (!response.ok) throw new Error("La sauvegarde a échoué");
+        
+        setIsFormOpen(false);
+        setEditingFabricant(null);
+        await loadFabricants();
+    } catch (err) {
+      console.error("Erreur sauvegarde:", err);
+      setError(err.message);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce fabricant ?")) {
+      try {
+        const response = await fetch(`${API_URL}/fabricant/${id}`, { method: 'DELETE' });
+        if (!response.ok) throw new Error("La suppression a échoué");
+        await loadFabricants();
+      } catch (err) {
+        console.error("Erreur suppression:", err);
+        setError(err.message);
+      }
+    }
+  };
+
+  const openForm = (fabricant = null) => {
+    setEditingFabricant(fabricant);
+    setIsFormOpen(true);
+  };
+  
+  // Fonction de filtrage améliorée
   const filteredFabricants = fabricants.filter(f => {
+    if (!searchTerm) return true;
+    
     const searchLower = searchTerm.toLowerCase();
     
     // Recherche dans le nom
@@ -35,163 +98,128 @@ function Fabricant() {
     
     return matchNom || matchDomaine || matchContact || matchTitre || matchEmail;
   });
-  const [NewFabricant, setNewFabricant] = useState({
-    NomFabricant: "",
-    NomContact: "",
-    TitreContact: "",
-    Email: ""
-  });
 
-  // Charger toutes les Founisseur au démarrage
-
-  useEffect(() => {
-    loadFabricant();
-  }, []);
-
-  const handleUpdateFabricant = async (formData) => {
-    try {
-      await axios.put(`${API}/fabricant/${editingFabricant.RefFabricant}`, formData);
-      setEditingFabricant(null);
-      loadFabricant();
-    } catch (error) {
-      console.error("Erreur modification fabricant:", error);
-    }
-  };
-
-  const loadFabricant = async () => {
-    try {
-      const res = await axios.get(`${API}/fabricant`);
-      console.log("📦 Fabricants chargés:", res.data); // DEBUG
-      setFabricant(res.data || []);
-    } catch (error) {
-      console.error("Erreur chargement fabricant:", error);
-    }
-  };
-
-  const handleAddFabricant = async () => {
-    try {
-      await axios.post(`${API}/fabricant`, NewFabricant);
-      setNewFabricant({ 
-        NomFabricant: "",
-        NomContact: "",
-        TitreContact: "",
-        Email: ""
-      });
-      setIsAddFabricantOpen(false);
-      loadFabricant(currentPage);
-    } catch (error) {
-      console.error("Erreur ajout fabricant:", error);
-    }
-  };
- // Supprimer un Fabricant
-  const handleDeleteFabricant = async (RefFabricant) => {
-    if (window.confirm("Êtes-vous sûr de vouloir supprimer ce fabricant ?")) {
-      try {
-        await axios.delete(`${API}/fabricant/${RefFabricant}`);
-        loadFabricant(currentPage);
-      } catch (error) {
-        console.error("Erreur lors de la suppression:", error);
-      }
-    }
-  };
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        {/* Header avec bouton */}
-        <div className="flex justify-between items-center mb-6">
-          <h2 className="text-xl font-semibold">Fabricant</h2>
-          {/* Liste des Fabricants */}
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-                {fabricant.map((f) => (
-                  <FabricantCard
-                    key={f.RefFabricant}
+        {/* Header */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div className="flex items-center space-x-4">
+            <Factory className="h-8 w-8 text-blue-600" />
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Fabricants</h1>
+              <p className="text-slate-600">Gérez les fabricants de vos pièces</p>
+            </div>
+          </div>
+          <Button 
+            onClick={() => openForm()} 
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+          >
+            <Plus className="w-4 h-4 mr-2" /> Ajouter un Fabricant
+          </Button>
+        </div>
+        
+        {/* Barre de recherche */}
+        <div className="mb-6 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-4">
+          <div className="relative">
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+            <Input 
+              placeholder="Rechercher un fabricant (nom, domaine, contact, email)..." 
+              value={searchTerm}
+              onChange={e => setSearchTerm(e.target.value)}
+              className="pl-12 pr-10 h-12 text-base bg-white/50"
+            />
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            )}
+          </div>
+          
+          {/* Compteur de résultats */}
+          {searchTerm && (
+            <div className="mt-3 text-sm text-slate-600 flex items-center gap-2">
+              <span className="font-medium">
+                {filteredFabricants.length} résultat{filteredFabricants.length !== 1 ? 's' : ''} trouvé{filteredFabricants.length !== 1 ? 's' : ''}
+              </span>
+              {filteredFabricants.length < fabricants.length && (
+                <span className="text-slate-400">
+                  sur {fabricants.length} fabricant{fabricants.length !== 1 ? 's' : ''}
+                </span>
+              )}
+            </div>
+          )}
+        </div>
+
+        {/* Chargement */}
+        {loading && (
+          <div className="flex justify-center items-center py-20">
+            <Loader2 className="w-12 h-12 animate-spin text-blue-600" />
+          </div>
+        )}
+        
+        {/* Erreur */}
+        {error && (
+          <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
+            <p className="text-red-600 font-medium">{error}</p>
+          </div>
+        )}
+        
+        {/* Grille des fabricants */}
+        {!loading && !error && (
+          <>
+            {filteredFabricants.length > 0 ? (
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+                {filteredFabricants.map(f => (
+                  <FabricantCard 
+                    key={f.RefFabricant} 
                     fabricant={f}
-                    onEdit={() => setEditingFabricant(f)}
-                    onDelete={() => handleDeleteFabricant(f.RefFabricant)}
+                    onEdit={() => openForm(f)}
+                    onDelete={() => handleDelete(f.RefFabricant)}
                   />
                 ))}
               </div>
-            <Dialog open={isAddFabricantOpen} onOpenChange={setIsAddFabricantOpen}>
-              <DialogTrigger asChild>
-                <Button onClick={() => setOpenAdd(true)} className="bg-rio-red hover:bg-rio-red-dark">
-                  Ajouter fabricant
-                </Button>
-              </DialogTrigger>
-              <DialogContent className="max-w-2xl">
-                <DialogHeader>
-                  <DialogTitle>Ajouter un nouveau Fabricant</DialogTitle>
-                 </DialogHeader>
-                 <div className="grid gap-4 py-4 max-h-96 overflow-y-auto">
-                 <div>
-                   <Label>Nom du fabricant</Label>
-                   <Input
-                     value={NewFabricant.NomFabricant}
-                     onChange={(e) => setNewFabricant({...NewFabricant, NomFabricant: e.target.value})}
-                   />
-                 </div>
-                 <div className="grid grid-cols-2 gap-4">
-                   <div>
-                     <Label>Contact</Label>
-                     <Input
-                       value={NewFabricant.NomContact}
-                       onChange={(e) => setNewFabricant({...NewFabricant, NomContact: e.target.value})}
-                     />
-                   </div>
-                   <div>
-                     <Label>Titre</Label>
-                     <Input
-                       value={NewFabricant.TitreContact}
-                       onChange={(e) => setNewFabricant({...NewFabricant, TitreContact: e.target.value})}
-                     />
-                   </div>
-                 </div>
-                 <div>
-                   <Label>Email</Label>
-                   <Input
-                     value={NewFabricant.Email}
-                     onChange={(e) => setNewFabricant({...NewFabricant, Email: e.target.value})}
-                   />
-                 </div>
-                 <div className="grid grid-cols-2 gap-4">
-                   <div>
-                     <Label>Domaine pour logo</Label>
-                     <Input
-                       value={NewFabricant.Domaine}
-                       onChange={(e) => setNewFabricant({...NewFabricant, Domaine: e.target.value})}
-                     />
-                   </div>
-                 </div>
-               </div>
-                <DialogFooter>
-                  <Button variant="outline" onClick={() => setIsAddFabricantOpen(false)}>
-                    Annuler
+            ) : (
+              <div className="text-center py-16 bg-white/60 rounded-lg border-2 border-dashed border-slate-200">
+                <Factory className="mx-auto w-20 h-20 text-slate-300 mb-4" />
+                <h3 className="text-xl font-semibold text-slate-900 mb-2">
+                  {searchTerm ? 'Aucun fabricant trouvé' : 'Aucun fabricant'}
+                </h3>
+                <p className="text-slate-600 mb-4">
+                  {searchTerm 
+                    ? `Aucun résultat pour "${searchTerm}"`
+                    : "Commencez par ajouter votre premier fabricant"}
+                </p>
+                {searchTerm && (
+                  <Button 
+                    variant="outline" 
+                    onClick={() => setSearchTerm('')}
+                    className="mt-2"
+                  >
+                    <X className="w-4 h-4 mr-2" />
+                    Effacer la recherche
                   </Button>
-                  <Button onClick={handleAddFabricant} className="bg-rio-red hover:bg-rio-red-dark">
-                    Ajouter Fabricant
-                  </Button>
-                </DialogFooter>
-              </DialogContent>
-            </Dialog> 
-        </div>
-
-        {/* Liste des Fabricant */}
-        {isAddFabricantOpen && (
-          <FabricantFormDialog
-            onSave={handleAddFabricant}
-            onCancel={() => setIsAddFabricantOpen(false)}
-          />
+                )}
+              </div>
+            )}
+          </>
         )}
 
-        {editingFabricant && (
+        {/* Dialog formulaire */}
+        {isFormOpen && (
           <FabricantFormDialog
             fabricant={editingFabricant}
-            onSave={handleUpdateFabricant}
-            onCancel={() => setEditingFabricant(null)}
+            onSave={handleSave}
+            onCancel={() => {
+              setIsFormOpen(false);
+              setEditingFabricant(null);
+            }}
           />
         )}
       </div>
-     </div>
+    </div>
   );
 }
-
-export default Fabricant;
