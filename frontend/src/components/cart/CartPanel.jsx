@@ -84,6 +84,15 @@ export default function CartPanel({ children }) {
     items.forEach(item => removeFromCart(item.RéfPièce));
   };
 
+  // Dans CartPanel.jsx après envoi email
+  const emailHistory = {
+    date: new Date(),
+    fournisseur: supplier.NomFournisseur,
+    pieces: items,
+    status: 'envoyé'
+  };
+  localStorage.setItem('emailHistory', JSON.stringify([...history, emailHistory]));
+
   return (
     <Sheet>
       <SheetTrigger asChild>
