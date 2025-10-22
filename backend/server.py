@@ -585,7 +585,7 @@ async def get_stats(conn: asyncpg.Connection = Depends(get_db_connection)):
         return StatsResponse(total_pieces=0, stock_critique=0, valeur_stock=0.0, pieces_a_commander=0)
 
 @api_router.get("/pieces", response_model=List[Piece])
-async def get_pieces(limit: int = 50, offset: int = 0, conn: asyncpg.Connection = Depends(get_db_connection), search: Optional[str] = None):
+async def get_pieces(conn: asyncpg.Connection = Depends(get_db_connection), search: Optional[str] = None):
     try:
             base_query = '''
                 SELECT p.*,
@@ -593,8 +593,6 @@ async def get_pieces(limit: int = 50, offset: int = 0, conn: asyncpg.Connection 
                        f1."NomContact" as fournisseur_principal_contact,
                        f1."NuméroTél" as fournisseur_principal_tel,
                        f2."NomAutreFournisseur" as autre_fournisseur_nom,
-                       f2."NomContact" as autre_fournisseur_contact,
-                       f2."NuméroTél" as autre_fournisseur_tel,
                        f3."NomFabricant"
                 FROM "Pièce" p
                 LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
@@ -608,10 +606,6 @@ async def get_pieces(limit: int = 50, offset: int = 0, conn: asyncpg.Connection 
             if search:
                 base_query += ' WHERE (COALESCE(p."NomPièce", \'\') ILIKE $1 OR COALESCE(p."NumPièce", \'\') ILIKE $1 OR COALESCE(p."DescriptionPièce", \'\') ILIKE $1)'
                 params.append(f'%{search}%')
-                param_count = 1
-
-            base_query += f' ORDER BY p."RéfPièce" DESC LIMIT ${param_count + 1} OFFSET ${param_count + 2}'
-            params.extend([limit, offset])
 
             pieces = await conn.fetch(base_query, *params)
 
@@ -648,9 +642,7 @@ async def get_pieces(limit: int = 50, offset: int = 0, conn: asyncpg.Connection 
                 if piece_dict.get("autre_fournisseur_nom"):
                     autre_fournisseur = {
                         "RéfFournisseur": piece_dict.get("RéfAutreFournisseur"),
-                        "NomFournisseur": safe_string(piece_dict.get("autre_fournisseur_nom", "")),
-                        "NomContact": safe_string(piece_dict.get("autre_fournisseur_contact", "")),
-                        "NuméroTél": safe_string(piece_dict.get("autre_fournisseur_tel", ""))
+                        "NomFournisseur": safe_string(piece_dict.get("autre_fournisseur_nom", ""))
                     }
 
                 piece_response = Piece(
@@ -685,8 +677,8 @@ async def get_pieces(limit: int = 50, offset: int = 0, conn: asyncpg.Connection 
         return []
 
 @api_router.get("/pieces/{piece_id}", response_model=Piece)
-async def get_piece(piece_id: int, request: Request):  # ← Changé ici
-    conn = await request.app.state.pool.acquire()  # ← Ajouté
+async def get_piece(piece_id: int, request: Request):
+    conn = await request.app.state.pool.acquire()
     try:
         query = '''
             SELECT p.*,
@@ -694,8 +686,6 @@ async def get_piece(piece_id: int, request: Request):  # ← Changé ici
                    f1."NomContact" as fournisseur_principal_contact,
                    f1."NuméroTél" as fournisseur_principal_tel,
                    f2."NomAutreFournisseur" as autre_fournisseur_nom,
-                   f2."NomContact" as autre_fournisseur_contact,
-                   f2."NuméroTél" as autre_fournisseur_tel,
                    f3."NomFabricant"
             FROM "Pièce" p
             LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
@@ -736,10 +726,8 @@ async def get_piece(piece_id: int, request: Request):  # ← Changé ici
         if piece_dict.get("autre_fournisseur_nom"):
             autre_fournisseur = {
                 "RéfFournisseur": piece_dict.get("RéfAutreFournisseur"),
-                "NomFournisseur": safe_string(piece_dict.get("autre_fournisseur_nom", "")),
-                "NomContact": safe_string(piece_dict.get("autre_fournisseur_contact", "")),
-                "NuméroTél": safe_string(piece_dict.get("autre_fournisseur_tel", ""))
-            }
+                "NomFournisseur": safe_string(piece_dict.get("autre_fournisseur_nom", ""))
+             }
 
         return Piece(
             RéfPièce=piece_dict["RéfPièce"],
@@ -882,8 +870,6 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
                    f1."NomFournisseur" as fournisseur_principal_nom,
                    f1."NomContact" as fournisseur_principal_contact,
                    f1."NuméroTél" as fournisseur_principal_tel,
-                   f2."NomAutreFournisseur" as autre_fournisseur_nom,
-                   f2."NomContact" as autre_fournisseur_contact,
                    f2."NuméroTél" as autre_fournisseur_tel,
                    f3."NomFabricant"
             FROM "Pièce" p
@@ -925,9 +911,7 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
         if piece_dict.get("autre_fournisseur_nom"):
             autre_fournisseur = {
                 "RéfFournisseur": piece_dict.get("RéfAutreFournisseur"),
-                "NomFournisseur": safe_string(piece_dict.get("autre_fournisseur_nom", "")),
-                "NomContact": safe_string(piece_dict.get("autre_fournisseur_contact", "")),
-                "NuméroTél": safe_string(piece_dict.get("autre_fournisseur_tel", ""))
+                "NomFournisseur": safe_string(piece_dict.get("autre_fournisseur_nom", ""))
             }
 
         return Piece(
@@ -1127,7 +1111,7 @@ async def update_fournisseur(RefFournisseur_id: int, fournisseur: FournisseurBas
         print(f"Erreur update_fournisseur: {e}")
         raise HTTPException(status_code=500, detail="Erreur lors de la modification du fournisseur")
 
-@api_router.delete("/fournisseur/{RefFournisseur_id}")
+@api_router.delete("/fournisseurs/{RefFournisseur_id}")
 async def delete_fournisseur(RefFournisseur_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
         result = await conn.execute('DELETE FROM "Fournisseurs" WHERE "RéfFournisseur" = $1', RefFournisseur_id)
         if result == "DELETE 0":

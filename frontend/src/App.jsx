@@ -13,7 +13,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Plus, Package, Loader2, Edit3, Trash2, AlertTriangle, TrendingUp, Search, Users, Building2, DollarSign, FileText, Phone, MapPin, Cog, Store } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { CartProvider } from "@/components/cart/CartContext";
-import { FixedSizeList } from 'react-window';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -32,6 +31,47 @@ function Dashboard () {
     statut: "tous",
     stock: "tous"
   });
+
+    useEffect(() => {
+    // Charger toutes les pièces au démarrage
+    loadData(0, '');
+  }, []);
+
+  const loadData = async (page = 0, search = '') => {
+    try {
+      setLoading(true);
+
+      const cleanedSearch = search.trim();
+      const piecesUrl = cleanedSearch
+        ? `${API}/pieces?limit=20&offset=&search=${encodeURIComponent(cleanedSearch)}`
+        : `${API}/pieces`;
+
+      console.log('🔍 URL appelée:', piecesUrl); // Debug
+
+      const [piecesRes, fournisseursRes, statsRes, fabricantsRes] = await Promise.all([
+        axios.get(piecesUrl),
+        axios.get(`${API}/fournisseurs`),
+        axios.get(`${API}/stats`),
+        axios.get(`${API}/fabricant`),
+      ]);
+
+      console.log('📦 Pièces reçues:', piecesRes.data?.length, 'pièces'); // Debug
+      console.log('📊 Stats:', statsRes.data); // Debug
+
+      setPieces(piecesRes.data || []);
+      setPieces(Array.isArray(piecesRes.data) ? piecesRes.data : []);
+      setFournisseurs(fournisseursRes.data || []);
+      setStats(statsRes.data || { total_pieces: 0, stock_critique: 0, valeur_stock: 0, pieces_a_commander: 0 });
+      setFabricants(fabricantsRes.data || []);
+    } catch (error) {
+      console.error("❌ Erreur lors du chargement:", error);
+      console.error("❌ Détails:", error.response?.data); // Debug
+    } finally {
+      setLoading(false);
+    }
+  };
+
+
   const filteredPieces = pieces.filter(piece => {
     // Filtre de recherche
     const matchSearch = searchTerm === '' ||
@@ -77,43 +117,9 @@ function Dashboard () {
     SoumDem: ""
   });
 
-  useEffect(() => {
-    // Charger toutes les pièces au démarrage
-    loadData(0, '');
-  }, []);
 
-  const loadData = async (page = 0, search = '') => {
-    try {
-      setLoading(true);
 
-      const cleanedSearch = search.trim();
-      const piecesUrl = cleanedSearch
-        ? `${API}/pieces?limit=20&offset=&search=${encodeURIComponent(cleanedSearch)}`
-        : `${API}/pieces`;
-
-      console.log('🔍 URL appelée:', piecesUrl); // Debug
-
-      const [piecesRes, fournisseursRes, statsRes, fabricantsRes] = await Promise.all([
-        axios.get(piecesUrl),
-        axios.get(`${API}/fournisseurs`),
-        axios.get(`${API}/stats`),
-        axios.get(`${API}/fabricant`),
-      ]);
-
-      console.log('📦 Pièces reçues:', piecesRes.data?.length, 'pièces'); // Debug
-      console.log('📊 Stats:', statsRes.data); // Debug
-
-      setPieces(piecesRes.data || []);
-      setFournisseurs(fournisseursRes.data || []);
-      setStats(statsRes.data || { total_pieces: 0, stock_critique: 0, valeur_stock: 0, pieces_a_commander: 0 });
-      setFabricants(fabricantsRes.data || []);
-    } catch (error) {
-      console.error("❌ Erreur lors du chargement:", error);
-      console.error("❌ Détails:", error.response?.data); // Debug
-    } finally {
-      setLoading(false);
-    }
-  };
+  
 
   useEffect(() => {
     // Délai uniquement pour la recherche (pas au premier chargement)
