@@ -154,6 +154,7 @@ class PieceBase(BaseModel):
     QtéenInventaire: Optional[int] = 0
     Qtéminimum: Optional[int] = 0
     Qtémax: Optional[int] = 100
+    statut_stock: Optional[str] = None
     Prix_unitaire: Optional[float] = 0.0
     Soumission_LD: Optional[str] = ""
     SoumDem: Optional[str] = ""
@@ -170,6 +171,7 @@ class PieceCreate(BaseModel):
     QtéenInventaire: Optional[int] = 0
     Qtéminimum: Optional[int] = 0
     Qtémax: Optional[int] = 100
+    statut_stock: Optional[str] = None
     Prix_unitaire: Optional[float] = 0.0
     Soumission_LD: Optional[str] = ""
     SoumDem: Optional[str] = ""
@@ -186,6 +188,7 @@ class PieceUpdate(BaseModel):
     QtéenInventaire: Optional[int] = None
     Qtéminimum: Optional[int] = None
     Qtémax: Optional[int] = None
+    statut_stock: Optional[str] = None
     Prix_unitaire: Optional[float] = None
     Soumission_LD: Optional[str] = None
     SoumDem: Optional[str] = None
@@ -378,7 +381,6 @@ async def get_historique(piece_id: Optional[int] = None, conn: asyncpg.Connectio
         )
     return [HistoriqueResponse(**dict(row)) for row in rows]
 
-
 @api_router.post("/historique", response_model=HistoriqueResponse)
 async def add_historique(entry: HistoriqueCreate, conn: asyncpg.Connection = Depends(get_db_connection)):
         query = '''
@@ -404,7 +406,6 @@ async def add_historique(entry: HistoriqueCreate, conn: asyncpg.Connection = Dep
             entry.Delais
         )
         return HistoriqueResponse(**dict(row))
-
 
 @api_router.post("/contacts", response_model=Contact)
 async def create_contact(contact: ContactCreate, conn: asyncpg.Connection = Depends(get_db_connection)):
@@ -435,7 +436,6 @@ async def create_contact(contact: ContactCreate, conn: asyncpg.Connection = Depe
         print(f"Erreur create_contact: {e}")
         raise HTTPException(status_code=500, detail="Erreur lors de l'ajout du contact")
 
-
 @api_router.put("/contacts/{contact_id}", response_model=Contact)
 async def update_contact(contact_id: int, contact: ContactCreate, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
@@ -459,7 +459,6 @@ async def update_contact(contact_id: int, contact: ContactCreate, conn: asyncpg.
         print(f"Erreur update_contact: {e}")
         raise HTTPException(status_code=500, detail="Erreur lors de la modification du contact")
 
-
 @api_router.delete("/contacts/{contact_id}")
 async def delete_contact(contact_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
@@ -469,12 +468,10 @@ async def delete_contact(contact_id: int, conn: asyncpg.Connection = Depends(get
         print(f"Erreur delete_contact: {e}")
         raise HTTPException(status_code=500, detail="Erreur lors de la suppression du contact")
 
-
 @api_router.get("/fabricant")
 async def get_fabricant(conn: asyncpg.Connection = Depends(get_db_connection)):
         rows = await conn.fetch('SELECT "RefFabricant", "NomFabricant", "Domaine", "NomContact", "TitreContact", "Email" FROM "Fabricant" ORDER BY "NomFabricant"')
         return [{"RefFabricant": r["RefFabricant"], "NomFabricant": r["NomFabricant"]} for r in rows]
-
 
 @api_router.post("/fabricant", response_model=FabricantBase)
 async def create_fabricant(fabricant: FabricantCreate, conn: asyncpg.Connection = Depends(get_db_connection)):
@@ -508,7 +505,6 @@ async def create_fabricant(fabricant: FabricantCreate, conn: asyncpg.Connection 
             Email=safe_string(f_dict.get("Email", ""))
 
         )
-
 
 @api_router.put("/fabricant/{RefFabricant}", response_model=FabricantBase)
 async def update_fabricant(RefFabricant: int, fabricant: FabricantBase, conn: asyncpg.Connection = Depends(get_db_connection)):
@@ -596,13 +592,13 @@ async def get_pieces(limit: int = 50, offset: int = 0, conn: asyncpg.Connection 
                        f1."NomFournisseur" as fournisseur_principal_nom,
                        f1."NomContact" as fournisseur_principal_contact,
                        f1."NuméroTél" as fournisseur_principal_tel,
-                       f2."NomFournisseur" as autre_fournisseur_nom,
+                       f2."NomAutreFournisseur" as autre_fournisseur_nom,
                        f2."NomContact" as autre_fournisseur_contact,
                        f2."NuméroTél" as autre_fournisseur_tel,
                        f3."NomFabricant"
                 FROM "Pièce" p
                 LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
-                LEFT JOIN "Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfFournisseur"
+                LEFT JOIN "Autre Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfAutreFournisseur"
                 LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
             '''
 
@@ -697,13 +693,13 @@ async def get_piece(piece_id: int, request: Request):  # ← Changé ici
                    f1."NomFournisseur" as fournisseur_principal_nom,
                    f1."NomContact" as fournisseur_principal_contact,
                    f1."NuméroTél" as fournisseur_principal_tel,
-                   f2."NomFournisseur" as autre_fournisseur_nom,
+                   f2."NomAutreFournisseur" as autre_fournisseur_nom,
                    f2."NomContact" as autre_fournisseur_contact,
                    f2."NuméroTél" as autre_fournisseur_tel,
                    f3."NomFabricant"
             FROM "Pièce" p
             LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
-            LEFT JOIN "Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfFournisseur"
+            LEFT JOIN "Autre Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfAutreFournisseur"
             LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
             WHERE p."RéfPièce" = $1
         '''
@@ -886,13 +882,13 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
                    f1."NomFournisseur" as fournisseur_principal_nom,
                    f1."NomContact" as fournisseur_principal_contact,
                    f1."NuméroTél" as fournisseur_principal_tel,
-                   f2."NomFournisseur" as autre_fournisseur_nom,
+                   f2."NomAutreFournisseur" as autre_fournisseur_nom,
                    f2."NomContact" as autre_fournisseur_contact,
                    f2."NuméroTél" as autre_fournisseur_tel,
                    f3."NomFabricant"
             FROM "Pièce" p
             LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
-            LEFT JOIN "Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfFournisseur"
+            LEFT JOIN "Autre Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfAutreFournisseur"
             LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
             WHERE p."RéfPièce" = $1
         '''
@@ -1146,13 +1142,13 @@ async def get_commande(conn: asyncpg.Connection = Depends(get_db_connection)):
                        f1."NomFournisseur" AS fournisseur_principal_nom,
                        f1."NomContact" AS fournisseur_principal_contact,
                        f1."NuméroTél" AS fournisseur_principal_tel,
-                       f2."NomFournisseur" AS autre_fournisseur_nom,
+                       f2."NomAutreFournisseur" AS autre_fournisseur_nom,
                        f2."NomContact" AS autre_fournisseur_contact,
                        f2."NuméroTél" AS autre_fournisseur_tel,
                        f3."NomFabricant"
                 FROM "Pièce" p
                 LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
-                LEFT JOIN "Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfFournisseur"
+                LEFT JOIN "Autre Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfAutreFournisseur"
                 LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
                 WHERE COALESCE(p."Qtécommandée", 0) > 0
                   AND p."QtéenInventaire" <= p."Qtéminimum"
@@ -1174,7 +1170,7 @@ async def get_commande(conn: asyncpg.Connection = Depends(get_db_connection)):
                 if piece_dict.get("autre_fournisseur_nom"):
                     autre_fournisseur = {
                         "RéfFournisseur": piece_dict.get("RéfAutreFournisseur"),
-                        "NomFournisseur": safe_string(piece_dict.get("autre_fournisseur_nom", "")),
+                        "NomAutreFournisseur": safe_string(piece_dict.get("autre_fournisseur_nom", "")),
                     }
 
                 commande = Commande(
@@ -1216,13 +1212,13 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
                        f1."NomFournisseur" AS fournisseur_principal_nom,
                        f1."NomContact" AS fournisseur_principal_contact,
                        f1."NuméroTél" AS fournisseur_principal_tel,
-                       f2."NomFournisseur" AS autre_fournisseur_nom,
+                       f2."NomAutreFournisseur" AS autre_fournisseur_nom,
                        f2."NomContact" AS autre_fournisseur_contact,
                        f2."NuméroTél" AS autre_fournisseur_tel,
                        f3."NomFabricant"
                 FROM "Pièce" p
                 LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
-                LEFT JOIN "Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfFournisseur"
+                LEFT JOIN "Autre Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfAutreFournisseur"
                 LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
                 WHERE p."Qtécommandée" <= 0
                  AND p."QtéenInventaire" < p."Qtéminimum"

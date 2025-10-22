@@ -12,6 +12,7 @@ import { Textarea } from "./components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
 import { Plus, Package, Loader2, Edit3, Trash2, AlertTriangle, TrendingUp, Search, Users, Building2, DollarSign, FileText, Phone, MapPin, Cog, Store } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { CartProvider } from "@/components/cart/CartContext";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -28,28 +29,32 @@ function Dashboard () {
   const [currentPage, setCurrentPage] = useState(1);
   const [filters, setFilters] = useState({
     statut: "tous",
-    alerte: "tous"
+    stock: "tous"
   });
   const filteredPieces = pieces.filter(piece => {
     // Filtre de recherche
     const matchSearch = searchTerm === '' ||
       piece.NomPièce?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       piece.NumPièce?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      piece.fournisseur_principal?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      piece.autre_fournisseur?.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      piece.NomFabricant?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       piece.NumPièceAutreFournisseur?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       piece.DescriptionPièce?.toLowerCase().includes(searchTerm.toLowerCase());
     
     // Filtre de statut
     const matchStatut = filters.statut === "tous" || 
-      (filters.statut === "ok" && piece.stockStatus === "ok") ||
-      (filters.statut === "faible" && piece.stockStatus === "faible") ||
-      (filters.statut === "critique" && piece.stockStatus === "critique");
-    
-    // Filtre d'alerte
-    const matchAlerte = filters.alerte === "tous" ||
-      (filters.alerte === "alerte" && piece.QtéenInventaire <= piece.Qtéminimum) ||
-      (filters.alerte === "normal" && piece.QtéenInventaire > piece.Qtéminimum);
-    
-    return matchSearch && matchStatut && matchAlerte;
+      (filters.statut === "actif" && piece.statut === "actif") ||
+      (filters.statut === "obsolete" && piece.statut === "obsolete") ||
+      (filters.statut === "discontinue" && piece.statut === "discontinue");
+
+    // Filtre de stock
+    const matchStock = filters.stock === "tous" ||
+      (filters.stock === "ok" && piece.statut_stock === "ok") ||
+      (filters.stock === "faible" && piece.statut_stock === "faible") ||
+      (filters.stock === "critique" && piece.statut_stock === "critique");
+      
+    return matchSearch && matchStatut && matchStock;
   });
   
 
@@ -82,7 +87,7 @@ function Dashboard () {
 
       const cleanedSearch = search.trim();
       const piecesUrl = cleanedSearch
-        ? `${API}/pieces?limit=20&offset=${page * 20}&search=${encodeURIComponent(cleanedSearch)}`
+        ? `${API}/pieces?limit=20&offset=&search=${encodeURIComponent(cleanedSearch)}`
         : `${API}/pieces`;
 
       console.log('🔍 URL appelée:', piecesUrl); // Debug
@@ -330,14 +335,14 @@ function Dashboard () {
                 </Select>
                 
                 <Select
-                  value={filters.alerte}
-                  onValueChange={(value) => setFilters({...filters, alerte: value})}
+                  value={filters.stock}
+                  onValueChange={(value) => setFilters({...filters, stock: value})}
                 >
                   <SelectTrigger className="w-[180px]">
                     <SelectValue placeholder="Tous stocks" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="tous">Tous statuts</SelectItem>
+                    <SelectItem value="tous">Tous stock</SelectItem>
                     <SelectItem value="ok">Stock OK</SelectItem>
                     <SelectItem value="faible">Stock Faible</SelectItem>
                     <SelectItem value="critique">Stock Critique</SelectItem>
@@ -379,31 +384,12 @@ function Dashboard () {
             <Package className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">Aucune pièce trouvée</h3>
             <p className="mt-1 text-sm text-gray-500">
-              {searchTerm || filters.statut !== "tous" || filters.alerte !== "tous" 
+              {searchTerm || filters.statut !== "tous" || filters.stock !== "tous" 
                 ? "Essayez de modifier vos filtres de recherche." 
                 : "Commencez par ajouter une nouvelle pièce."}
             </p>
           </div>
         )}
-
-        {/* Navigation pagination */}
-        <div className="flex justify-center space-x-4 mt-8">
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage(Math.max(0, currentPage - 1))}
-            disabled={currentPage === 0}
-          >
-            Précédent
-          </Button>
-          <span className="py-2 px-4 text-gray-600">Page {currentPage + 1}</span>
-          <Button
-            variant="outline"
-            onClick={() => setCurrentPage(currentPage + 1)}
-            disabled={pieces.length < 20}
-          >
-            Suivant
-          </Button>
-        </div>
 
         {pieces.length === 0 && (
           <div className="text-center py-12">

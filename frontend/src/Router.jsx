@@ -1,10 +1,10 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import Layout from "./Layout";
-import Dashboard from "./App"; // ← Renommer l'import
+import Dashboard from "./App";
 import Fournisseurs from "./Fournisseur";
 import Fabricant from "./Fabricant";
-import Commandes from "./ToOrders"; // ← Corriger le nom du fichier
+import Commandes from "./Commandes";
 import Receptions from "./Receptions";
 import Historique from "./Historique";
 

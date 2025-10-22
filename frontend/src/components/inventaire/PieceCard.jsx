@@ -3,19 +3,19 @@ import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { AlertTriangle, Edit, Package, Trash2, Building2, Factory, Warehouse, Minus } from "lucide-react";
+import { AlertTriangle, Edit, Package, Trash2, Building2, Factory, Warehouse, Minus, CircleCheck } from "lucide-react";
 
-const getStockStatus = (qtyInventaire, qtyMinimum) => {
-  if (qtyInventaire = 0) return { label: "Critique", color: "bg-red-600 text-white", icon: <AlertTriangle className="w-4 h-4" /> };
-  if (qtyInventaire < qtyMinimum) return { label: "Faible", color: "bg-yellow-400 text-yellow-900", icon: <AlertTriangle className="w-4 h-4" /> };
-  return null; // Pas de badge si le stock est OK
+const getStockStatus = {
+  critique: { label: "Critique", color: "bg-red-600 text-white", icon: <AlertTriangle className="w-4 h-4" /> },
+  faible: { label: "Faible", color: "bg-yellow-400 text-yellow-900", icon: <AlertTriangle className="w-4 h-4" /> },
+  ok: { label: "OK", color: "bg-green-400 text-yellow-900", icon: <CircleCheck className="w-4 h-4" /> }
 };
 
 
 
 
 export function PieceCard({ piece, fournisseur, autreFournisseur, fabricant, onEdit, onDelete, onQuickRemove }) {
-  const stockStatus = getStockStatus(piece.QtéenInventaire, piece.Qtéminimum);
+  const stockStatus = getStockStatus[piece.statut_stock] || getStockStatus.ok;
 
   const StatItem = ({ label, value, isPrice = false }) => (
     <div className="text-center bg-slate-50 p-3 rounded-lg">

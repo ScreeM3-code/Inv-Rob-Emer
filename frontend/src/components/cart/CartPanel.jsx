@@ -38,27 +38,50 @@ export default function CartPanel({ children }) {
         return;
     }
     
-    const contactEmails = supplier.contacts?.map(c => c.Email).filter(Boolean).join(',') || supplier.email || '';
+    // Récupérer les emails des contacts
+    const contactEmails = supplier.contacts?.map(c => c.Email).filter(Boolean).join(',') || '';
 
     if (!contactEmails) {
       alert("Aucun email de contact trouvé pour ce fournisseur.");
       return;
     }
 
-    const subject = encodeURIComponent("Demande de soumission pour pièces");
+    // Construire le sujet
+    const subject = encodeURIComponent(`Demande de soumission - ${supplier.NomFournisseur}`);
+    
+    // Construire le corps de l'email
     const bodyLines = [
         "Bonjour,",
         "",
-        "Pourriez-vous s'il vous plaît nous fournir une soumission pour les pièces suivantes :",
+        `Nous souhaitons recevoir une soumission pour les pièces suivantes :`,
         ""
     ];
+    
     items.forEach(item => {
-        bodyLines.push(`- ${item.NomPièce} (Réf: ${item.NumPièce}), Quantité: ${item.Qtéàcommander}`);
+        bodyLines.push(`- ${item.NomPièce}`);
+        bodyLines.push(`  • Référence: ${item.NumPièce}`);
+        if (item.DescriptionPièce) {
+          bodyLines.push(`  • Description: ${item.DescriptionPièce}`);
+        }
+        if (item.NumPièceAutreFournisseur) {
+          bodyLines.push(`  • N° pièce fournisseur: ${item.NumPièceAutreFournisseur}`);
+        }
+        bodyLines.push(`  • Quantité demandée: ${item.cartQty}`);
+        bodyLines.push("");
     });
-    bodyLines.push("", "Merci d'avance.", "", "Cordialement,");
+    
+    bodyLines.push("Pourriez-vous nous faire parvenir vos meilleurs prix et délais de livraison ?");
+    bodyLines.push("");
+    bodyLines.push("Cordialement,");
+    bodyLines.push("Équipe Maintenance");
+    
     const body = encodeURIComponent(bodyLines.join('\n'));
 
+    // Ouvrir le client email
     window.location.href = `mailto:${contactEmails}?subject=${subject}&body=${body}`;
+    
+    // Optionnel: Retirer les items du panier après envoi
+    items.forEach(item => removeFromCart(item.RéfPièce));
   };
 
   return (

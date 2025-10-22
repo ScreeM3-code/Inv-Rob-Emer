@@ -30,9 +30,16 @@ export const CartProvider = ({ children }) => {
     setCartItems(prevItems => {
       const isItemInCart = prevItems.find(item => item.RéfPièce === piece.RéfPièce);
       if (isItemInCart) {
-        return prevItems; // ou mettre à jour la quantité si nécessaire
+        alert(`${piece.NomPièce} est déjà dans le panier`);
+        return prevItems;
       }
-      return [...prevItems, { ...piece, cartQty: piece.Qtéàcommander || 1 }];
+      return [...prevItems, { 
+        ...piece, 
+        cartQty: 1,
+        // S'assurer que les infos fournisseur sont présentes
+        fournisseur_principal: piece.fournisseur_principal,
+        RéfFournisseur: piece.RéfFournisseur
+      }];
     });
   };
 
