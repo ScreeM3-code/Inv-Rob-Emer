@@ -16,8 +16,8 @@ const fetchFournisseurs = async () => {
 export default function CartPanel({ children }) {
   const { cartItems, removeFromCart, clearCart } = useCart();
   const { data: fournisseurs, isLoading: isLoadingFournisseurs } = useQuery({ 
-      queryKey: ['fournisseurs'], 
-      queryFn: fetchFournisseurs 
+    queryKey: ['fournisseurs'], 
+    queryFn: fetchFournisseurs 
   });
 
   const groupedBySupplier = cartItems.reduce((acc, item) => {
@@ -29,60 +29,74 @@ export default function CartPanel({ children }) {
     return acc;
   }, {});
   
-  const handleGenerateEmail = (supplierId, items) => {
-    if (!fournisseurs) return;
-    
-    const supplier = fournisseurs.find(f => f.RéfFournisseur === supplierId);
-    if (!supplier) {
-        alert("Fournisseur introuvable pour générer l'email.");
-        return;
-    }
-    
-    // Récupérer les emails des contacts
-    const contactEmails = supplier.contacts?.map(c => c.Email).filter(Boolean).join(',') || '';
+  // frontend/src/components/cart/CartPanel.jsx
 
-    if (!contactEmails) {
-      alert("Aucun email de contact trouvé pour ce fournisseur.");
+const handleGenerateEmail = (supplierId, items) => {
+  if (!fournisseurs) return;
+  
+  const supplier = fournisseurs.find(f => f.RéfFournisseur === supplierId);
+  if (!supplier) {
+      alert("Fournisseur introuvable pour générer l'email.");
       return;
-    }
+  }
+  
+  // Récupérer les emails des contacts
+  const contactEmails = supplier.contacts?.map(c => c.Email).filter(Boolean).join(',') || '';
 
-    // Construire le sujet
-    const subject = encodeURIComponent(`Demande de soumission - ${supplier.NomFournisseur}`);
-    
-    // Construire le corps de l'email
-    const bodyLines = [
-        "Bonjour,",
-        "",
-        `Nous souhaitons recevoir une soumission pour les pièces suivantes :`,
-        ""
-    ];
-    
-    items.forEach(item => {
-        bodyLines.push(`- ${item.NomPièce}`);
-        bodyLines.push(`  • Référence: ${item.NumPièce}`);
-        if (item.DescriptionPièce) {
-          bodyLines.push(`  • Description: ${item.DescriptionPièce}`);
-        }
-        if (item.NumPièceAutreFournisseur) {
-          bodyLines.push(`  • N° pièce fournisseur: ${item.NumPièceAutreFournisseur}`);
-        }
-        bodyLines.push(`  • Quantité demandée: ${item.cartQty}`);
-        bodyLines.push("");
-    });
-    
-    bodyLines.push("Pourriez-vous nous faire parvenir vos meilleurs prix et délais de livraison ?");
-    bodyLines.push("");
-    bodyLines.push("Cordialement,");
-    bodyLines.push("Équipe Maintenance");
-    
-    const body = encodeURIComponent(bodyLines.join('\n'));
+  if (!contactEmails) {
+    alert("Aucun email de contact trouvé pour ce fournisseur.");
+    return;
+  }
 
-    // Ouvrir le client email
-    window.location.href = `mailto:${contactEmails}?subject=${subject}&body=${body}`;
-    
-    // Optionnel: Retirer les items du panier après envoi
-    items.forEach(item => removeFromCart(item.RéfPièce));
+  // Construire le sujet
+  const subject = encodeURIComponent(`Demande de soumission - ${supplier.NomFournisseur}`);
+  
+  // Construire le corps de l'email
+  const bodyLines = [
+      "Bonjour,",
+      "",
+      `Nous souhaitons recevoir une soumission pour les pièces suivantes :`,
+      ""
+  ];
+  
+  items.forEach(item => {
+      bodyLines.push(`- ${item.NomPièce}`);
+      bodyLines.push(`  • Référence: ${item.NumPièce}`);
+      if (item.DescriptionPièce) {
+        bodyLines.push(`  • Description: ${item.DescriptionPièce}`);
+      }
+      if (item.NumPièceAutreFournisseur) {
+        bodyLines.push(`  • N° pièce fournisseur: ${item.NumPièceAutreFournisseur}`);
+      }
+      bodyLines.push(`  • Quantité demandée: ${item.cartQty}`);
+      bodyLines.push("");
+  });
+  
+  bodyLines.push("Pourriez-vous nous faire parvenir vos meilleurs prix et délais de livraison ?");
+  bodyLines.push("");
+  bodyLines.push("Cordialement,");
+  bodyLines.push("Équipe Maintenance");
+  
+  const body = encodeURIComponent(bodyLines.join('\n'));
+
+  // Ouvrir le client email
+  window.location.href = `mailto:${contactEmails}?subject=${subject}&body=${body}`;
+  
+  // Optionnel: Retirer les items du panier après envoi
+  items.forEach(item => removeFromCart(item.RéfPièce));
+  
+  // ← DÉPLACE CE CODE ICI (était ligne 92-98)
+  // Historique d'envoi d'email
+  const emailHistory = {
+    date: new Date(),
+    fournisseur: supplier.NomFournisseur, // ← supplier est maintenant défini
+    pieces: items,
+    status: 'envoyé'
   };
+  
+  const history = JSON.parse(localStorage.getItem('emailHistory') || '[]');
+  localStorage.setItem('emailHistory', JSON.stringify([...history, emailHistory]));
+};
 
   // Dans CartPanel.jsx après envoi email
   const emailHistory = {

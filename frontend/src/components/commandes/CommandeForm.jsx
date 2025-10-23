@@ -10,6 +10,7 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
     Prix_unitaire: piece?.Prix_unitaire || 0,
     Datecommande: new Date().toISOString().split('T')[0],
     Cmd_info: "",
+    soumission_LD: ""
   });
 
   const handleChange = (field, value) => {
