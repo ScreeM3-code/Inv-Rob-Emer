@@ -13,6 +13,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Plus, Package, Loader2, Edit3, Trash2, AlertTriangle, TrendingUp, Search, Users, Building2, DollarSign, FileText, Phone, MapPin, Cog, Store } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { CartProvider } from "@/components/cart/CartContext";
+import PieceEditDialog from "@/components/inventaire/PieceEditDialog";
+
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -308,6 +310,90 @@ function Dashboard () {
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Stats */}
+        {/* Header avec bouton d'ajout */}
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
+          <div className="flex items-center space-x-4">
+            <Package className="h-8 w-8 text-blue-600" />
+            <div>
+              <h1 className="text-3xl font-bold text-slate-900">Inventaire des Pièces</h1>
+              <p className="text-slate-600">Gérez vos pièces et votre stock</p>
+            </div>
+          </div>
+          <Button 
+            onClick={() => {
+              setNewPiece({
+                NomPièce: "",
+                DescriptionPièce: "",
+                NumPièce: "",
+                RéfFournisseur: null,
+                RéfAutreFournisseur: null,
+                NumPièceAutreFournisseur: "",
+                RefFabricant: null,
+                Lieuentreposage: "",
+                QtéenInventaire: 0,
+                Qtéminimum: 0,
+                Qtémax: 100,
+                Prix_unitaire: 0,
+                Soumission_LD: "",
+                SoumDem: ""
+              });
+              setIsAddDialogOpen(true);
+            }}
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+          >
+            <Plus className="w-4 h-4 mr-2" /> Ajouter une Pièce
+          </Button>
+        </div>
+
+        {/* Stats Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+          <Card className="bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Total Pièces</CardTitle>
+              <Package className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">{stats.total_pieces.toLocaleString()}</div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Stock Critique</CardTitle>
+              <AlertTriangle className="h-4 w-4 text-red-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-red-600">{stats.stock_critique.toLocaleString()}</div>
+            </CardContent>
+          </Card>
+          
+          <Card className="bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow">
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">Valeur Stock</CardTitle>
+              <DollarSign className="h-4 w-4 text-muted-foreground" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold">
+                {stats.valeur_stock.toLocaleString('fr-CA', {style: 'currency', currency: 'CAD'})}
+              </div>
+            </CardContent>
+          </Card>
+          
+          <Card 
+            className="bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
+            onClick={() => navigate("/commandes")}
+          >
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+              <CardTitle className="text-sm font-medium">À Commander</CardTitle>
+              <Package className="h-4 w-4 text-yellow-500" />
+            </CardHeader>
+            <CardContent>
+              <div className="text-2xl font-bold text-yellow-600">
+                {stats.pieces_a_commander.toLocaleString()}
+              </div>
+            </CardContent>
+          </Card>
+        </div>
 
 
         {/* Search et Filtres */}
@@ -376,7 +462,7 @@ function Dashboard () {
                   fournisseur={fournisseur}
                   autreFournisseur={autreFournisseur}
                   fabricant={fabricant}
-                  onEdit={() => {setEditingPiece(piece); setIsFormOpen(true)}}
+                  onEdit={() => setEditingPiece(piece)}
                   onDelete={() => handleDeletePiece(piece.RéfPièce)}
                   onQuickRemove={() => handleQuickRemove(piece)}
                 />
@@ -408,6 +494,29 @@ function Dashboard () {
           </div>
         )}
       </div>
+      {/* Dialog d'édition */}
+      {editingPiece && (
+        <PieceEditDialog
+          piece={editingPiece}
+          fournisseurs={fournisseurs}
+          fabricants={fabricants}
+          onSave={handleUpdatePiece}
+          onCancel={() => setEditingPiece(null)}
+          onChange={(field, value) => setEditingPiece({...editingPiece, [field]: value})}
+        />
+      )}
+
+      {/* Dialog d'ajout */}
+      {isAddDialogOpen && (
+        <PieceEditDialog
+          piece={newPiece}
+          fournisseurs={fournisseurs}
+          fabricants={fabricants}
+          onSave={handleAddPiece}
+          onCancel={() => setIsAddDialogOpen(false)}
+          onChange={(field, value) => setNewPiece({...newPiece, [field]: value})}
+        />
+      )}
     </div>
   );
 }
