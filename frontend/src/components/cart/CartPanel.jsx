@@ -35,18 +35,18 @@ const handleGenerateEmail = (supplierId, items) => {
   if (!fournisseurs) return;
   
   const supplier = fournisseurs.find(f => f.RéfFournisseur === supplierId);
-  if (!supplier) {
-      alert("Fournisseur introuvable pour générer l'email.");
-      return;
-  }
+    if (!supplier) {
+        alert("Fournisseur introuvable pour générer l'email.");
+        return;
+    }
   
   // Récupérer les emails des contacts
   const contactEmails = supplier.contacts?.map(c => c.Email).filter(Boolean).join(',') || '';
 
-  if (!contactEmails) {
-    alert("Aucun email de contact trouvé pour ce fournisseur.");
-    return;
-  }
+    if (!contactEmails) {
+      alert("Aucun email de contact trouvé pour ce fournisseur.");
+      return;
+    }
 
   // Construire le sujet
   const subject = encodeURIComponent(`Demande de soumission - ${supplier.NomFournisseur}`);
@@ -85,27 +85,10 @@ const handleGenerateEmail = (supplierId, items) => {
   // Optionnel: Retirer les items du panier après envoi
   items.forEach(item => removeFromCart(item.RéfPièce));
   
-  // ← DÉPLACE CE CODE ICI (était ligne 92-98)
-  // Historique d'envoi d'email
-  const emailHistory = {
-    date: new Date(),
-    fournisseur: supplier.NomFournisseur, // ← supplier est maintenant défini
-    pieces: items,
-    status: 'envoyé'
-  };
-  
   const history = JSON.parse(localStorage.getItem('emailHistory') || '[]');
-  localStorage.setItem('emailHistory', JSON.stringify([...history, emailHistory]));
-};
-
-  // Dans CartPanel.jsx après envoi email
-  const emailHistory = {
-    date: new Date(),
-    fournisseur: supplier.NomFournisseur,
-    pieces: items,
-    status: 'envoyé'
+    localStorage.setItem('emailHistory', JSON.stringify([...history, emailHistory]));
   };
-  localStorage.setItem('emailHistory', JSON.stringify([...history, emailHistory]));
+
 
   return (
     <Sheet>
