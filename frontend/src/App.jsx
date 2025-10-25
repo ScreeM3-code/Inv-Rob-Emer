@@ -79,9 +79,6 @@ function Dashboard () {
     const matchSearch = searchTerm === '' ||
       piece.NomPièce?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       piece.NumPièce?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      piece.fournisseur_principal?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      piece.autre_fournisseur?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      piece.NomFabricant?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       piece.NumPièceAutreFournisseur?.toLowerCase().includes(searchTerm.toLowerCase()) ||
       piece.DescriptionPièce?.toLowerCase().includes(searchTerm.toLowerCase());
     
