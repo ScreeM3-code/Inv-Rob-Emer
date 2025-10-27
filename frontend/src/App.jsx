@@ -1,23 +1,50 @@
-import React, { useState, useEffect, useCallback  } from "react";
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import "./App.css";
 import { PieceCard } from "@/components/inventaire/PieceCard";
 import axios from "axios";
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "./components/ui/card";
-import { Badge } from "./components/ui/badge";
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "./components/ui/dialog";
-import { Label } from "./components/ui/label";
-import { Textarea } from "./components/ui/textarea";
+import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
 import { Plus, Package, Loader2, Edit3, Trash2, AlertTriangle, TrendingUp, Search, Users, Building2, DollarSign, FileText, Phone, MapPin, Cog, Store } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { CartProvider } from "@/components/cart/CartContext";
 import PieceEditDialog from "@/components/inventaire/PieceEditDialog";
-
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
+
+// Hook personnalisé pour lazy loading
+function useInfiniteScroll(items, itemsPerPage = 50) {
+  const [displayedItems, setDisplayedItems] = useState([]);
+  const [page, setPage] = useState(1);
+  const observerRef = useRef(null);
+
+  useEffect(() => {
+    // Reset quand les items changent
+    setDisplayedItems(items.slice(0, itemsPerPage));
+    setPage(1);
+  }, [items, itemsPerPage]);
+
+  useEffect(() => {
+    // Charger plus d'items
+    const endIndex = page * itemsPerPage;
+    setDisplayedItems(items.slice(0, endIndex));
+  }, [page, items, itemsPerPage]);
+
+  const loadMoreRef = useCallback((node) => {
+    if (observerRef.current) observerRef.current.disconnect();
+    
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && displayedItems.length < items.length) {
+        setPage(prev => prev + 1);
+      }
+    });
+    
+    if (node) observerRef.current.observe(node);
+  }, [displayedItems.length, items.length]);
+
+  return { displayedItems, loadMoreRef, hasMore: displayedItems.length < items.length };
+}
 
 function Dashboard () {
   const [pieces, setPieces] = useState([]);
@@ -29,6 +56,7 @@ function Dashboard () {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingPiece, setEditingPiece] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const { displayedItems, loadMoreRef, hasMore } = useInfiniteScroll(pieces, 30);
   const [filters, setFilters] = useState({
     statut: "tous",
     stock: "tous"
@@ -44,11 +72,16 @@ function Dashboard () {
       setLoading(true);
 
       const cleanedSearch = search.trim();
-      const piecesUrl = cleanedSearch
-        ? `${API}/pieces?limit=20&offset=&search=${encodeURIComponent(cleanedSearch)}`
-        : `${API}/pieces`;
+      
+      // ✅ Construire l'URL avec les filtres
+      const params = new URLSearchParams();
+      if (cleanedSearch) params.append('search', cleanedSearch);
+      if (filters.statut !== 'tous') params.append('statut', filters.statut);
+      if (filters.stock !== 'tous') params.append('stock', filters.stock);
+      
+      const piecesUrl = `${API}/pieces?${params.toString()}`;
 
-      console.log('🔍 URL appelée:', piecesUrl); // Debug
+      console.log('🔍 URL appelée:', piecesUrl);
 
       const [piecesRes, fournisseursRes, statsRes, fabricantsRes] = await Promise.all([
         axios.get(piecesUrl),
@@ -57,46 +90,17 @@ function Dashboard () {
         axios.get(`${API}/fabricant`),
       ]);
 
-      console.log('📦 Pièces reçues:', piecesRes.data?.length, 'pièces'); // Debug
-      console.log('📊 Stats:', statsRes.data); // Debug
-
-      setPieces(piecesRes.data || []);
       setPieces(Array.isArray(piecesRes.data) ? piecesRes.data : []);
       setFournisseurs(fournisseursRes.data || []);
       setStats(statsRes.data || { total_pieces: 0, stock_critique: 0, valeur_stock: 0, pieces_a_commander: 0 });
       setFabricants(fabricantsRes.data || []);
     } catch (error) {
       console.error("❌ Erreur lors du chargement:", error);
-      console.error("❌ Détails:", error.response?.data); // Debug
     } finally {
       setLoading(false);
     }
   };
 
-
-  const filteredPieces = pieces.filter(piece => {
-    // Filtre de recherche
-    const matchSearch = searchTerm === '' ||
-      piece.NomPièce?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      piece.NumPièce?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      piece.NumPièceAutreFournisseur?.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      piece.DescriptionPièce?.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    // Filtre de statut
-    const matchStatut = filters.statut === "tous" || 
-      (filters.statut === "actif" && piece.statut === "actif") ||
-      (filters.statut === "obsolete" && piece.statut === "obsolete") ||
-      (filters.statut === "discontinue" && piece.statut === "discontinue");
-
-    // Filtre de stock
-    const matchStock = filters.stock === "tous" ||
-      (filters.stock === "ok" && piece.statut_stock === "ok") ||
-      (filters.stock === "faible" && piece.statut_stock === "faible") ||
-      (filters.stock === "critique" && piece.statut_stock === "critique");
-      
-    return matchSearch && matchStatut && matchStock;
-  });
-  
 
   const [fabricants, setFabricants] = useState([]);
   const [newPiece, setNewPiece] = useState({
@@ -121,15 +125,13 @@ function Dashboard () {
   
 
   useEffect(() => {
-    // Délai uniquement pour la recherche (pas au premier chargement)
-    if (searchTerm === '' && currentPage === 0) return; // Skip le premier chargement
-    
+    // ✅ Recharger dès que les filtres changent
     const timer = setTimeout(() => {
       loadData(currentPage, searchTerm);
-    }, 700); // Réduit à 300ms pour meilleure réactivité
+    }, 300); // Réduit à 300ms
     
     return () => clearTimeout(timer);
-  }, [currentPage, searchTerm]);
+  }, [searchTerm, filters.statut, filters.stock]); // ← AJOUTER filters
 
   const handleQuickRemove = async (piece) => {
     if (piece.QtéenInventaire <= 0) {
@@ -409,7 +411,7 @@ function Dashboard () {
               
               <div className="flex items-center gap-2 text-sm text-slate-600">
                 <span className="font-medium">Filtres:</span>
-                <Select
+                {/* <Select
                   value={filters.statut}
                   onValueChange={(value) => setFilters({...filters, statut: value})}
                 >
@@ -422,7 +424,7 @@ function Dashboard () {
                     <SelectItem value="obsolete">Obsolète</SelectItem>
                     <SelectItem value="discontinue">Discontinué</SelectItem>
                   </SelectContent>
-                </Select>
+                </Select>*/}
                 
                 <Select
                   value={filters.stock}
@@ -443,12 +445,25 @@ function Dashboard () {
           </CardContent>
         </Card>
 
-        {/* Liste des pièces en grille */}
-        {loading ? (
-           <div className="flex justify-center py-10"><Loader2 className="w-8 h-8 animate-spin text-blue-600"/></div>
-        ) : (
+        {/* Liste des pièces avec lazy loading */}
+{loading ? (
+  <div className="flex justify-center py-10">
+    <Loader2 className="w-8 h-8 animate-spin text-blue-600"/>
+  </div>
+) : pieces.length === 0 ? (
+        <div className="text-center py-12">
+          <Package className="mx-auto h-12 w-12 text-gray-400" />
+          <h3 className="mt-2 text-sm font-medium text-gray-900">Aucune pièce trouvée</h3>
+          <p className="mt-1 text-sm text-gray-500">
+            {searchTerm || filters.statut !== "tous" || filters.stock !== "tous" 
+              ? "Essayez de modifier vos filtres de recherche." 
+              : "Commencez par ajouter une nouvelle pièce."}
+          </p>
+        </div>
+      ) : (
+        <>
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
-            {filteredPieces.map((piece) => {
+            {displayedItems.map((piece) => {
               const fournisseur = fournisseurs.find(f => f.RéfFournisseur === piece.RéfFournisseur);
               const autreFournisseur = fournisseurs.find(f => f.RéfFournisseur === piece.RéfAutreFournisseur);
               const fabricant = fabricants.find(f => f.RefFabricant === piece.RefFabricant);
@@ -463,13 +478,24 @@ function Dashboard () {
                   onDelete={() => handleDeletePiece(piece.RéfPièce)}
                   onQuickRemove={() => handleQuickRemove(piece)}
                 />
-              )
+              );
             })}
           </div>
-        )}
+          
+          {/* Trigger pour charger plus */}
+          {hasMore && (
+            <div ref={loadMoreRef} className="flex justify-center py-8">
+              <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+              <span className="ml-2 text-sm text-gray-600">
+                Chargement de {displayedItems.length}/{pieces.length} pièces...
+              </span>
+            </div>
+          )}
+        </>
+      )}
 
         {/* Message si aucune pièce */}
-        {!loading && filteredPieces.length === 0 && (
+        {!loading && displayedItems.length === 0 && (
           <div className="text-center py-12">
             <Package className="mx-auto h-12 w-12 text-gray-400" />
             <h3 className="mt-2 text-sm font-medium text-gray-900">Aucune pièce trouvée</h3>

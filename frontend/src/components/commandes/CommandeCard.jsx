@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit3, FileText, PackagePlus, ShoppingCart, Users, CheckCircle, XCircle } from "lucide-react";
+import { Edit3, FileText, PackagePlus, ShoppingCart, Users, CheckCircle, XCircle, History } from "lucide-react";
 
 export default function CommandeCard({ 
   order, 
@@ -24,7 +24,7 @@ export default function CommandeCard({
                 <h3 className="font-semibold text-lg flex items-center gap-2">
                   {order.NomPièce}
                   {/* Badge Soumission Demandée */}
-                  {order.SoumDem ? (
+                  {order.SoumDem === true || order.SoumDem === "true" ? (
                     <Badge className="bg-green-500 text-white flex items-center gap-1">
                       <CheckCircle className="w-3 h-3" />
                       Soumission demandée
@@ -128,7 +128,7 @@ export default function CommandeCard({
               onClick={() => onViewHistory(order)}
               title="Voir l'historique"
             >
-              <FileText className="h-4 w-4" />
+              <History t className="h-4 w-4" />
             </Button>
 
             {/* Ajouter au panier de soumission */}

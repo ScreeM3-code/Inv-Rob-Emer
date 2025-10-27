@@ -1,4 +1,3 @@
-Ajout pièces / modifie
-Contact importé
+Filtre historique + user aussi
 rapports
-historique cmd et treception 
+

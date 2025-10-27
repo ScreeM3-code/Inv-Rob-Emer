@@ -1,19 +1,53 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './components/ui/table';
 import { Badge } from './components/ui/badge';
 import { Input } from './components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
 import { Button } from './components/ui/button';
-import { History, Search, Filter, Download } from 'lucide-react';
+import { History, Search, Filter, Download, Loader2 } from 'lucide-react';
 import axios from 'axios';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
+// Hook personnalisé pour lazy loading
+function useInfiniteScroll(items, itemsPerPage = 50) {
+  const [displayedItems, setDisplayedItems] = useState([]);
+  const [page, setPage] = useState(1);
+  const observerRef = useRef(null);
+
+  useEffect(() => {
+    // Reset quand les items changent
+    setDisplayedItems(items.slice(0, itemsPerPage));
+    setPage(1);
+  }, [items, itemsPerPage]);
+
+  useEffect(() => {
+    // Charger plus d'items
+    const endIndex = page * itemsPerPage;
+    setDisplayedItems(items.slice(0, endIndex));
+  }, [page, items, itemsPerPage]);
+
+  const loadMoreRef = useCallback((node) => {
+    if (observerRef.current) observerRef.current.disconnect();
+    
+    observerRef.current = new IntersectionObserver(entries => {
+      if (entries[0].isIntersecting && displayedItems.length < items.length) {
+        setPage(prev => prev + 1);
+      }
+    });
+    
+    if (node) observerRef.current.observe(node);
+  }, [displayedItems.length, items.length]);
+
+  return { displayedItems, loadMoreRef, hasMore: displayedItems.length < items.length };
+}
+
 function Historique() {
   const [historique, setHistorique] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { displayedItems, loadMoreRef, hasMore } = useInfiniteScroll(historique, 30);
   const [filters, setFilters] = useState({
     search: '',
     operation: 'tous',
@@ -71,9 +105,7 @@ function Historique() {
       return new Date(dateString).toLocaleDateString('fr-CA', {
         year: 'numeric',
         month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit'
+        day: '2-digit'
       });
     } catch {
       return 'N/A';
@@ -224,7 +256,7 @@ function Historique() {
                       </TableCell>
                     </TableRow>
                   ) : (
-                    filteredHistorique.map((item, index) => (
+                    displayedItems.map((item, index) => (
                       <TableRow key={index}>
                         <TableCell className="font-medium">
                           {formatDate(item.DateCMD || item.DateRecu)}
@@ -250,6 +282,15 @@ function Historique() {
                 </TableBody>
               </Table>
             </div>
+            {/* Trigger pour charger plus */}
+            {hasMore && (
+              <div ref={loadMoreRef} className="flex justify-center py-8">
+                <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                <span className="ml-2 text-sm text-gray-600">
+                  Chargement de {displayedItems.length}/{historique.length} l'historique...
+                </span>
+              </div>
+            )}
           </CardContent>
         </Card>
       </div>

@@ -5,7 +5,8 @@ import { Input } from "@/components/ui/input";
 import FabricantCard from "@/components/fabricants/FabricantCard";
 import FabricantFormDialog from "@/components/fabricants/FabricantFormDialog";
 
-const API_URL = "http://localhost:8000/api";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 export default function FabricantsPage() {
   const [fabricants, setFabricants] = useState([]);
@@ -19,7 +20,7 @@ export default function FabricantsPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_URL}/fabricant`);
+      const response = await fetch(`${API}/fabricant`);
       if (!response.ok) throw new Error("Erreur réseau");
       const data = await response.json();
       console.log("📦 Fabricants chargés:", data); // DEBUG
@@ -38,11 +39,14 @@ export default function FabricantsPage() {
   
   const handleSave = async (fabricantData) => {
     try {
+        // ✅ FIX: S'assurer que RefFabricant est bien présent pour la mise à jour
         const url = fabricantData.RefFabricant 
-            ? `${API_URL}/fabricant/${fabricantData.RefFabricant}`
-            : `${API_URL}/fabricant`;
+            ? `${API}/fabricant/${fabricantData.RefFabricant}`
+            : `${API}/fabricant`;
         
         const method = fabricantData.RefFabricant ? 'PUT' : 'POST';
+
+        console.log('📤 Envoi au backend:', { url, method, data: fabricantData }); // DEBUG
 
         const response = await fetch(url, {
             method: method,
@@ -50,21 +54,27 @@ export default function FabricantsPage() {
             body: JSON.stringify(fabricantData)
         });
 
-        if (!response.ok) throw new Error("La sauvegarde a échoué");
+        if (!response.ok) {
+            const errorData = await response.json().catch(() => ({}));
+            console.error('❌ Erreur backend:', errorData);
+            throw new Error(errorData.detail || "La sauvegarde a échoué");
+        }
         
+        console.log('✅ Sauvegarde réussie');
         setIsFormOpen(false);
         setEditingFabricant(null);
         await loadFabricants();
     } catch (err) {
-      console.error("Erreur sauvegarde:", err);
+      console.error("❌ Erreur sauvegarde:", err);
       setError(err.message);
+      alert("Erreur lors de la sauvegarde: " + err.message); // ✅ Alerte pour débogage
     }
   };
 
   const handleDelete = async (id) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce fabricant ?")) {
       try {
-        const response = await fetch(`${API_URL}/fabricant/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${API}/fabricant/${id}`, { method: 'DELETE' });
         if (!response.ok) throw new Error("La suppression a échoué");
         await loadFabricants();
       } catch (err) {

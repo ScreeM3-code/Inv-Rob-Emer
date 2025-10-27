@@ -13,10 +13,13 @@ from utils.helpers import (
 
 router = APIRouter(prefix="/pieces", tags=["pieces"])
 
+
 @router.get("", response_model=List[Piece])
 async def get_pieces(
-    conn: asyncpg.Connection = Depends(get_db_connection),
-    search: Optional[str] = None
+        conn: asyncpg.Connection = Depends(get_db_connection),
+        search: Optional[str] = None,
+        statut: Optional[str] = None,  # ← NOUVEAU
+        stock: Optional[str] = None  # ← NOUVEAU
 ):
     """Récupère toutes les pièces avec filtrage optionnel"""
     try:
@@ -31,12 +34,32 @@ async def get_pieces(
             LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
             LEFT JOIN "Autre Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfAutreFournisseur"
             LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
+            WHERE 1=1
         '''
 
         params = []
+        param_idx = 1
+
+        # Filtrage par recherche
         if search:
-            base_query += ' WHERE (COALESCE(p."NomPièce", \'\') ILIKE $1 OR COALESCE(p."NumPièce", \'\') ILIKE $1 OR COALESCE(p."DescriptionPièce", \'\') ILIKE $1 OR COALESCE(p."NumPièceAutreFournisseur", \'\') ILIKE $1)'
+            base_query += f' AND (COALESCE(p."NomPièce", \'\') ILIKE ${param_idx} OR COALESCE(p."NumPièce", \'\') ILIKE ${param_idx} OR COALESCE(p."DescriptionPièce", \'\') ILIKE ${param_idx} OR COALESCE(p."NumPièceAutreFournisseur", \'\') ILIKE ${param_idx})'
             params.append(f'%{search}%')
+            param_idx += 1
+
+        # Filtrage par statut (actif/obsolete/discontinue)
+        if statut and statut != "tous":
+            base_query += f' AND p."statut" = ${param_idx}'
+            params.append(statut)
+            param_idx += 1
+
+        # Filtrage par niveau de stock
+        if stock and stock != "tous":
+            if stock == "critique":
+                base_query += ' AND p."QtéenInventaire" < p."Qtéminimum"'
+            elif stock == "faible":
+                base_query += ' AND p."QtéenInventaire" = p."Qtéminimum"'
+            elif stock == "ok":
+                base_query += ' AND p."QtéenInventaire" > p."Qtéminimum"'
 
         pieces = await conn.fetch(base_query, *params)
 
@@ -105,7 +128,7 @@ async def get_pieces(
         print(f"❌ Erreur get_pieces: {e}")
         return []
 
-@router.get("/pieces/{piece_id}", response_model=Piece)
+@router.get("/{piece_id}", response_model=Piece)
 async def get_piece(piece_id: int, request: Request):
     conn = await request.app.state.pool.acquire()
     try:
@@ -260,7 +283,7 @@ async def create_piece(
     )
 
 
-@router.put("/pieces/{piece_id}", response_model=Piece)
+@router.put("/{piece_id}", response_model=Piece)
 async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.Connection = Depends(get_db_connection)):
     # Construire la requête de mise à jour dynamiquement
     update_fields = []
@@ -361,6 +384,8 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
         Qtéminimum=qty_minimum,
         Qtémax=qty_max,
         Qtéàcommander=qty_a_commander,
+        Qtéarecevoir=safe_int(piece_dict.get("Qtéarecevoir", 0)),
+        Qtécommandée=safe_int(piece_dict.get("Qtécommandée", 0)),
         Prix_unitaire=safe_float(piece_dict.get("Prix unitaire", 0)),
         Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
         SoumDem=safe_string(piece_dict.get("SoumDem", "")),
@@ -374,57 +399,10 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
     )
 
 
-@router.delete("/pieces/{piece_id}")
+@router.delete("/{piece_id}")
 async def delete_piece(piece_id: int, conn: asyncpg.Connection = Depends(get_db_connection)):
     result = await conn.execute('DELETE FROM "Pièce" WHERE "RéfPièce" = $1', piece_id)
     if result == "DELETE 0":
         raise HTTPException(status_code=404, detail="Pièce non trouvée")
     return {"message": "Pièce supprimée"}
 
-
-@router.get("/fournisseurs", response_model=List[Fournisseur])
-async def get_fournisseurs(conn: asyncpg.Connection = Depends(get_db_connection)):
-    try:
-        fournisseurs = await conn.fetch('SELECT * FROM "Fournisseurs" ORDER BY "NomFournisseur"')
-        result = []
-
-        for f in fournisseurs:
-            f_dict = dict(f)
-
-            # Charger les contacts liés
-            contacts = await conn.fetch(
-                'SELECT * FROM "Contact" WHERE "RéfFournisseur" = $1',
-                f_dict["RéfFournisseur"]
-            )
-
-            contact_list = [
-                Contact(
-                    RéfContact=c["RéfContact"],
-                    Nom=safe_string(c.get("Nom", "")),
-                    Titre=safe_string(c.get("Titre", "")),
-                    Email=safe_string(c.get("Email", "")),
-                    Telephone=safe_string(c.get("Telephone", "")),
-                    Cell=safe_string(c.get("Cell", "")),
-                    RéfFournisseur=c.get("RéfFournisseur"),
-                ) for c in contacts
-            ]
-
-            result.append(Fournisseur(
-                RéfFournisseur=f_dict["RéfFournisseur"],
-                NomFournisseur=safe_string(f_dict.get("NomFournisseur", "")),
-                Adresse=safe_string(f_dict.get("Adresse", "")),
-                Ville=safe_string(f_dict.get("Ville", "")),
-                CodePostal=safe_string(f_dict.get("CodePostal", "")),
-                Pays=safe_string(f_dict.get("Pays", "")),
-                NuméroTél=safe_string(f_dict.get("NuméroTél", "")),
-                contacts=[c.model_dump() for c in contact_list],
-                Domaine=safe_string(f_dict.get("Domaine", "")),
-                Produit=safe_string(f_dict.get("Produit", "")),
-                Marque=safe_string(f_dict.get("Marque", "")),
-                NumSap=safe_string(f_dict.get("NumSap", ""))
-            ))
-
-        return result
-    except Exception as e:
-        print(f"Erreur get_fournisseurs: {e}")
-        return []

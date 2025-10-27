@@ -6,7 +6,8 @@ import FournisseurCard from "@/components/fournisseurs/FournisseurCard";
 import FournisseurFormDialog from "@/components/fournisseurs/FournisseurFormDialog";
 import ContactManagerDialog from "@/components/fournisseurs/ContactManagerDialog";
 
-const API_URL = "http://localhost:8000/api";
+const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
+const API = `${BACKEND_URL}/api`;
 
 export default function FournisseursPage() {
   const [fournisseurs, setFournisseurs] = useState([]);
@@ -21,7 +22,7 @@ export default function FournisseursPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API_URL}/fournisseurs`);
+      const response = await fetch(`${API}/fournisseurs`);
       if (!response.ok) throw new Error("Erreur réseau");
       const data = await response.json();
       console.log("🏢 Fournisseurs chargés:", data); // DEBUG
@@ -41,8 +42,8 @@ export default function FournisseursPage() {
   const handleSaveFournisseur = async (fournisseurData) => {
     try {
         const url = fournisseurData.RéfFournisseur 
-            ? `${API_URL}/fournisseurs/${fournisseurData.RéfFournisseur}`
-            : `${API_URL}/fournisseurs`;
+            ? `${API}/fournisseurs/${fournisseurData.RéfFournisseur}`
+            : `${API}/fournisseurs`;
         
         const method = fournisseurData.RéfFournisseur ? 'PUT' : 'POST';
 
@@ -66,7 +67,7 @@ export default function FournisseursPage() {
   const handleDeleteFournisseur = async (id) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce fournisseur ?")) {
       try {
-        const response = await fetch(`${API_URL}/fournisseurs/${id}`, { method: 'DELETE' });
+        const response = await fetch(`${API}/fournisseurs/${id}`, { method: 'DELETE' });
         if (!response.ok) throw new Error("La suppression a échoué");
         await loadFournisseurs();
       } catch (err) {
@@ -84,8 +85,8 @@ export default function FournisseursPage() {
   const handleSaveContact = async (contactData) => {
     try {
       const url = contactData.RéfContact
-        ? `${API_URL}/contacts/${contactData.RéfContact}`
-        : `${API_URL}/contacts`;
+        ? `${API}/fournisseurs/contacts/${contactData.RéfContact}`
+        : `${API}/fournisseurs/contacts`;
       const method = contactData.RéfContact ? 'PUT' : 'POST';
       
       const response = await fetch(url, {
@@ -98,7 +99,7 @@ export default function FournisseursPage() {
       await loadFournisseurs();
       
       // Rafraîchir le fournisseur dans le dialogue
-      const updatedFournisseurs = await (await fetch(`${API_URL}/fournisseurs`)).json();
+      const updatedFournisseurs = await (await fetch(`${API}/fournisseurs`)).json();
       const freshFournisseur = updatedFournisseurs.find(f => f.RéfFournisseur === contactData.RéfFournisseur);
       setManagingContactsFor(freshFournisseur);
 
@@ -111,7 +112,7 @@ export default function FournisseursPage() {
   const handleDeleteContact = async (contactId) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce contact ?")) {
       try {
-        const response = await fetch(`${API_URL}/contacts/${contactId}`, { method: 'DELETE' });
+        const response = await fetch(`${API}/fournisseurs/contacts/${contactId}`, { method: 'DELETE' });
         if (!response.ok) throw new Error("La suppression du contact a échoué");
         
         await loadFournisseurs();

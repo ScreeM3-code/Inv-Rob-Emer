@@ -27,7 +27,7 @@ class Commande(BaseModel):
     autre_fournisseur: Optional[dict] = None
     NomFabricant: Optional[str] = ""
     Soumission_LD: Optional[str] = ""
-    SoumDem: Optional[str] = ""
+    SoumDem: Optional[bool] = False
 
 class StatsResponse(BaseModel):
     total_pieces: int

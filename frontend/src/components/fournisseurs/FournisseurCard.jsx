@@ -23,7 +23,6 @@ export default function FournisseurCard({ fournisseur, onEdit, onDelete, onManag
           {fournisseur.Domaine ? (
             <>
               <img src={logoUrl} alt={fournisseur.NomFournisseur} className="w-8 h-8 rounded" onError={handleLogoError} />
-              <Building2 className="w-8 h-8 text-blue-600 hidden" />
             </>
           ) : (
             <Building2 className="w-8 h-8 text-blue-600" />

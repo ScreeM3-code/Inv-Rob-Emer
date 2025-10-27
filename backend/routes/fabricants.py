@@ -15,8 +15,18 @@ async def get_fabricants(conn: asyncpg.Connection = Depends(get_db_connection)):
     rows = await conn.fetch(
         'SELECT "RefFabricant", "NomFabricant", "Domaine", "NomContact", "TitreContact", "Email" FROM "Fabricant" ORDER BY "NomFabricant"'
     )
-    return [{"RefFabricant": r["RefFabricant"], "NomFabricant": r["NomFabricant"]} for r in rows]
-
+    # ✅ FIX: Retourner TOUS les champs, pas juste le nom
+    return [
+        {
+            "RefFabricant": r["RefFabricant"],
+            "NomFabricant": r["NomFabricant"],
+            "Domaine": safe_string(r.get("Domaine", "")),
+            "NomContact": safe_string(r.get("NomContact", "")),
+            "TitreContact": safe_string(r.get("TitreContact", "")),
+            "Email": safe_string(r.get("Email", ""))
+        }
+        for r in rows
+    ]
 
 @router.post("", response_model=FabricantBase)
 async def create_fabricant(

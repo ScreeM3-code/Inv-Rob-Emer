@@ -25,12 +25,12 @@ export default function FournisseurFormDialog({ fournisseur, onSave, onCancel })
             <Input id="nom" value={formData.NomFournisseur} onChange={e => handleChange('NomFournisseur', e.target.value)} required />
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>Contact</Label><Input value={formData.NomContact} onChange={e => handleChange('NomContact', e.target.value)} /></div>
-            <div className="space-y-2"><Label>Titre</Label><Input value={formData.TitreContact} onChange={e => handleChange('TitreContact', e.target.value)} /></div>
+            <div className="space-y-2"><Label>NumSap</Label><Input value={formData.NumSap} onChange={e => handleChange('NumSap', e.target.value)} /></div>
+            <div className="space-y-2"><Label>NuméroTél</Label><Input value={formData.NuméroTél} onChange={e => handleChange('NuméroTél', e.target.value)} /></div>
           </div>
           <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2"><Label>Téléphone</Label><Input value={formData.NuméroTél} onChange={e => handleChange('NuméroTél', e.target.value)} /></div>
-            <div className="space-y-2"><Label>Télécopie</Label><Input value={formData.NumTélécopie} onChange={e => handleChange('NumTélécopie', e.target.value)} /></div>
+            <div className="space-y-2"><Label>Produit</Label><Textarea value={formData.Produit} onChange={e => handleChange('Produit', e.target.value)} /></div>
+            <div className="space-y-2"><Label>Marque</Label><Textarea value={formData.Marque} onChange={e => handleChange('Marque', e.target.value)} /></div>
           </div>
           <div className="space-y-2"><Label>Adresse</Label><Textarea value={formData.Adresse} onChange={e => handleChange('Adresse', e.target.value)} /></div>
           <div className="grid grid-cols-3 gap-4">

@@ -93,6 +93,8 @@ function Commandes() {
 
   const handleUpdateOrder = async (updatedPiece) => {
     try {
+      console.log('🔄 Mise à jour commande:', updatedPiece);
+      
       const cleanedOrder = {
         ...updatedPiece,
         RéfPièce: updatedPiece.RéfPièce,
@@ -118,12 +120,46 @@ function Commandes() {
       };
       
       delete cleanedOrder.NomFabricant;
+      delete cleanedOrder.fournisseur_principal;
+      delete cleanedOrder.autre_fournisseur;
 
-      await axios.put(`${API}/pieces/${updatedPiece.RéfPièce}`, cleanedOrder);
-      setEditingOrder(null);
-      loadData(currentPage);
+      console.log('📤 Envoi au backend:', cleanedOrder);
+
+      // 1. Mettre à jour la pièce
+      const updateResponse = await axios.put(`${API}/pieces/${updatedPiece.RéfPièce}`, cleanedOrder);
+      console.log('✅ Réponse backend (update):', updateResponse.data);
+      
+      // 2. Récupérer l'utilisateur actuel
+      const userResponse = await axios.get(`${API}/current-user`);
+      const userName = userResponse.data.user || "Système";
+      
+      // 3. Ajouter une entrée dans l'historique
+      const historiqueEntry = {
+        Opération: "Commande",
+        DateCMD: new Date().toISOString(),
+        DateRecu: null,
+        RéfPièce: updatedPiece.RéfPièce,
+        nompiece: updatedPiece.NomPièce,
+        numpiece: updatedPiece.NumPièce,
+        qtécommande: String(updatedPiece.Qtécommandée || 0),
+        QtéSortie: "0",
+        description: updatedPiece.description,
+        User: userName,
+        Delais: null
+      };
+      
+      console.log('📝 Ajout historique:', historiqueEntry);
+      
+      const histResponse = await axios.post(`${API}/historique`, historiqueEntry);
+      console.log('✅ Réponse backend (historique):', histResponse.data);
+      
+      setGoOrder(null);
+      await loadData(currentPage);
+      
+      alert('✅ Commande passée avec succès !');
     } catch (error) {
-      console.error("Erreur lors de la mise à jour:", error.response?.data || error.message);
+      console.error("❌ Erreur lors de la mise à jour:", error.response?.data || error.message);
+      alert("❌ Erreur: " + (error.response?.data?.detail || error.message));
     }
   };
 
@@ -193,10 +229,7 @@ function Commandes() {
           piece={goOrder}
           fournisseurs={fournisseurs}
           fabricants={fabricants}
-          onSave={() => {
-            setGoOrder(null);
-            loadData(currentPage);
-          }}
+          onSave={handleUpdateOrder}
           onCancel={() => setGoOrder(null)}
         />
       )}

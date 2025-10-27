@@ -19,7 +19,7 @@ async def get_stats(conn: asyncpg.Connection = Depends(get_db_connection)):
 
         # Stock critique
         stock_critique = await conn.fetchval(
-            'SELECT COUNT(*) FROM "Pièce" WHERE "QtéenInventaire" = "Qtéminimum" AND "Qtéminimum" > 0'
+            'SELECT COUNT(*) FROM "Pièce" WHERE "QtéenInventaire" = 0 AND "Qtéminimum" > 0'
         ) or 0
 
         # Valeur stock (en CAD $)
@@ -35,7 +35,6 @@ async def get_stats(conn: asyncpg.Connection = Depends(get_db_connection)):
             WHERE "Qtécommandée" <= 0
               AND "QtéenInventaire" < "Qtéminimum"
               AND "Qtéminimum" > 0
-              AND "Qtéminimum" IS NOT NULL
             '''
         ) or 0
 
@@ -68,8 +67,6 @@ async def get_commande(conn: asyncpg.Connection = Depends(get_db_connection)):
             LEFT JOIN "Autre Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfAutreFournisseur"
             LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
             WHERE COALESCE(p."Qtécommandée", 0) > 0
-              AND p."QtéenInventaire" <= p."Qtéminimum"
-              AND p."Qtéminimum" > 0
         ''')
 
         result = []
@@ -111,7 +108,7 @@ async def get_commande(conn: asyncpg.Connection = Depends(get_db_connection)):
                 autre_fournisseur=autre_fournisseur,
                 NomFabricant=safe_string(piece_dict.get("NomFabricant", "")),
                 Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
-                SoumDem=safe_string(piece_dict.get("SoumDem", ""))
+                SoumDem=bool(piece_dict.get("SoumDem", False))
             )
 
             result.append(commande)
@@ -142,7 +139,6 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
             WHERE p."Qtécommandée" <= 0
              AND p."QtéenInventaire" < p."Qtéminimum"
              AND p."Qtéminimum" > 0
-             AND p."Qtéminimum" IS NOT NULL
         ''')
 
         result = []
@@ -186,7 +182,7 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
                 autre_fournisseur=autre_fournisseur,
                 NomFabricant=safe_string(piece_dict.get("NomFabricant", "")),
                 Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
-                SoumDem=safe_string(piece_dict.get("SoumDem", ""))
+                SoumDem=bool(piece_dict.get("SoumDem", False))
             )
 
             result.append(commande)
@@ -218,16 +214,22 @@ async def receive_all_order(
         result = await conn.execute(query, piece_id, datetime.utcnow())
 
         # Mise à jour de l'historique
-        await conn.execute('''
+        await conn.execute("""
+            WITH last_entry AS (
+                SELECT id
+                FROM "historique"
+                WHERE "RéfPièce" = $2
+                  AND "Opération" = 'Commande' or 'Achat'
+                  AND "DateRecu" IS NULL
+                ORDER BY "id" DESC
+                LIMIT 1
+            )
             UPDATE "historique"
             SET "DateRecu" = $1,
                 "Delais" = EXTRACT(DAY FROM ($1 - "DateCMD"))
-            WHERE "RéfPièce" = $2
-              AND "Opération" = 'Achat'
-              AND "DateRecu" IS NULL
-            ORDER BY "id" DESC
-            LIMIT 1
-        ''', datetime.utcnow(), piece_id)
+            WHERE id IN (SELECT id FROM last_entry);
+        """,  datetime.utcnow(), piece_id)
+
 
         if result == "UPDATE 0":
             raise HTTPException(status_code=404, detail="Pièce non trouvée")

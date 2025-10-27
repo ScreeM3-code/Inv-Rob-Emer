@@ -23,6 +23,14 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
       return;
     }
 
+    console.log('📦 Données envoyées depuis CommandeForm:', {
+      ...piece,
+      ...formData,
+      Qtécommandée: formData.Qtécommander,
+      Qtéarecevoir: formData.Qtécommander,
+      Qtéreçue: 0,
+    });
+
     onSave({
       ...piece,
       ...formData,
