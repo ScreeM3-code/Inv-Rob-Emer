@@ -11,65 +11,40 @@ import axios from 'axios';
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
-// Hook personnalisé pour lazy loading
-// Hook personnalisé pour lazy loading
+// Hook personnalisé pour lazy loading par scroll
 function useInfiniteScroll(items, itemsPerPage = 50) {
-  const [displayedItems, setDisplayedItems] = useState([]);
-  const [page, setPage] = useState(1);
-  const observerRef = useRef(null);
-  const loadMoreTriggerRef = useRef(null); // ✅ AJOUT: Ref séparée pour l'élément DOM
+  const [displayCount, setDisplayCount] = useState(itemsPerPage);
+  const containerRef = useRef(null); // Pour le scroll du tableau
 
   useEffect(() => {
     // Reset quand les items changent
-    setDisplayedItems(items.slice(0, itemsPerPage));
-    setPage(1);
+    setDisplayCount(itemsPerPage);
   }, [items, itemsPerPage]);
 
   useEffect(() => {
-    // Charger plus d'items
-    const endIndex = page * itemsPerPage;
-    setDisplayedItems(items.slice(0, endIndex));
-  }, [page, items, itemsPerPage]);
+    const container = containerRef.current?.closest('.overflow-x-auto');
+    if (!container) return;
 
-  // ✅ MODIFIÉ: Séparation de la logique d'observation et de la ref
-  useEffect(() => {
-    const currentElement = loadMoreTriggerRef.current;
-    
-    // Nettoyer l'ancien observer
-    if (observerRef.current) {
-      observerRef.current.disconnect();
-    }
-
-    // Ne rien faire si pas d'élément ou si tout est chargé
-    if (!currentElement || displayedItems.length >= items.length) {
-      return;
-    }
-
-    // Créer un nouvel observer
-    observerRef.current = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting) {
-          setPage(prev => prev + 1);
-        }
-      },
-      { threshold: 0.1 } // ✅ AJOUT: Meilleur contrôle
-    );
-
-    observerRef.current.observe(currentElement);
-
-    // Cleanup
-    return () => {
-      if (observerRef.current) {
-        observerRef.current.disconnect();
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      
+      // Si on est à 80% du scroll et il reste des items
+      if (scrollTop + clientHeight >= scrollHeight * 0.8) {
+        setDisplayCount(prev => {
+          const newCount = prev + itemsPerPage;
+          return Math.min(newCount, items.length);
+        });
       }
     };
-  }, [displayedItems.length, items.length]); // ✅ Dépendances correctes
 
-  return { 
-    displayedItems, 
-    loadMoreRef: loadMoreTriggerRef, // ✅ Retourner la ref stable
-    hasMore: displayedItems.length < items.length 
-  };
+    container.addEventListener('scroll', handleScroll, { passive: true });
+    return () => container.removeEventListener('scroll', handleScroll);
+  }, [items.length, itemsPerPage]);
+
+  const displayedItems = items.slice(0, displayCount);
+  const hasMore = displayCount < items.length;
+
+  return { displayedItems, containerRef, hasMore };
 }
 
 function Historique() {
@@ -95,7 +70,7 @@ function Historique() {
     return searchMatch && operationMatch && dateMatch;
   });
 
-  const { displayedItems, loadMoreRef, hasMore } = useInfiniteScroll(filteredHistorique, 30);
+  const { displayedItems, containerRef, hasMore } = useInfiniteScroll(filteredHistorique, 50);
 
   useEffect(() => {
     loadHistorique();
@@ -288,7 +263,7 @@ function Historique() {
                     </TableRow>
                   ) : (
                     displayedItems.map((item, index) => (
-                      <TableRow key={index}>
+                      <TableRow key={index} ref={index === 0 ? containerRef : null}> {/* ✅ Ref sur le premier row */}
                         <TableCell className="font-medium whitespace-nowrap w-40">
                           {formatDate(item.DateCMD || item.DateRecu)}
                         </TableCell>
@@ -315,7 +290,7 @@ function Historique() {
             </div>
             {/* Trigger pour charger plus */}
             {hasMore && (
-              <div ref={loadMoreRef} className="flex justify-center py-8">
+              <div className="flex justify-center py-4">
                 <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
                 <span className="ml-2 text-sm text-gray-600">
                   Chargement de {displayedItems.length}/{filteredHistorique.length} entrées...

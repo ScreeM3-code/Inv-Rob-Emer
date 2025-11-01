@@ -1,8 +1,8 @@
-2025-11-01 07:55:32,232 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
-2025-11-01 07:55:32,235 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2025-11-01 07:55:32,635 - uvicorn.error - INFO - Started server process [14768]
-2025-11-01 07:55:32,637 - uvicorn.error - INFO - Waiting for application startup.
-2025-11-01 07:55:32,760 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2025-11-01 07:55:32,821 - Inventaire-Robot - INFO - \u2705 18 équipements trouvés
-2025-11-01 07:55:32,828 - uvicorn.error - INFO - Application startup complete.
-2025-11-01 07:55:32,829 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-11-01 08:33:38,442 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
+2025-11-01 08:33:38,443 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2025-11-01 08:33:38,492 - uvicorn.error - INFO - Started server process [8468]
+2025-11-01 08:33:38,493 - uvicorn.error - INFO - Waiting for application startup.
+2025-11-01 08:33:38,536 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2025-11-01 08:33:38,549 - Inventaire-Robot - INFO - \u2705 18 équipements trouvés
+2025-11-01 08:33:38,555 - uvicorn.error - INFO - Application startup complete.
+2025-11-01 08:33:38,555 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
