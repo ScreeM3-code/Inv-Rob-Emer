@@ -47,13 +47,27 @@ function useInfiniteScroll(items, itemsPerPage = 50) {
 function Historique() {
   const [historique, setHistorique] = useState([]);
   const [loading, setLoading] = useState(true);
-  const { displayedItems, loadMoreRef, hasMore } = useInfiniteScroll(historique, 30);
   const [filters, setFilters] = useState({
     search: '',
     operation: 'tous',
     dateFrom: '',
     dateTo: ''
   });
+
+    const filteredHistorique = historique.filter(item => {
+    const searchMatch = filters.search === '' || 
+      item.nompiece?.toLowerCase().includes(filters.search.toLowerCase()) ||
+      item.numpiece?.toLowerCase().includes(filters.search.toLowerCase()) ||
+      item.description?.toLowerCase().includes(filters.search.toLowerCase());
+    
+    const operationMatch = filters.operation === 'tous' || item.Opération === filters.operation;
+    
+    const dateMatch = true; // TODO: Implémenter le filtrage par date si nécessaire
+    
+    return searchMatch && operationMatch && dateMatch;
+  });
+
+  const { displayedItems, loadMoreRef, hasMore } = useInfiniteScroll(filteredHistorique, 30);
 
   useEffect(() => {
     loadHistorique();
@@ -71,18 +85,7 @@ function Historique() {
     }
   };
 
-  const filteredHistorique = historique.filter(item => {
-    const searchMatch = filters.search === '' || 
-      item.nompiece?.toLowerCase().includes(filters.search.toLowerCase()) ||
-      item.numpiece?.toLowerCase().includes(filters.search.toLowerCase()) ||
-      item.description?.toLowerCase().includes(filters.search.toLowerCase());
-    
-    const operationMatch = filters.operation === 'tous' || item.Opération === filters.operation;
-    
-    const dateMatch = true; // TODO: Implémenter le filtrage par date si nécessaire
-    
-    return searchMatch && operationMatch && dateMatch;
-  });
+
 
   const getOperationBadge = (operation) => {
     switch (operation) {
@@ -238,7 +241,7 @@ function Historique() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Date</TableHead>
+                    <TableHead className="w-40">Date</TableHead>
                     <TableHead>Opération</TableHead>
                     <TableHead>Pièce</TableHead>
                     <TableHead>N° Pièce</TableHead>
@@ -258,7 +261,7 @@ function Historique() {
                   ) : (
                     displayedItems.map((item, index) => (
                       <TableRow key={index}>
-                        <TableCell className="font-medium">
+                        <TableCell className="font-medium whitespace-nowrap w-40">
                           {formatDate(item.DateCMD || item.DateRecu)}
                         </TableCell>
                         <TableCell>
@@ -287,11 +290,21 @@ function Historique() {
               <div ref={loadMoreRef} className="flex justify-center py-8">
                 <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
                 <span className="ml-2 text-sm text-gray-600">
-                  Chargement de {displayedItems.length}/{historique.length} l'historique...
+                  Chargement de {displayedItems.length}/{filteredHistorique.length} entrées...
                 </span>
               </div>
             )}
           </CardContent>
+          {(filters.search || filters.operation !== 'tous' || filters.dateFrom || filters.dateTo) && (
+          <div className="px-6 pb-4">
+            <p className="text-sm text-slate-600">
+              <span className="font-medium">{filteredHistorique.length}</span> résultat{filteredHistorique.length !== 1 ? 's' : ''} 
+              {filteredHistorique.length !== historique.length && (
+                <span className="text-slate-400"> sur {historique.length} entrées</span>
+              )}
+            </p>
+          </div>
+        )}
         </Card>
       </div>
     </div>
