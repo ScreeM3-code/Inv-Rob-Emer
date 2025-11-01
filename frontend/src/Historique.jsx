@@ -12,10 +12,12 @@ const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
 
 // Hook personnalisé pour lazy loading
+// Hook personnalisé pour lazy loading
 function useInfiniteScroll(items, itemsPerPage = 50) {
   const [displayedItems, setDisplayedItems] = useState([]);
   const [page, setPage] = useState(1);
   const observerRef = useRef(null);
+  const loadMoreTriggerRef = useRef(null); // ✅ AJOUT: Ref séparée pour l'élément DOM
 
   useEffect(() => {
     // Reset quand les items changent
@@ -29,19 +31,45 @@ function useInfiniteScroll(items, itemsPerPage = 50) {
     setDisplayedItems(items.slice(0, endIndex));
   }, [page, items, itemsPerPage]);
 
-  const loadMoreRef = useCallback((node) => {
-    if (observerRef.current) observerRef.current.disconnect();
+  // ✅ MODIFIÉ: Séparation de la logique d'observation et de la ref
+  useEffect(() => {
+    const currentElement = loadMoreTriggerRef.current;
     
-    observerRef.current = new IntersectionObserver(entries => {
-      if (entries[0].isIntersecting && displayedItems.length < items.length) {
-        setPage(prev => prev + 1);
-      }
-    });
-    
-    if (node) observerRef.current.observe(node);
-  }, [displayedItems.length, items.length]);
+    // Nettoyer l'ancien observer
+    if (observerRef.current) {
+      observerRef.current.disconnect();
+    }
 
-  return { displayedItems, loadMoreRef, hasMore: displayedItems.length < items.length };
+    // Ne rien faire si pas d'élément ou si tout est chargé
+    if (!currentElement || displayedItems.length >= items.length) {
+      return;
+    }
+
+    // Créer un nouvel observer
+    observerRef.current = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setPage(prev => prev + 1);
+        }
+      },
+      { threshold: 0.1 } // ✅ AJOUT: Meilleur contrôle
+    );
+
+    observerRef.current.observe(currentElement);
+
+    // Cleanup
+    return () => {
+      if (observerRef.current) {
+        observerRef.current.disconnect();
+      }
+    };
+  }, [displayedItems.length, items.length]); // ✅ Dépendances correctes
+
+  return { 
+    displayedItems, 
+    loadMoreRef: loadMoreTriggerRef, // ✅ Retourner la ref stable
+    hasMore: displayedItems.length < items.length 
+  };
 }
 
 function Historique() {
