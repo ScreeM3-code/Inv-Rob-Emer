@@ -119,7 +119,7 @@ function Dashboard () {
     Qtémax: 100,
     Prix_unitaire: 0,
     Soumission_LD: "",
-    SoumDem: ""
+    SoumDem: false
   });
 
 
@@ -245,7 +245,7 @@ function Dashboard () {
         Qtémax: 100,
         Prix_unitaire: 0,
         Soumission_LD: "",
-        SoumDem: ""
+        SoumDem: false
       });
 
       // Recharger les données
@@ -336,7 +336,7 @@ function Dashboard () {
                 Qtémax: 100,
                 Prix_unitaire: 0,
                 Soumission_LD: "",
-                SoumDem: ""
+                SoumDem: false
               });
               setIsAddDialogOpen(true);
             }}

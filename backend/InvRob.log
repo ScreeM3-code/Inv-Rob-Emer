@@ -1,8 +1,13 @@
-2025-11-04 07:53:12,613 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
-2025-11-04 07:53:12,614 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2025-11-04 07:53:12,904 - uvicorn.error - INFO - Started server process [29748]
-2025-11-04 07:53:12,904 - uvicorn.error - INFO - Waiting for application startup.
-2025-11-04 07:53:13,035 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2025-11-04 07:53:13,041 - Inventaire-Robot - INFO - \u2705 58 équipements trouvés
-2025-11-04 07:53:13,042 - uvicorn.error - INFO - Application startup complete.
-2025-11-04 07:53:13,043 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-11-04 09:08:10,352 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
+2025-11-04 09:08:10,352 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2025-11-04 09:08:10,468 - uvicorn.error - INFO - Started server process [38060]
+2025-11-04 09:08:10,468 - uvicorn.error - INFO - Waiting for application startup.
+2025-11-04 09:08:10,593 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2025-11-04 09:08:10,599 - Inventaire-Robot - INFO - \u2705 58 équipements trouvés
+2025-11-04 09:08:10,601 - uvicorn.error - INFO - Application startup complete.
+2025-11-04 09:08:10,601 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-11-04 09:17:23,588 - uvicorn.error - INFO - Shutting down
+2025-11-04 09:17:23,699 - uvicorn.error - INFO - Waiting for application shutdown.
+2025-11-04 09:17:23,701 - Inventaire-Robot - INFO - Pool PostgreSQL fermé.
+2025-11-04 09:17:23,701 - uvicorn.error - INFO - Application shutdown complete.
+2025-11-04 09:17:23,701 - uvicorn.error - INFO - Finished server process [38060]

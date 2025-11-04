@@ -246,7 +246,7 @@ async def create_piece(
         piece.Qtémax,
         piece.Prix_unitaire,
         piece.Soumission_LD or "",
-        piece.SoumDem or "",
+        piece.SoumDem or False,
         now,
         now
     )

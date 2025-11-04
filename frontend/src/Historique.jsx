@@ -14,10 +14,9 @@ const API = `${BACKEND_URL}/api`;
 // Hook personnalisé pour lazy loading par scroll
 function useInfiniteScroll(items, itemsPerPage = 50) {
   const [displayCount, setDisplayCount] = useState(itemsPerPage);
-  const containerRef = useRef(null); // Pour le scroll du tableau
+  const containerRef = useRef(null);
 
   useEffect(() => {
-    // Reset quand les items changent
     setDisplayCount(itemsPerPage);
   }, [items, itemsPerPage]);
 
@@ -28,7 +27,9 @@ function useInfiniteScroll(items, itemsPerPage = 50) {
     const handleScroll = () => {
       const { scrollTop, scrollHeight, clientHeight } = container;
       
-      // Si on est à 80% du scroll et il reste des items
+      // ✅ AJOUT: Vérifier s'il reste des items avant de charger
+      if (displayCount >= items.length) return;
+      
       if (scrollTop + clientHeight >= scrollHeight * 0.8) {
         setDisplayCount(prev => {
           const newCount = prev + itemsPerPage;
@@ -39,7 +40,7 @@ function useInfiniteScroll(items, itemsPerPage = 50) {
 
     container.addEventListener('scroll', handleScroll, { passive: true });
     return () => container.removeEventListener('scroll', handleScroll);
-  }, [items.length, itemsPerPage]);
+  }, [items.length, itemsPerPage, displayCount]); // ✅ AJOUT: displayCount dans les dépendances
 
   const displayedItems = items.slice(0, displayCount);
   const hasMore = displayCount < items.length;
@@ -263,7 +264,7 @@ function Historique() {
                     </TableRow>
                   ) : (
                     displayedItems.map((item, index) => (
-                      <TableRow key={index} ref={index === 0 ? containerRef : null}> {/* ✅ Ref sur le premier row */}
+                      <TableRow key={index} ref={index === 0 ? containerRef : null}>
                         <TableCell className="font-medium whitespace-nowrap w-40">
                           {formatDate(item.DateCMD || item.DateRecu)}
                         </TableCell>
