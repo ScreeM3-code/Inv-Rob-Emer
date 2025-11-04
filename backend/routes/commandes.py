@@ -56,11 +56,7 @@ async def get_commande(conn: asyncpg.Connection = Depends(get_db_connection)):
         rows = await conn.fetch('''
             SELECT p.*,
                    f1."NomFournisseur" AS fournisseur_principal_nom,
-                   f1."NomContact" AS fournisseur_principal_contact,
-                   f1."NuméroTél" AS fournisseur_principal_tel,
                    f2."NomAutreFournisseur" AS autre_fournisseur_nom,
-                   f2."NomContact" AS autre_fournisseur_contact,
-                   f2."NuméroTél" AS autre_fournisseur_tel,
                    f3."NomFabricant"
             FROM "Pièce" p
             LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
@@ -126,11 +122,7 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
         rows = await conn.fetch('''
             SELECT p.*,
                    f1."NomFournisseur" AS fournisseur_principal_nom,
-                   f1."NomContact" AS fournisseur_principal_contact,
-                   f1."NuméroTél" AS fournisseur_principal_tel,
                    f2."NomAutreFournisseur" AS autre_fournisseur_nom,
-                   f2."NomContact" AS autre_fournisseur_contact,
-                   f2."NuméroTél" AS autre_fournisseur_tel,
                    f3."NomFabricant"
             FROM "Pièce" p
             LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
