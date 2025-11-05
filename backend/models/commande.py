@@ -22,6 +22,7 @@ class Commande(BaseModel):
     Qtéarecevoir: Optional[int] = 0
     Cmd_info: Optional[str] = ""
     Qtéàcommander: Optional[int] = 0
+    RTBS: Optional[int] = 0
     Prix_unitaire: float = 0.0
     fournisseur_principal: Optional[dict] = None
     autre_fournisseur: Optional[dict] = None

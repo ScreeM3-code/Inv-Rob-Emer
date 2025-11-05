@@ -162,6 +162,7 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
                 Datecommande=piece_dict.get("Datecommande"),
                 NomPièce=safe_string(piece_dict.get("NomPièce", "")),
                 NumPièce=safe_string(piece_dict.get("NumPièce", "")),
+                RTBS=safe_int(piece_dict.get("RTBS", "")),
                 NumPièceAutreFournisseur=safe_string(piece_dict.get("NumPièceAutreFournisseur", "")),
                 DescriptionPièce=safe_string(piece_dict.get("DescriptionPièce", "")),
                 RéfFournisseur=piece_dict.get("RéfFournisseur"),

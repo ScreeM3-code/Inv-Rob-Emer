@@ -2,7 +2,7 @@
 import asyncpg
 from fastapi import APIRouter, Depends
 from typing import List, Optional
-
+from datetime import datetime
 from database import get_db_connection
 from models import HistoriqueCreate, HistoriqueResponse
 

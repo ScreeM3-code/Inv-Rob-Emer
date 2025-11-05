@@ -37,7 +37,7 @@ export default function CommandeCard({
                   )}
                 </h3>
                 <p className="text-sm text-gray-600">
-                  N° {order.NumPièce} • N° Fabricant: {order.NumPièceAutreFournisseur}
+                  N° {order.NumPièce} ••• N° Fabricant: {order.NumPièceAutreFournisseur} ••• SAP : {order.RTBS} 
                 </p>
                 {order.DescriptionPièce && (
                   <p className="text-sm text-gray-500 mt-1">{order.DescriptionPièce}</p>

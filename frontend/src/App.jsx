@@ -170,8 +170,8 @@ function Dashboard () {
         nompiece: piece.NomPièce,
         numpiece: piece.NumPièce,
         User: user?.full_name || "Système",
-        DateRecu: new Date().toISOString(),
-        description: `Sortie de 1 unité depuis la page d'inventaire.`,
+        //DateRecu: new Date().toISOString(),
+        description: piece.DescriptionPièce,
       };
 
       const historyResponse = await fetch(`${API}/historique`, {

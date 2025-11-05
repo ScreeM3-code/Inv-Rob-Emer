@@ -1,3 +1,4 @@
 Filtre historique + user aussi
 rapports
 
+out rapide mettre nom et avoir l'option pe -2 ou -3
