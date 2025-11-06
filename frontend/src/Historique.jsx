@@ -14,38 +14,36 @@ const API = `${BACKEND_URL}/api`;
 // Hook personnalisé pour lazy loading par scroll
 function useInfiniteScroll(items, itemsPerPage = 50) {
   const [displayCount, setDisplayCount] = useState(itemsPerPage);
-  const containerRef = useRef(null);
+  const loaderRef = useRef(null);
 
   useEffect(() => {
+    // Reset quand les items changent
     setDisplayCount(itemsPerPage);
   }, [items, itemsPerPage]);
 
   useEffect(() => {
-    const container = containerRef.current?.closest('.overflow-x-auto');
-    if (!container) return;
+    // Use IntersectionObserver to detect when the loader element becomes visible
+    const node = loaderRef.current;
+    if (!node) return;
 
-    const handleScroll = () => {
-      const { scrollTop, scrollHeight, clientHeight } = container;
-      
-      // ✅ AJOUT: Vérifier s'il reste des items avant de charger
-      if (displayCount >= items.length) return;
-      
-      if (scrollTop + clientHeight >= scrollHeight * 0.8) {
+    const observer = new IntersectionObserver((entries) => {
+      const e = entries[0];
+      if (e && e.isIntersecting) {
         setDisplayCount(prev => {
           const newCount = prev + itemsPerPage;
           return Math.min(newCount, items.length);
         });
       }
-    };
+    }, { root: null, rootMargin: '200px', threshold: 0.1 });
 
-    container.addEventListener('scroll', handleScroll, { passive: true });
-    return () => container.removeEventListener('scroll', handleScroll);
-  }, [items.length, itemsPerPage, displayCount]); // ✅ AJOUT: displayCount dans les dépendances
+    observer.observe(node);
+    return () => observer.disconnect();
+  }, [items.length, itemsPerPage]);
 
   const displayedItems = items.slice(0, displayCount);
   const hasMore = displayCount < items.length;
 
-  return { displayedItems, containerRef, hasMore };
+  return { displayedItems, loaderRef, hasMore };
 }
 
 function Historique() {
@@ -71,7 +69,7 @@ function Historique() {
     return searchMatch && operationMatch && dateMatch;
   });
 
-  const { displayedItems, containerRef, hasMore } = useInfiniteScroll(filteredHistorique, 50);
+  const { displayedItems, loaderRef, hasMore } = useInfiniteScroll(filteredHistorique, 50);
 
   useEffect(() => {
     loadHistorique();
@@ -264,7 +262,7 @@ function Historique() {
                     </TableRow>
                   ) : (
                     displayedItems.map((item, index) => (
-                      <TableRow key={index} ref={index === 0 ? containerRef : null}>
+                      <TableRow key={item.id || index}>
                         <TableCell className="font-medium whitespace-nowrap w-40">
                           {formatDate(item.DateCMD || item.DateRecu)}
                         </TableCell>
@@ -290,14 +288,19 @@ function Historique() {
               </Table>
             </div>
             {/* Trigger pour charger plus */}
-            {hasMore && (
+            {loading ? (
               <div className="flex justify-center py-4">
+                <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
+                <span className="ml-2 text-sm text-gray-600">Chargement...</span>
+              </div>
+            ) : hasMore ? (
+              <div className="flex justify-center py-4" ref={loaderRef}>
                 <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
                 <span className="ml-2 text-sm text-gray-600">
                   Chargement de {displayedItems.length}/{filteredHistorique.length} entrées...
                 </span>
               </div>
-            )}
+            ) : null}
           </CardContent>
           {(filters.search || filters.operation !== 'tous' || filters.dateFrom || filters.dateTo) && (
           <div className="px-6 pb-4">

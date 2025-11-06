@@ -1,33 +1,8 @@
-2025-11-05 21:15:37,180 - Inventaire-Robot - WARNING - ⚠️ Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
-2025-11-05 21:15:37,180 - Inventaire-Robot - INFO - 🚀 Mode production
-2025-11-05 21:15:37,201 - uvicorn.error - INFO - Started server process [13222]
-2025-11-05 21:15:37,201 - uvicorn.error - INFO - Waiting for application startup.
-2025-11-05 21:15:37,232 - Inventaire-Robot - ERROR - ❌ Erreur connexion PostgreSQL: database "InventaireRobot" does not exist
-Traceback (most recent call last):
-  File "/home/simon/Documents/GitHub/Inv-Rob-Emer/backend/database.py", line 17, in lifespan
-    app.state.pool = await asyncpg.create_pool(
-                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/asyncpg/pool.py", line 403, in _async__init__
-    await self._initialize()
-  File "/usr/lib/python3/dist-packages/asyncpg/pool.py", line 430, in _initialize
-    await first_ch.connect()
-  File "/usr/lib/python3/dist-packages/asyncpg/pool.py", line 128, in connect
-    self._con = await self._pool._get_new_connection()
-                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/asyncpg/pool.py", line 502, in _get_new_connection
-    con = await connection.connect(
-          ^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/asyncpg/connection.py", line 2329, in connect
-    return await connect_utils._connect(
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/asyncpg/connect_utils.py", line 991, in _connect
-    conn = await _connect_addr(
-           ^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/asyncpg/connect_utils.py", line 828, in _connect_addr
-    return await __connect_addr(params, True, *args)
-           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
-  File "/usr/lib/python3/dist-packages/asyncpg/connect_utils.py", line 876, in __connect_addr
-    await connected
-asyncpg.exceptions.InvalidCatalogNameError: database "InventaireRobot" does not exist
-2025-11-05 21:15:37,235 - uvicorn.error - INFO - Application startup complete.
-2025-11-05 21:15:37,236 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-11-05 21:46:07,089 - Inventaire-Robot - WARNING - ⚠️ Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
+2025-11-05 21:46:07,089 - Inventaire-Robot - INFO - 🚀 Mode production
+2025-11-05 21:46:07,096 - uvicorn.error - INFO - Started server process [15820]
+2025-11-05 21:46:07,096 - uvicorn.error - INFO - Waiting for application startup.
+2025-11-05 21:46:07,125 - Inventaire-Robot - INFO - ✅ Connexion PostgreSQL réussie
+2025-11-05 21:46:07,131 - Inventaire-Robot - INFO - ✅ 912 Pièce trouvés
+2025-11-05 21:46:07,133 - uvicorn.error - INFO - Application startup complete.
+2025-11-05 21:46:07,133 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)

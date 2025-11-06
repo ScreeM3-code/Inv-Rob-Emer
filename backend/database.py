@@ -23,10 +23,10 @@ async def lifespan(app):
 
         async with app.state.pool.acquire() as conn:
             try:
-                c = await conn.fetchval('SELECT COUNT(*) FROM "devices"')
-                logger.info(f"✅ {c} équipements trouvés")
+                c = await conn.fetchval('SELECT COUNT(*) FROM "Pièce"')
+                logger.info(f"✅ {c} Pièce trouvés")
             except Exception:
-                logger.info("⚠️ Table 'devices' introuvable")
+                logger.info("⚠️ Table 'Pièce' introuvable")
     except Exception as e:
         logger.exception("❌ Erreur connexion PostgreSQL: %s", e)
         app.state.pool = None

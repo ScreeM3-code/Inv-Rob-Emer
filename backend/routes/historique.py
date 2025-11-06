@@ -3,16 +3,32 @@ import asyncpg
 from fastapi import APIRouter, Depends
 from typing import List, Optional
 from datetime import datetime
+import datetime
+import decimal
 from database import get_db_connection
 from models import HistoriqueCreate, HistoriqueResponse
 
 router = APIRouter(prefix="/historique", tags=["historique"])
 
+def row_to_dict(row):
+    d = dict(row)
+    for k, v in list(d.items()):
+        if isinstance(v, (datetime.datetime, datetime.date)):
+            d[k] = v.isoformat()
+        elif isinstance(v, decimal.Decimal):
+            d[k] = float(v)
+        elif isinstance(v, memoryview):
+            try:
+                d[k] = v.tobytes().decode()
+            except Exception:
+                d[k] = v.tobytes()
+    return d
+
 @router.get("", response_model=List[HistoriqueResponse])
 async def get_historique(conn: asyncpg.Connection = Depends(get_db_connection)):
     """Récupère tout l'historique"""
     rows = await conn.fetch('SELECT * FROM "historique" ORDER BY "id" DESC')
-    return [HistoriqueResponse(**dict(r)) for r in rows]
+    return [HistoriqueResponse(**row_to_dict(r)) for r in rows]
 
 
 @router.get("/{piece_id}", response_model=List[HistoriqueResponse])
@@ -25,7 +41,7 @@ async def get_historique_by_piece(
         'SELECT * FROM "historique" WHERE "RéfPièce" = $1 ORDER BY "id" DESC',
         piece_id
     )
-    return [HistoriqueResponse(**dict(row)) for row in rows]
+    return [HistoriqueResponse(**row_to_dict(row)) for row in rows]
 
 
 @router.post("", response_model=HistoriqueResponse)
@@ -56,4 +72,4 @@ async def add_historique(
         entry.User,
         entry.Delais
     )
-    return HistoriqueResponse(**dict(row))
+    return HistoriqueResponse(**row_to_dict(row))

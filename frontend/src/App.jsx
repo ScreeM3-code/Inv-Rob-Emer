@@ -59,12 +59,25 @@ function Dashboard () {
   const [editingPiece, setEditingPiece] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [groupes, setGroupes] = useState([]);
-  const { displayedItems, loaderRef, hasMore } = useInfiniteScroll(filteredPieces, 30);
   const [filters, setFilters] = useState({
     statut: "tous",
     stock: "tous",
     groupe: "tous"
   });
+
+  // Filtrage des pièces
+  let filteredPieces = pieces;
+
+  // Filtre par groupe
+  if (filters.groupe !== "tous") {
+    const selectedGroupe = groupes.find(g => g.RefGroupe.toString() === filters.groupe);
+    if (selectedGroupe && selectedGroupe.pieces) {
+      const piecesIds = selectedGroupe.pieces.map(p => p.RéfPièce);
+      filteredPieces = filteredPieces.filter(p => piecesIds.includes(p.RéfPièce));
+    }
+  }
+
+  const { displayedItems, loaderRef, hasMore } = useInfiniteScroll(filteredPieces, 30);
 
     useEffect(() => {
     // Charger toutes les pièces au démarrage
@@ -173,8 +186,8 @@ function Dashboard () {
         RéfPièce: piece.RéfPièce,
         nompiece: piece.NomPièce,
         numpiece: piece.NumPièce,
-        User: user?.full_name || "Système",
-        //DateRecu: new Date().toISOString(),
+        User: user || "Système",
+        DateRecu: new Date().toISOString(),
         description: piece.DescriptionPièce,
       };
 
@@ -309,20 +322,7 @@ function Dashboard () {
     }
   };
 
-  // Filtrage des pièces
-  let filteredPieces = pieces;
-
-  // Filtre par groupe
-  if (filters.groupe !== "tous") {
-    const selectedGroupe = groupes.find(g => g.RefGroupe.toString() === filters.groupe);
-    if (selectedGroupe && selectedGroupe.pieces) {
-      const piecesIds = selectedGroupe.pieces.map(p => p.RéfPièce);
-      filteredPieces = filteredPieces.filter(p => piecesIds.includes(p.RéfPièce));
-    }
-  }
-
-
-
+ 
    return (
     <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
