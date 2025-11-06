@@ -28,7 +28,8 @@ from routes import (
     fournisseurs_router,
     fabricants_router,
     commandes_router,
-    historique_router
+    historique_router,
+    groupes_router
 )
 
 # Setup logging
@@ -70,6 +71,7 @@ app.include_router(fournisseurs_router, prefix="/api")
 app.include_router(fabricants_router, prefix="/api")
 app.include_router(commandes_router, prefix="/api")
 app.include_router(historique_router, prefix="/api")
+app.include_router(groupes_router, prefix="/api")
 
 # Configuration du frontend (si build existe)
 if BUILD_DIR.exists():

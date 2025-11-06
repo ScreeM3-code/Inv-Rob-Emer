@@ -4,11 +4,21 @@ from .fournisseur import FournisseurBase, FournisseurCreate, Fournisseur, Contac
 from .fabricant import FabricantBase, FabricantCreate
 from .historique import HistoriqueCreate, HistoriqueResponse
 from .commande import Commande, StatsResponse
+from .groupe import (  # ← NOUVEAU
+    CategorieBase, CategorieCreate, Categorie,
+    GroupeBase, GroupeCreate, Groupe,
+    GroupePieceBase, GroupePieceCreate, GroupePiece,
+    GroupeComplet
+)
 
 __all__ = [
     'PieceBase', 'PieceCreate', 'PieceUpdate', 'Piece',
     'FournisseurBase', 'FournisseurCreate', 'Fournisseur', 'Contact', 'ContactCreate', 'ContactBase',
     'FabricantBase', 'FabricantCreate',
     'HistoriqueCreate', 'HistoriqueResponse',
-    'Commande', 'StatsResponse'
+    'Commande', 'StatsResponse',
+    'CategorieBase', 'CategorieCreate', 'Categorie',  # ← NOUVEAU
+    'GroupeBase', 'GroupeCreate', 'Groupe',  # ← NOUVEAU
+    'GroupePieceBase', 'GroupePieceCreate', 'GroupePiece',  # ← NOUVEAU
+    'GroupeComplet'  # ← NOUVEAU
 ]

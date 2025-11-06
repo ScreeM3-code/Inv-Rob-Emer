@@ -7,6 +7,7 @@ import Fabricant from "./Fabricant";
 import Commandes from "./Commandes";
 import Receptions from "./Receptions";
 import Historique from "./Historique";
+import Groupes from "./Groupes"; 
 
 
 export default function AppRouter() {
@@ -20,6 +21,7 @@ export default function AppRouter() {
         <Route path="commandes" element={<Commandes />} />
         <Route path="receptions" element={<Receptions />} />
         <Route path="historique" element={<Historique />} />
+        <Route path="groupes" element={<Groupes />} />
       </Route>
     </Routes>
   );

@@ -1,6 +1,6 @@
 import React from "react";
 import { Link, useLocation, Outlet } from "react-router-dom";
-import { Package, Store, Cog, FileText } from "lucide-react";
+import { Package, Store, Cog, FileText, Layers } from "lucide-react";
 
 export default function Layout() {
   const location = useLocation();
@@ -34,7 +34,17 @@ export default function Layout() {
                   <Package className="h-4 w-4 inline mr-2" />
                   Inventaire
                 </Link>
-                
+                <Link
+                  to="/groupes"
+                  className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${
+                    location.pathname === '/groupes'
+                      ? 'bg-rio-red text-white'
+                      : 'text-gray-600 hover:text-rio-red hover:bg-gray-50'
+                  }`}
+                >
+                  <Layers className="h-4 w-4 inline mr-2" /> {/* N'oublie pas d'importer Layers */}
+                  Groupes
+                </Link>
                 <Link
                   to="/fournisseurs"
                   className={`px-3 py-2 rounded-md text-sm font-medium transition-colors ${

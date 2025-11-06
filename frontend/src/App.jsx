@@ -58,10 +58,12 @@ function Dashboard () {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingPiece, setEditingPiece] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [groupes, setGroupes] = useState([]);
   const { displayedItems, loaderRef, hasMore } = useInfiniteScroll(pieces, 30);
   const [filters, setFilters] = useState({
     statut: "tous",
-    stock: "tous"
+    stock: "tous",
+    groupe: "tous"
   });
 
     useEffect(() => {
@@ -85,17 +87,19 @@ function Dashboard () {
 
       console.log('🔍 URL appelée:', piecesUrl);
 
-      const [piecesRes, fournisseursRes, statsRes, fabricantsRes] = await Promise.all([
+      const [piecesRes, fournisseursRes, statsRes, fabricantsRes, groupesRes] = await Promise.all([
         axios.get(piecesUrl),
         axios.get(`${API}/fournisseurs`),
         axios.get(`${API}/stats`),
         axios.get(`${API}/fabricant`),
+        axios.get(`${API}/groupes`), 
       ]);
 
       setPieces(Array.isArray(piecesRes.data) ? piecesRes.data : []);
       setFournisseurs(fournisseursRes.data || []);
       setStats(statsRes.data || { total_pieces: 0, stock_critique: 0, valeur_stock: 0, pieces_a_commander: 0 });
       setFabricants(fabricantsRes.data || []);
+      setGroupes(groupesRes.data || []);
     } catch (error) {
       console.error("❌ Erreur lors du chargement:", error);
     } finally {
@@ -133,7 +137,7 @@ function Dashboard () {
     }, 300); // Réduit à 300ms
     
     return () => clearTimeout(timer);
-  }, [searchTerm, filters.statut, filters.stock]); // ← AJOUTER filters
+  }, [searchTerm, filters.statut, filters.stock, filters.groupe]);
 
   const handleQuickRemove = async (piece) => {
     if (piece.QtéenInventaire <= 0) {
@@ -305,6 +309,18 @@ function Dashboard () {
     }
   };
 
+  // Filtrage des pièces
+  let filteredPieces = pieces;
+
+  // Filtre par groupe
+  if (filters.groupe !== "tous") {
+    const selectedGroupe = groupes.find(g => g.RefGroupe.toString() === filters.groupe);
+    if (selectedGroupe && selectedGroupe.pieces) {
+      const piecesIds = selectedGroupe.pieces.map(p => p.RéfPièce);
+      filteredPieces = filteredPieces.filter(p => piecesIds.includes(p.RéfPièce));
+    }
+  }
+
 
 
    return (
@@ -440,6 +456,22 @@ function Dashboard () {
                     <SelectItem value="ok">Stock OK</SelectItem>
                     <SelectItem value="faible">Stock Faible</SelectItem>
                     <SelectItem value="critique">Stock Critique</SelectItem>
+                  </SelectContent>
+                </Select>
+                <Select
+                  value={filters.groupe}
+                  onValueChange={(value) => setFilters({...filters, groupe: value})}
+                >
+                  <SelectTrigger className="w-[200px]">
+                    <SelectValue placeholder="Filtrer par groupe" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tous">Tous les groupes</SelectItem>
+                    {groupes.map(g => (
+                      <SelectItem key={g.RefGroupe} value={g.RefGroupe.toString()}>
+                        {g.NomGroupe}
+                      </SelectItem>
+                    ))}
                   </SelectContent>
                 </Select>
               </div>
