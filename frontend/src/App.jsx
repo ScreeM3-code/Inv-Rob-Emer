@@ -59,7 +59,7 @@ function Dashboard () {
   const [editingPiece, setEditingPiece] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
   const [groupes, setGroupes] = useState([]);
-  const { displayedItems, loaderRef, hasMore } = useInfiniteScroll(pieces, 30);
+  const { displayedItems, loaderRef, hasMore } = useInfiniteScroll(filteredPieces, 30);
   const [filters, setFilters] = useState({
     statut: "tous",
     stock: "tous",
