@@ -17,28 +17,25 @@ function useInfiniteScroll(items, itemsPerPage = 50) {
   const loaderRef = useRef(null);
 
   useEffect(() => {
-    // Reset quand les items changent
     setDisplayCount(itemsPerPage);
   }, [items, itemsPerPage]);
 
   useEffect(() => {
-    // Use IntersectionObserver to detect when the loader element becomes visible
     const node = loaderRef.current;
     if (!node) return;
 
-    const observer = new IntersectionObserver((entries) => {
-      const e = entries[0];
-      if (e && e.isIntersecting) {
-        setDisplayCount(prev => {
-          const newCount = prev + itemsPerPage;
-          return Math.min(newCount, items.length);
-        });
-      }
-    }, { root: null, rootMargin: '200px', threshold: 0.1 });
+    const observer = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting && displayCount < items.length) {
+          setDisplayCount(prev => Math.min(prev + itemsPerPage, items.length));
+        }
+      },
+      { root: null, rootMargin: '200px', threshold: 0.1 }
+    );
 
     observer.observe(node);
     return () => observer.disconnect();
-  }, [items.length, itemsPerPage]);
+  }, [displayCount, items.length, itemsPerPage]);
 
   const displayedItems = items.slice(0, displayCount);
   const hasMore = displayCount < items.length;
@@ -302,16 +299,6 @@ function Historique() {
               </div>
             ) : null}
           </CardContent>
-          {(filters.search || filters.operation !== 'tous' || filters.dateFrom || filters.dateTo) && (
-          <div className="px-6 pb-4">
-            <p className="text-sm text-slate-600">
-              <span className="font-medium">{filteredHistorique.length}</span> résultat{filteredHistorique.length !== 1 ? 's' : ''} 
-              {filteredHistorique.length !== historique.length && (
-                <span className="text-slate-400"> sur {historique.length} entrées</span>
-              )}
-            </p>
-          </div>
-        )}
         </Card>
       </div>
     </div>

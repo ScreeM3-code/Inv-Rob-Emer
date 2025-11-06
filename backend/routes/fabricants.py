@@ -9,7 +9,7 @@ from utils.helpers import safe_string
 
 router = APIRouter(prefix="/fabricant", tags=["fabricants"])
 
-@router.get("", response_model=List[dict])
+@router.get("")
 async def get_fabricants(conn: asyncpg.Connection = Depends(get_db_connection)):
     """Récupère tous les fabricants"""
     rows = await conn.fetch(

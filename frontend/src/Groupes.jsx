@@ -6,6 +6,7 @@ import { Label } from '@/components/ui/label';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select';
 import { Textarea } from '@/components/ui/textarea';
+import GroupeCard from '@/components/groupes/GroupeCard';
 import { Badge } from '@/components/ui/badge';
 import { 
   Plus, Trash2, Edit, Layers, FolderTree, Package, 
@@ -160,14 +161,48 @@ export default function Groupes() {
     }
   };
 
-  const handleRemovePieceFromGroupe = async (pieceGroupeId) => {
-    if (!window.confirm('Retirer cette pièce du groupe ?')) return;
-    
+  const handleSortirPieces = async (sorties) => {
     try {
-      await fetch(`${API}/groupes/pieces/${pieceGroupeId}`, { method: 'DELETE' });
+      // 1. Récupérer l'utilisateur
+      const userResponse = await fetch(`${API}/current-user`);
+      const userData = await userResponse.json();
+      const userName = userData.user || "Système";
+
+      // 2. Pour chaque pièce, faire la sortie
+      for (const sortie of sorties) {
+        const { piece, quantite } = sortie;
+        
+        // Mise à jour du stock
+        await fetch(`${API}/pieces/${piece.RéfPièce}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            QtéenInventaire: piece.QtéenInventaire - quantite
+          })
+        });
+
+        // Ajout dans l'historique
+        await fetch(`${API}/historique`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            Opération: "Sortie",
+            QtéSortie: quantite.toString(),
+            RéfPièce: piece.RéfPièce,
+            nompiece: piece.NomPièce,
+            numpiece: piece.NumPièce,
+            User: userName,
+            DateRecu: new Date().toISOString(),
+            description: piece.DescriptionPièce || ""
+          })
+        });
+      }
+
+      alert('✅ Sortie effectuée avec succès!');
       await loadData();
     } catch (error) {
-      console.error('Erreur suppression pièce:', error);
+      console.error('Erreur sortie pièces:', error);
+      alert('Erreur: ' + error.message);
     }
   };
 
@@ -288,75 +323,14 @@ export default function Groupes() {
                             <p className="text-sm text-gray-500 italic">Aucun groupe dans cette catégorie</p>
                           ) : (
                             categorieGroupes.map(groupe => (
-                              <div key={groupe.RefGroupe} className="border-l-4 border-blue-500 pl-4 py-2 bg-gray-50 rounded">
-                                <div className="flex items-start justify-between">
-                                  <div className="flex-1">
-                                    <div className="flex items-center space-x-2 mb-2">
-                                      <Package className="h-4 w-4 text-blue-600" />
-                                      <h4 className="font-medium">{groupe.NomGroupe}</h4>
-                                      <Badge className="bg-green-500 text-white">
-                                        {groupe.pieces?.length || 0} pièce(s)
-                                      </Badge>
-                                    </div>
-                                    {groupe.Description && (
-                                      <p className="text-sm text-gray-600 mb-2">{groupe.Description}</p>
-                                    )}
-                                    
-                                    {/* Liste des pièces */}
-                                    {groupe.pieces && groupe.pieces.length > 0 && (
-                                      <div className="mt-2 space-y-1">
-                                        {groupe.pieces.map(gp => (
-                                          <div key={gp.id} className="flex items-center justify-between text-sm bg-white p-2 rounded">
-                                            <span>
-                                              {gp.piece_info?.NomPièce || 'Pièce inconnue'} 
-                                              <span className="text-gray-500 ml-2">
-                                                (Qté: {gp.Quantite})
-                                              </span>
-                                            </span>
-                                            <Button
-                                              size="sm"
-                                              variant="ghost"
-                                              onClick={() => handleRemovePieceFromGroupe(gp.id)}
-                                            >
-                                              <Trash2 className="h-3 w-3 text-red-500" />
-                                            </Button>
-                                          </div>
-                                        ))}
-                                      </div>
-                                    )}
-                                  </div>
-                                  
-                                  <div className="flex space-x-2 ml-4">
-                                    <Button
-                                      size="sm"
-                                      variant="outline"
-                                      onClick={() => setPieceDialog({ 
-                                        open: true, 
-                                        groupeId: groupe.RefGroupe,
-                                        selectedPiece: null,
-                                        quantite: 1
-                                      })}
-                                    >
-                                      <Plus className="h-4 w-4 mr-1" />
-                                      Pièce
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => setGroupeDialog({ open: true, data: groupe })}
-                                    >
-                                      <Edit className="h-4 w-4" />
-                                    </Button>
-                                    <Button
-                                      size="sm"
-                                      variant="ghost"
-                                      onClick={() => handleDeleteGroupe(groupe.RefGroupe)}
-                                    >
-                                      <Trash2 className="h-4 w-4 text-red-500" />
-                                    </Button>
-                                  </div>
-                                </div>
-                              </div>
+                              <GroupeCard
+                                key={groupe.RefGroupe}
+                                groupe={groupe}
+                                pieces={pieces}
+                                onEdit={() => setGroupeDialog({ open: true, data: groupe })}
+                                onDelete={handleDeleteGroupe}
+                                onSortirPieces={handleSortirPieces}
+                              />
                             ))
                           )}
                         </div>

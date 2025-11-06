@@ -2,7 +2,6 @@
 from pydantic import BaseModel, validator
 from typing import Optional
 from datetime import datetime
-import dateutil.parser
 
 class HistoriqueCreate(BaseModel):
     DateCMD: Optional[datetime] = None

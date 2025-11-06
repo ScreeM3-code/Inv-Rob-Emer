@@ -193,6 +193,8 @@ async def receive_all_order(
 ):
     """Réception totale d'une commande"""
     try:
+        now = datetime.utcnow()
+        
         query = '''
             UPDATE "Pièce"
             SET "QtéenInventaire" = "QtéenInventaire" + COALESCE("Qtécommandée", 0),
@@ -204,25 +206,24 @@ async def receive_all_order(
                 "Modified" = $2
             WHERE "RéfPièce" = $1
         '''
-        result = await conn.execute(query, piece_id, datetime.utcnow())
+        result = await conn.execute(query, piece_id, now)
 
-        # Mise à jour de l'historique
+        # ✅ FIX: Calcul correct du délai
         await conn.execute("""
             WITH last_entry AS (
-                SELECT id
+                SELECT id, "DateCMD"
                 FROM "historique"
                 WHERE "RéfPièce" = $2
-                  AND "Opération" = 'Commande' or 'Achat'
+                  AND ("Opération" = 'Commande' OR "Opération" = 'Achat')
                   AND "DateRecu" IS NULL
                 ORDER BY "id" DESC
                 LIMIT 1
             )
             UPDATE "historique"
             SET "DateRecu" = $1,
-                "Delais" = EXTRACT(DAY FROM ($1 - "DateCMD"))
+                "Delais" = EXTRACT(EPOCH FROM ($1 - "DateCMD")) / 86400
             WHERE id IN (SELECT id FROM last_entry);
-        """,  datetime.utcnow(), piece_id)
-
+        """, now, piece_id)
 
         if result == "UPDATE 0":
             raise HTTPException(status_code=404, detail="Pièce non trouvée")
@@ -233,7 +234,6 @@ async def receive_all_order(
     except Exception as e:
         print(f"❌ Erreur receive_all_order: {e}")
         raise HTTPException(status_code=500, detail="Erreur lors de la réception")
-
 
 @router.put("/orderspar/{piece_id}")
 async def receive_partial_order(

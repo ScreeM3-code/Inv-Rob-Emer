@@ -128,7 +128,7 @@ export default function CommandeCard({
               onClick={() => onViewHistory(order)}
               title="Voir l'historique"
             >
-              <History t className="h-4 w-4" />
+              <History className="h-4 w-4" />
             </Button>
 
             {/* Ajouter au panier de soumission */}

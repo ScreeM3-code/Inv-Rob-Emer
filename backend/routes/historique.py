@@ -27,7 +27,10 @@ def row_to_dict(row):
 @router.get("", response_model=List[HistoriqueResponse])
 async def get_historique(conn: asyncpg.Connection = Depends(get_db_connection)):
     """Récupère tout l'historique"""
-    rows = await conn.fetch('SELECT * FROM "historique" ORDER BY "id" DESC')
+    rows = await conn.fetch('''
+        SELECT * FROM "historique" 
+        ORDER BY COALESCE("DateRecu", "DateCMD") DESC NULLS LAST, "id" DESC
+    ''')
     return [HistoriqueResponse(**row_to_dict(r)) for r in rows]
 
 
@@ -37,10 +40,11 @@ async def get_historique_by_piece(
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
     """Récupère l'historique d'une pièce spécifique"""
-    rows = await conn.fetch(
-        'SELECT * FROM "historique" WHERE "RéfPièce" = $1 ORDER BY "id" DESC',
-        piece_id
-    )
+    rows = await conn.fetch('''
+        SELECT * FROM "historique" 
+        WHERE "RéfPièce" = $1 
+        ORDER BY COALESCE("DateRecu", "DateCMD") DESC NULLS LAST, "id" DESC
+    ''', piece_id)
     return [HistoriqueResponse(**row_to_dict(row)) for row in rows]
 
 
