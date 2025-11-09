@@ -8,9 +8,33 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave, onCancel }) {
   const [formData, setFormData] = React.useState(piece);
 
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
+  // Debounce les mises à jour d'état pour les champs texte
+  const debounce = (fn, delay) => {
+    let timeoutId;
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => fn(...args), delay);
+    };
   };
+
+  // Version debounced du setState pour les champs texte
+  const debouncedSetFormData = React.useCallback(
+    debounce((field, value) => {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }, 100),
+    []
+  );
+
+  const handleChange = React.useCallback((field, value) => {
+    // Pour les champs numériques, mettre à jour immédiatement
+    if (['QtéenInventaire', 'Qtéminimum', 'Qtémax', 'Prix_unitaire'].includes(field)) {
+      setFormData(prev => ({ ...prev, [field]: value }));
+      return;
+    }
+    
+    // Pour les champs texte, utiliser le debounce
+    debouncedSetFormData(field, value);
+  }, []);
 
   const handleSubmit = () => {
     // Validation
@@ -19,12 +43,17 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
       return;
     }
 
+    const qInv = parseInt(formData.QtéenInventaire, 10);
+    const qMin = parseInt(formData.Qtéminimum, 10);
+    const qMax = parseInt(formData.Qtémax, 10);
+    const prix = parseFloat(formData.Prix_unitaire);
+
     const cleanedData = {
       ...formData,
-      QtéenInventaire: parseInt(formData.QtéenInventaire) || 0,
-      Qtéminimum: parseInt(formData.Qtéminimum) || 0,
-      Qtémax: parseInt(formData.Qtémax) || 100,
-      Prix_unitaire: parseFloat(formData.Prix_unitaire) || 0,
+      QtéenInventaire: isNaN(qInv) ? 0 : qInv,
+      Qtéminimum: isNaN(qMin) ? 0 : qMin,
+      Qtémax: isNaN(qMax) ? 100 : qMax,
+      Prix_unitaire: isNaN(prix) ? 0 : prix,
       RéfFournisseur: formData.RéfFournisseur || null,
       RéfAutreFournisseur: formData.RéfAutreFournisseur || null,
       RefFabricant: formData.RefFabricant || null,
@@ -45,7 +74,7 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
           <div>
             <Label>Nom de la pièce *</Label>
             <Input
-              value={formData.NomPièce || ""}
+              defaultValue={formData.NomPièce || ""}
               onChange={(e) => handleChange('NomPièce', e.target.value)}
             />
           </div>
@@ -53,7 +82,7 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
           <div>
             <Label>N° de pièce</Label>
             <Input
-              value={formData.NumPièce || ""}
+              defaultValue={formData.NumPièce || ""}
               onChange={(e) => handleChange('NumPièce', e.target.value)}
             />
           </div>
@@ -61,7 +90,7 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
           <div>
             <Label>Description</Label>
             <Input
-              value={formData.DescriptionPièce || ""}
+              defaultValue={formData.DescriptionPièce || ""}
               onChange={(e) => handleChange('DescriptionPièce', e.target.value)}
             />
           </div>
@@ -74,9 +103,11 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
                 <Label>Fournisseur principal</Label>
                 <Select
                   value={formData.RéfFournisseur?.toString() || "none"}
-                  onValueChange={(value) =>
-                    handleChange('RéfFournisseur', value === "none" ? null : parseInt(value))
-                  }
+                  onValueChange={(value) => {
+                    if (value === "none") return handleChange('RéfFournisseur', null);
+                    const n = parseInt(value, 10);
+                    handleChange('RéfFournisseur', isNaN(n) ? null : n);
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner" />
@@ -96,9 +127,11 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
                 <Label>Autre fournisseur</Label>
                 <Select
                   value={formData.RéfAutreFournisseur?.toString() || "none"}
-                  onValueChange={(value) =>
-                    handleChange('RéfAutreFournisseur', value === "none" ? null : parseInt(value))
-                  }
+                  onValueChange={(value) => {
+                    if (value === "none") return handleChange('RéfAutreFournisseur', null);
+                    const n = parseInt(value, 10);
+                    handleChange('RéfAutreFournisseur', isNaN(n) ? null : n);
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner" />
@@ -118,7 +151,7 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
             <div className="mt-2">
               <Label>N° pièce autre fournisseur</Label>
               <Input
-                value={formData.NumPièceAutreFournisseur || ""}
+                defaultValue={formData.NumPièceAutreFournisseur || ""}
                 onChange={(e) => handleChange('NumPièceAutreFournisseur', e.target.value)}
               />
             </div>
@@ -129,9 +162,11 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
             <Label>Fabricant</Label>
             <Select
               value={formData.RefFabricant?.toString() || "none"}
-              onValueChange={(value) =>
-                handleChange('RefFabricant', value === "none" ? null : parseInt(value))
-              }
+              onValueChange={(value) => {
+                if (value === "none") return handleChange('RefFabricant', null);
+                const n = parseInt(value, 10);
+                handleChange('RefFabricant', isNaN(n) ? null : n);
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un fabricant" />
@@ -186,7 +221,7 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
             <div>
               <Label>Emplacement</Label>
               <Input
-                value={formData.Lieuentreposage || ""}
+                defaultValue={formData.Lieuentreposage || ""}
                 onChange={(e) => handleChange('Lieuentreposage', e.target.value)}
               />
             </div>

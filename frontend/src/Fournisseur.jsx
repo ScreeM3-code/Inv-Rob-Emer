@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { fetchJson, log } from './lib/utils';
 import { Button } from "@/components/ui/button";
 import { Plus, Loader2, Search, X, Building2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -22,14 +23,12 @@ export default function FournisseursPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API}/fournisseurs`);
-      if (!response.ok) throw new Error("Erreur réseau");
-      const data = await response.json();
-      console.log("🏢 Fournisseurs chargés:", data); // DEBUG
-      setFournisseurs(data || []);
+  const data = await fetchJson(`${API}/fournisseurs`);
+  log("🏢 Fournisseurs chargés:", data);
+  setFournisseurs(data || []);
     } catch (err) {
-      console.error("Erreur chargement fournisseurs:", err);
-      setError("Impossible de charger les fournisseurs.");
+      log("❌ Erreur chargement fournisseurs:", err);
+      setError(`Impossible de charger les fournisseurs: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -47,13 +46,11 @@ export default function FournisseursPage() {
         
         const method = fournisseurData.RéfFournisseur ? 'PUT' : 'POST';
 
-        const response = await fetch(url, {
-            method: method,
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(fournisseurData)
-        });
-
-        if (!response.ok) throw new Error("La sauvegarde a échoué");
+    await fetchJson(url, {
+      method: method,
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(fournisseurData)
+    });
         
         setIsFormOpen(false);
         setEditingFournisseur(null);
@@ -67,9 +64,8 @@ export default function FournisseursPage() {
   const handleDeleteFournisseur = async (id) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce fournisseur ?")) {
       try {
-        const response = await fetch(`${API}/fournisseurs/${id}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error("La suppression a échoué");
-        await loadFournisseurs();
+  await fetchJson(`${API}/fournisseurs/${id}`, { method: 'DELETE' });
+  await loadFournisseurs();
       } catch (err) {
         console.error("Erreur suppression:", err);
         setError(err.message);
@@ -89,17 +85,15 @@ export default function FournisseursPage() {
         : `${API}/fournisseurs/contacts`;
       const method = contactData.RéfContact ? 'PUT' : 'POST';
       
-      const response = await fetch(url, {
+      await fetchJson(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(contactData)
       });
-      if (!response.ok) throw new Error("La sauvegarde du contact a échoué");
-
       await loadFournisseurs();
-      
+
       // Rafraîchir le fournisseur dans le dialogue
-      const updatedFournisseurs = await (await fetch(`${API}/fournisseurs`)).json();
+      const updatedFournisseurs = await fetchJson(`${API}/fournisseurs`);
       const freshFournisseur = updatedFournisseurs.find(f => f.RéfFournisseur === contactData.RéfFournisseur);
       setManagingContactsFor(freshFournisseur);
 
@@ -112,10 +106,8 @@ export default function FournisseursPage() {
   const handleDeleteContact = async (contactId) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce contact ?")) {
       try {
-        const response = await fetch(`${API}/fournisseurs/contacts/${contactId}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error("La suppression du contact a échoué");
-        
-        await loadFournisseurs();
+  await fetchJson(`${API}/fournisseurs/contacts/${contactId}`, { method: 'DELETE' });
+  await loadFournisseurs();
         
         // Mettre à jour le state local
         setManagingContactsFor(prev => {

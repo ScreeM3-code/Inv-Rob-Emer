@@ -15,6 +15,35 @@ export default function PieceEditDialog({
 }) {
   if (!piece) return null;
 
+  // Debounce les mises à jour pour les champs texte
+  const debouncedOnChange = React.useCallback(
+    (fn => {
+      let timeoutId;
+      return (field, value) => {
+        if (['QtéenInventaire', 'Qtéminimum', 'Qtémax', 'Prix_unitaire'].includes(field)) {
+          // Mise à jour immédiate pour les champs numériques
+          fn(field, value);
+          return;
+        }
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => fn(field, value), 100);
+      };
+    })(onChange),
+    [onChange]
+  );
+
+  // Mémoiser les valeurs du formulaire
+  const memoizedValues = React.useMemo(() => ({
+    NomPièce: piece.NomPièce || "",
+    DescriptionPièce: piece.DescriptionPièce || "",
+    NumPièce: piece.NumPièce || "",
+    NumPièceAutreFournisseur: piece.NumPièceAutreFournisseur || "",
+    RéfFournisseur: piece.RéfFournisseur?.toString() || "none",
+    RéfAutreFournisseur: piece.RéfAutreFournisseur?.toString() || "none",
+    RefFabricant: piece.RefFabricant?.toString() || "none",
+    Lieuentreposage: piece.Lieuentreposage || "",
+  }), [piece]);
+
   return (
     <Dialog open={true} onOpenChange={onCancel}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
@@ -27,16 +56,16 @@ export default function PieceEditDialog({
           <div>
             <Label>Nom de la pièce *</Label>
             <Input
-              value={piece.NomPièce || ""}
-              onChange={(e) => onChange('NomPièce', e.target.value)}
+                defaultValue={memoizedValues.NomPièce}
+                onChange={(e) => debouncedOnChange('NomPièce', e.target.value)}
             />
           </div>
 
           <div>
             <Label>Description</Label>
             <Input
-              value={piece.DescriptionPièce || ""}
-              onChange={(e) => onChange('DescriptionPièce', e.target.value)}
+                defaultValue={memoizedValues.DescriptionPièce}
+                onChange={(e) => debouncedOnChange('DescriptionPièce', e.target.value)}
             />
           </div>
 
@@ -45,15 +74,15 @@ export default function PieceEditDialog({
             <div>
               <Label>N° de pièce</Label>
               <Input
-                value={piece.NumPièce || ""}
-                onChange={(e) => onChange('NumPièce', e.target.value)}
+                  defaultValue={memoizedValues.NumPièce}
+                  onChange={(e) => debouncedOnChange('NumPièce', e.target.value)}
               />
             </div>
             <div>
               <Label>N° pièce autre fournisseur</Label>
               <Input
-                value={piece.NumPièceAutreFournisseur || ""}
-                onChange={(e) => onChange('NumPièceAutreFournisseur', e.target.value)}
+                  defaultValue={memoizedValues.NumPièceAutreFournisseur}
+                  onChange={(e) => debouncedOnChange('NumPièceAutreFournisseur', e.target.value)}
               />
             </div>
           </div>
@@ -66,7 +95,11 @@ export default function PieceEditDialog({
                 <Label>Fournisseur principal</Label>
                 <Select
                   value={piece.RéfFournisseur?.toString() || "none"}
-                  onValueChange={(value) => onChange('RéfFournisseur', value === "none" ? null : parseInt(value))}
+                  onValueChange={(value) => {
+                    if (value === "none") return onChange('RéfFournisseur', null);
+                    const n = parseInt(value, 10);
+                    onChange('RéfFournisseur', isNaN(n) ? null : n);
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner" />
@@ -86,7 +119,11 @@ export default function PieceEditDialog({
                 <Label>Autre fournisseur</Label>
                 <Select
                   value={piece.RéfAutreFournisseur?.toString() || "none"}
-                  onValueChange={(value) => onChange('RéfAutreFournisseur', value === "none" ? null : parseInt(value))}
+                  onValueChange={(value) => {
+                    if (value === "none") return onChange('RéfAutreFournisseur', null);
+                    const n = parseInt(value, 10);
+                    onChange('RéfAutreFournisseur', isNaN(n) ? null : n);
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner" />
@@ -109,7 +146,11 @@ export default function PieceEditDialog({
             <Label>Fabricant</Label>
             <Select
               value={piece.RefFabricant?.toString() || "none"}
-              onValueChange={(value) => onChange('RefFabricant', value === "none" ? null : parseInt(value))}
+              onValueChange={(value) => {
+                if (value === "none") return onChange('RefFabricant', null);
+                const n = parseInt(value, 10);
+                onChange('RefFabricant', isNaN(n) ? null : n);
+              }}
             >
               <SelectTrigger>
                 <SelectValue placeholder="Sélectionner un fabricant" />
@@ -137,8 +178,10 @@ export default function PieceEditDialog({
                   value={piece.QtéenInventaire ?? 0}
                   onChange={(e) => {
                     const v = e.target.value;
-                    // ✅ Accepter la valeur vide pendant la saisie, mais la convertir en 0 si vide
-                    onChange('QtéenInventaire', v === "" ? 0 : Math.max(0, parseInt(v) || 0));
+                    // Accept empty string while typing; convert to numbers safely
+                    if (v === "") return onChange('QtéenInventaire', 0);
+                    const n = parseInt(v, 10);
+                    onChange('QtéenInventaire', Math.max(0, isNaN(n) ? 0 : n));
                   }}
                 />
               </div>
@@ -150,7 +193,9 @@ export default function PieceEditDialog({
                   value={piece.Qtéminimum ?? 0}
                   onChange={(e) => {
                     const v = e.target.value;
-                    onChange('Qtéminimum', v === "" ? 0 : Math.max(0, parseInt(v) || 0));
+                    if (v === "") return onChange('Qtéminimum', 0);
+                    const n = parseInt(v, 10);
+                    onChange('Qtéminimum', Math.max(0, isNaN(n) ? 0 : n));
                   }}
                 />
               </div>
@@ -162,7 +207,9 @@ export default function PieceEditDialog({
                   value={piece.Qtémax ?? 100}
                   onChange={(e) => {
                     const v = e.target.value;
-                    onChange('Qtémax', v === "" ? 100 : Math.max(0, parseInt(v) || 0));
+                    if (v === "") return onChange('Qtémax', 100);
+                    const n = parseInt(v, 10);
+                    onChange('Qtémax', Math.max(0, isNaN(n) ? 0 : n));
                   }}
                 />
               </div>

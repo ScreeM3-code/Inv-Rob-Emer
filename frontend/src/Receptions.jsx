@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, D
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
 import { ClipboardCheck, Package, Truck, AlertCircle, CheckCircle } from 'lucide-react';
-import axios from 'axios';
+import { fetchJson, log } from './lib/utils';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -25,10 +25,11 @@ function Receptions() {
   const loadReceptions = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API}/commande`);
-      setReceptions(response.data || []);
+      const data = await fetchJson(`${API}/commande`);
+      setReceptions(data || []);
     } catch (error) {
-      console.error("Erreur chargement réceptions:", error);
+      log("Erreur chargement réceptions:", error);
+      setReceptions([]);
     } finally {
       setLoading(false);
     }
@@ -36,11 +37,11 @@ function Receptions() {
 
   const handleReceiveTotal = async (pieceId) => {
     try {
-      await axios.put(`${API}/ordersall/${pieceId}`);
+      await fetchJson(`${API}/ordersall/${pieceId}`, { method: 'PUT' });
       await loadReceptions();
     } catch (error) {
-      console.error("Erreur réception totale:", error);
-      alert("Erreur lors de la réception totale");
+      log("Erreur réception totale:", error);
+      alert("Erreur lors de la réception totale: " + error.message);
     }
   };
 
@@ -48,14 +49,14 @@ function Receptions() {
     if (!selectedPiece || !partialQuantity) return;
     
     try {
-      await axios.put(`${API}/orderspar/${selectedPiece.RéfPièce}?quantity_received=${partialQuantity}`);
+      await fetchJson(`${API}/orderspar/${selectedPiece.RéfPièce}?quantity_received=${partialQuantity}`, { method: 'PUT' });
       setIsPartialDialogOpen(false);
       setSelectedPiece(null);
       setPartialQuantity('');
       await loadReceptions();
     } catch (error) {
-      console.error("Erreur réception partielle:", error);
-      alert("Erreur lors de la réception partielle");
+      log("Erreur réception partielle:", error);
+      alert("Erreur lors de la réception partielle: " + error.message);
     }
   };
 

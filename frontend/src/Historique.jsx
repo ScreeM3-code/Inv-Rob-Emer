@@ -6,7 +6,7 @@ import { Input } from './components/ui/input';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
 import { Button } from './components/ui/button';
 import { History, Search, Filter, Download, Loader2 } from 'lucide-react';
-import axios from 'axios';
+import { fetchJson, log } from './lib/utils';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -14,7 +14,8 @@ const API = `${BACKEND_URL}/api`;
 // Hook personnalisé pour lazy loading par scroll
 function useInfiniteScroll(items, itemsPerPage = 50) {
   const [displayCount, setDisplayCount] = useState(itemsPerPage);
-  const loaderRef = useRef(null);
+  // We'll use a callback ref setter so we can observe the loader element when it mounts
+  const [loaderEl, setLoaderEl] = useState(null);
 
   useEffect(() => {
     // Reset display count when the total number of items changes
@@ -22,34 +23,29 @@ function useInfiniteScroll(items, itemsPerPage = 50) {
   }, [items.length, itemsPerPage]);
 
   useEffect(() => {
-    let ticking = false;
-    const handler = () => {
-      if (ticking) return;
-      ticking = true;
-      requestAnimationFrame(() => {
-        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-        // When scrolled past 80% of document height, load more
-        if (scrollTop + clientHeight >= scrollHeight * 0.8) {
-          if (displayCount < items.length) {
-            setDisplayCount(prev => Math.min(prev + itemsPerPage, items.length));
-          }
-        }
-        ticking = false;
-      });
-    };
+    if (!loaderEl) return;
+    if (displayCount >= items.length) return;
 
-    // Only attach handler when there are more items to load
-    if (items.length > displayCount) {
-      window.addEventListener('scroll', handler, { passive: true });
-      return () => window.removeEventListener('scroll', handler);
-    }
-    return () => {};
-  }, [items.length, itemsPerPage, displayCount]);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setDisplayCount((prev) => Math.min(prev + itemsPerPage, items.length));
+          }
+        });
+      },
+      { root: null, rootMargin: '300px', threshold: 0.1 }
+    );
+
+    observer.observe(loaderEl);
+    return () => observer.disconnect();
+  }, [loaderEl, items.length, itemsPerPage, displayCount]);
 
   const displayedItems = items.slice(0, displayCount);
   const hasMore = displayCount < items.length;
 
-  return { displayedItems, loaderRef, hasMore };
+  // We return the callback setter as the ref to attach to the loader element
+  return { displayedItems, loaderRef: setLoaderEl, hasMore };
 }
 
 function Historique() {
@@ -88,10 +84,12 @@ function Historique() {
   const loadHistorique = async () => {
     try {
       setLoading(true);
-      const response = await axios.get(`${API}/historique`);
-      setHistorique(response.data || []);
+      const data = await fetchJson(`${API}/historique`);
+      setHistorique(data || []);
     } catch (error) {
-      console.error("Erreur chargement historique:", error);
+      log("Erreur chargement historique:", error);
+      // TODO: Add error state and UI feedback
+      setHistorique([]);
     } finally {
       setLoading(false);
     }

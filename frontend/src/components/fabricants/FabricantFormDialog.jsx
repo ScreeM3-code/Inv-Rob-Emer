@@ -21,7 +21,26 @@ export default function FabricantFormDialog({ fabricant, onSave, onCancel }) {
     Email: ""
   });
   
-  const handleChange = (field, value) => setFormData(p => ({ ...p, [field]: value }));
+    // Debounce les mises à jour d'état
+    const debouncedSetFormData = React.useCallback(
+      (fn => {
+        let timeoutId;
+        return (field, value) => {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => fn(p => ({ ...p, [field]: value })), 100);
+        };
+      })(setFormData),
+      []
+    );
+
+    // Mémoiser les valeurs pour éviter des re-renders inutiles
+    const memoizedValues = React.useMemo(() => ({
+      NomFabricant: formData.NomFabricant,
+      Domaine: formData.Domaine,
+      NomContact: formData.NomContact,
+      TitreContact: formData.TitreContact,
+      Email: formData.Email
+    }), [formData]);
 
   return (
     <Dialog open={true} onOpenChange={onCancel}>
@@ -34,8 +53,8 @@ export default function FabricantFormDialog({ fabricant, onSave, onCancel }) {
             <Label htmlFor="nom">Nom du fabricant *</Label>
             <Input 
               id="nom" 
-              value={formData.NomFabricant} 
-              onChange={e => handleChange('NomFabricant', e.target.value)} 
+                defaultValue={memoizedValues.NomFabricant}
+                onChange={e => debouncedSetFormData('NomFabricant', e.target.value)} 
               required 
             />
           </div>
@@ -43,8 +62,8 @@ export default function FabricantFormDialog({ fabricant, onSave, onCancel }) {
             <Label htmlFor="domaine">Domaine (pour le logo, ex: bosch.com)</Label>
             <Input 
               id="domaine" 
-              value={formData.Domaine} 
-              onChange={e => handleChange('Domaine', e.target.value)} 
+                defaultValue={memoizedValues.Domaine}
+                onChange={e => debouncedSetFormData('Domaine', e.target.value)}
             />
           </div>
           <div className="grid grid-cols-2 gap-4">

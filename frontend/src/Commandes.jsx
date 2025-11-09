@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from "react";
-import axios from "axios";
+import { fetchJson, log } from './lib/utils';
 import HistoriqueDialog from "@/components/commandes/HistoriqueDialog";
 import PieceEditForm from "@/components/commandes/PieceEditForm";
 import CommandeForm from "@/components/commandes/CommandeForm";
@@ -28,16 +28,16 @@ function Commandes() {
 
   const loadData = async (page = 1) => {
     try {
-      const [toordersRes, fournisseursRes, fabricantsRes] = await Promise.all([
-        axios.get(`${API}/toorders`),
-        axios.get(`${API}/fournisseurs`),
-        axios.get(`${API}/fabricant`)
+      const [toorders, fournisseurs, fabricants] = await Promise.all([
+        fetchJson(`${API}/toorders`),
+        fetchJson(`${API}/fournisseurs`),
+        fetchJson(`${API}/fabricant`)
       ]);
     
-      const fabricantsList = fabricantsRes.data || [];
+      const fabricantsList = fabricants || [];
       
       // Remplacer NomFabricant par RefFabricant 
-      const commandesAvecRefFabricant = (toordersRes.data || []).map(order => {
+      const commandesAvecRefFabricant = (toorders || []).map(order => {
         const fab = fabricantsList.find(f => f.NomFabricant === order.NomFabricant);
         return {
           ...order,
@@ -46,7 +46,7 @@ function Commandes() {
       });
   
       setToOrders(commandesAvecRefFabricant);
-      setFournisseurs(fournisseursRes.data || []);
+      setFournisseurs(fournisseurs || []);
       setFabricants(fabricantsList);
     } catch (error) {
       console.error("Erreur lors du chargement:", error);
@@ -55,34 +55,12 @@ function Commandes() {
   };
 
   const handleViewHistory = async (piece) => {
-    console.log("🔍 Ouverture historique pour pièce:", piece.RéfPièce);
-    setViewingHistoryFor(piece);
+    log("🔍 Ouverture historique pour pièce:", piece.RéfPièce);
     setHistoryLoading(true);
-    setHistoryData([]);
-    
     try {
-      const response = await fetch(`${API}/historique/${piece.RéfPièce}`);
-      if (!response.ok) {
-        throw new Error("Erreur lors du chargement de l'historique de la pièce.");
-      }
-
-      const contentType = response.headers.get("content-type");
-      if (contentType && contentType.includes("application/json")) {
-        const data = await response.json();
-        console.log("📊 Données reçues de l'API:", data);
-        setHistoryData(data);
-      } else {
-        const text = await response.text();
-        if (text && text.startsWith('<!DOCTYPE')) {
-          throw new Error("Réponse inattendue du serveur (HTML au lieu de JSON).");
-        }
-        try {
-          const data = JSON.parse(text);
-          setHistoryData(data);
-        } catch (parseErr) {
-          throw new Error("La réponse de l'historique est invalide ou non parsable.");
-        }
-      }
+      const data = await fetchJson(`${API}/historique/${piece.RéfPièce}`);
+      log("📊 Données reçues de l'API (historique):", data);
+      setHistoryData(data);
     } catch (err) {
       console.error("Erreur chargement historique:", err);
       setHistoryData([]);
@@ -93,7 +71,7 @@ function Commandes() {
 
 const handleUpdateOrder = async (updatedPiece, isNewOrder = false) => {
   try {
-    console.log('🔄 Mise à jour commande:', updatedPiece);
+    log('🔄 Mise à jour commande:', updatedPiece);
     
     const cleanedOrder = {
       ...updatedPiece,
@@ -123,16 +101,20 @@ const handleUpdateOrder = async (updatedPiece, isNewOrder = false) => {
     delete cleanedOrder.fournisseur_principal;
     delete cleanedOrder.autre_fournisseur;
 
-    console.log('📤 Envoi au backend:', cleanedOrder);
+  log('📤 Envoi au backend:', cleanedOrder);
 
     // 1. Mettre à jour la pièce
-    const updateResponse = await axios.put(`${API}/pieces/${updatedPiece.RéfPièce}`, cleanedOrder);
-    console.log('✅ Réponse backend (update):', updateResponse.data);
+  const updatedData = await fetchJson(`${API}/pieces/${updatedPiece.RéfPièce}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(cleanedOrder)
+  });
+  log('✅ Réponse backend (update):', updatedData);
     
     // 2. Si c'est une NOUVELLE commande (pas juste une édition), ajouter l'historique
     if (isNewOrder) {
-      const userResponse = await axios.get(`${API}/current-user`);
-      const userName = userResponse.data.user || "Système";
+      const userData = await fetchJson(`${API}/current-user`);
+      const userName = userData.user || "Système";
       
       const historiqueEntry = {
         Opération: "Commande",
@@ -148,10 +130,14 @@ const handleUpdateOrder = async (updatedPiece, isNewOrder = false) => {
         Delais: null
       };
       
-      console.log('📝 Ajout historique:', historiqueEntry);
+      log('📝 Ajout historique:', historiqueEntry);
       
-      const histResponse = await axios.post(`${API}/historique`, historiqueEntry);
-      console.log('✅ Réponse backend (historique):', histResponse.data);
+      const histData = await fetchJson(`${API}/historique`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(historiqueEntry)
+      });
+      log('✅ Réponse backend (historique):', histData);
       
       alert('✅ Commande passée avec succès !');
     } else {
@@ -163,8 +149,8 @@ const handleUpdateOrder = async (updatedPiece, isNewOrder = false) => {
     await loadData(currentPage);
     
   } catch (error) {
-    console.error("❌ Erreur lors de la mise à jour:", error.response?.data || error.message);
-    alert("❌ Erreur: " + (error.response?.data?.detail || error.message));
+    log("❌ Erreur lors de la mise à jour:", error);
+    alert("❌ Erreur: " + error.message);
   }
 };
 

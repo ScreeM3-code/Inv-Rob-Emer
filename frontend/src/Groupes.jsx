@@ -12,6 +12,7 @@ import {
   Plus, Trash2, Edit, Layers, FolderTree, Package, 
   ChevronDown, ChevronRight, Loader2 
 } from 'lucide-react';
+import { fetchJson } from './lib/utils';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 const API = `${BACKEND_URL}/api`;
@@ -38,9 +39,9 @@ export default function Groupes() {
     try {
       setLoading(true);
       const [categoriesRes, groupesRes, piecesRes] = await Promise.all([
-        fetch(`${API}/groupes/categories`).then(r => r.json()),
-        fetch(`${API}/groupes`).then(r => r.json()),
-        fetch(`${API}/pieces`).then(r => r.json())
+        fetchJson(`${API}/groupes/categories`),
+        fetchJson(`${API}/groupes`),
+        fetchJson(`${API}/pieces`)
       ]);
       // Normaliser les IDs en nombres pour éviter les problèmes de comparaison (string vs number)
       const normCategories = (categoriesRes || []).map(c => ({
@@ -86,7 +87,7 @@ export default function Groupes() {
       
       const method = categorieDialog.data?.RefCategorie ? 'PUT' : 'POST';
       
-      const response = await fetch(url, {
+      await fetchJson(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -94,8 +95,6 @@ export default function Groupes() {
           Description: categorieDialog.data.Description || ''
         })
       });
-      
-      if (!response.ok) throw new Error('Erreur sauvegarde');
       
       setCategorieDialog({ open: false, data: null });
       await loadData();
@@ -109,7 +108,7 @@ export default function Groupes() {
     if (!window.confirm('Supprimer cette catégorie et tous ses groupes ?')) return;
     
     try {
-      await fetch(`${API}/groupes/categories/${id}`, { method: 'DELETE' });
+  await fetchJson(`${API}/groupes/categories/${id}`, { method: 'DELETE' });
       await loadData();
     } catch (error) {
       console.error('Erreur suppression:', error);
@@ -126,17 +125,16 @@ export default function Groupes() {
       
       const method = groupeDialog.data?.RefGroupe ? 'PUT' : 'POST';
       
-      const response = await fetch(url, {
+      const refCat = parseInt(groupeDialog.data.RefCategorie, 10);
+      await fetchJson(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          RefCategorie: parseInt(groupeDialog.data.RefCategorie),
+          RefCategorie: isNaN(refCat) ? groupeDialog.data.RefCategorie : refCat,
           NomGroupe: groupeDialog.data.NomGroupe,
           Description: groupeDialog.data.Description || ''
         })
       });
-      
-      if (!response.ok) throw new Error('Erreur sauvegarde');
       
       setGroupeDialog({ open: false, data: null });
       await loadData();
@@ -150,7 +148,7 @@ export default function Groupes() {
     if (!window.confirm('Supprimer ce groupe ?')) return;
     
     try {
-      await fetch(`${API}/groupes/${id}`, { method: 'DELETE' });
+  await fetchJson(`${API}/groupes/${id}`, { method: 'DELETE' });
       await loadData();
     } catch (error) {
       console.error('Erreur suppression:', error);
@@ -163,7 +161,7 @@ export default function Groupes() {
     if (!window.confirm('Retirer cette pièce du groupe ?')) return;
     
     try {
-      await fetch(`${API}/groupes/pieces/${pieceGroupeId}`, { method: 'DELETE' });
+  await fetchJson(`${API}/groupes/pieces/${pieceGroupeId}`, { method: 'DELETE' });
       await loadData();
     } catch (error) {
       console.error('Erreur suppression pièce:', error);
@@ -172,20 +170,17 @@ export default function Groupes() {
 
   const handleAddPieceToGroupe = async () => {
     try {
-      const response = await fetch(`${API}/groupes/pieces`, {
+      const refPiece = parseInt(pieceDialog.selectedPiece, 10);
+      const quant = parseInt(pieceDialog.quantite, 10);
+      await fetchJson(`${API}/groupes/pieces`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           RefGroupe: pieceDialog.groupeId,
-          RéfPièce: parseInt(pieceDialog.selectedPiece),
-          Quantite: parseInt(pieceDialog.quantite) || 1
+          RéfPièce: isNaN(refPiece) ? pieceDialog.selectedPiece : refPiece,
+          Quantite: isNaN(quant) ? 1 : quant
         })
       });
-      
-      if (!response.ok) {
-        const error = await response.json();
-        throw new Error(error.detail || 'Erreur ajout');
-      }
       
       setPieceDialog({ open: false, groupeId: null, selectedPiece: null, quantite: 1 });
       await loadData();
@@ -198,16 +193,15 @@ export default function Groupes() {
   const handleSortirPieces = async (sorties) => {
     try {
       // 1. Récupérer l'utilisateur
-      const userResponse = await fetch(`${API}/current-user`);
-      const userData = await userResponse.json();
-      const userName = userData.user || "Système";
+  const userData = await fetchJson(`${API}/current-user`);
+  const userName = userData.user || "Système";
 
       // 2. Pour chaque pièce, faire la sortie
       for (const sortie of sorties) {
         const { piece, quantite } = sortie;
         
         // Mise à jour du stock
-        await fetch(`${API}/pieces/${piece.RéfPièce}`, {
+        await fetchJson(`${API}/pieces/${piece.RéfPièce}`, {
           method: 'PUT',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -216,7 +210,7 @@ export default function Groupes() {
         });
 
         // Ajout dans l'historique
-        await fetch(`${API}/historique`, {
+        await fetchJson(`${API}/historique`, {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
@@ -473,10 +467,13 @@ export default function Groupes() {
                 <Label>Catégorie *</Label>
                 <Select
                   value={groupeDialog.data?.RefCategorie?.toString() || ''}
-                  onValueChange={v => setGroupeDialog({
-                    ...groupeDialog,
-                    data: { ...groupeDialog.data, RefCategorie: parseInt(v) }
-                  })}
+                  onValueChange={v => {
+                    const n = parseInt(v, 10);
+                    setGroupeDialog({
+                      ...groupeDialog,
+                      data: { ...groupeDialog.data, RefCategorie: isNaN(n) ? null : n }
+                    });
+                  }}
                 >
                   <SelectTrigger>
                     <SelectValue placeholder="Sélectionner une catégorie" />

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import "./App.css";
 import { PieceCard } from "@/components/inventaire/PieceCard";
-import axios from "axios";
+import { fetchJson, log } from './lib/utils';
 import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
@@ -89,21 +89,28 @@ function Dashboard () {
       
       const piecesUrl = `${API}/pieces?${params.toString()}`;
 
-      console.log('🔍 URL appelée:', piecesUrl);
+      log('🔍 URL appelée:', piecesUrl);
 
-      const [piecesRes, fournisseursRes, statsRes, fabricantsRes] = await Promise.all([
-        axios.get(piecesUrl),
-        axios.get(`${API}/fournisseurs`),
-        axios.get(`${API}/stats`),
-        axios.get(`${API}/fabricant`)
-      ]);
+      try {
+        const [pieces, fournisseurs, stats, fabricants] = await Promise.all([
+          fetchJson(piecesUrl),
+          fetchJson(`${API}/fournisseurs`),
+          fetchJson(`${API}/stats`),
+          fetchJson(`${API}/fabricant`)
+        ]);
 
-      setPieces(Array.isArray(piecesRes.data) ? piecesRes.data : []);
-      setFournisseurs(fournisseursRes.data || []);
-      setStats(statsRes.data || { total_pieces: 0, stock_critique: 0, valeur_stock: 0, pieces_a_commander: 0 });
-      setFabricants(fabricantsRes.data || []);
-    } catch (error) {
-      console.error("❌ Erreur lors du chargement:", error);
+        setPieces(Array.isArray(pieces) ? pieces : []);
+        setFournisseurs(fournisseurs || []);
+        setStats(stats || { total_pieces: 0, stock_critique: 0, valeur_stock: 0, pieces_a_commander: 0 });
+        setFabricants(fabricants || []);
+      } catch (error) {
+        log("❌ Erreur lors du chargement:", error);
+        // Reset states to safe defaults on error
+        setPieces([]);
+        setFournisseurs([]);
+        setStats({ total_pieces: 0, stock_critique: 0, valeur_stock: 0, pieces_a_commander: 0 });
+        setFabricants([]);
+      }
     } finally {
       setLoading(false);
     }
@@ -142,7 +149,8 @@ function Dashboard () {
   }, [searchTerm, filters.statut, filters.stock]);
 
   const handleQuickRemove = async (piece, amountArg) => {
-    const amount = parseInt(amountArg) || 0;
+    const parsedAmount = parseInt(amountArg, 10);
+    const amount = isNaN(parsedAmount) ? 0 : parsedAmount;
     if (amount <= 0) {
       alert('Entrez une quantité valide (> 0) pour la sortie rapide.');
       return;
@@ -166,19 +174,15 @@ function Dashboard () {
     );
 
     try {
-      const response = await fetch(`${API}/current-user`);
-      const data = await response.json();
-      const user = data.user;
+      const userData = await fetchJson(`${API}/current-user`);
+      const user = userData.user;
 
       // 1. Mettre à jour le stock de la pièce
-      const pieceUpdateResponse = await fetch(`${API}/pieces/${piece.RéfPièce}`, {
+      await fetchJson(`${API}/pieces/${piece.RéfPièce}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ QtéenInventaire: updatedPiece.QtéenInventaire }),
       });
-
-      if (!pieceUpdateResponse.ok)
-        throw new Error("La mise à jour de la pièce a échoué.");
 
       const historyEntry = {
         Opération: "Sortie rapide",
@@ -191,14 +195,11 @@ function Dashboard () {
         description: piece.DescriptionPièce,
       };
 
-      const historyResponse = await fetch(`${API}/historique`, {
+      await fetchJson(`${API}/historique`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(historyEntry),
       });
-
-      if (!historyResponse.ok)
-        throw new Error("L'enregistrement de l'historique a échoué.");
     } catch (error) {
       console.error("Erreur lors de la sortie rapide:", error);
       if (originalPiece) {
@@ -222,7 +223,11 @@ function Dashboard () {
         return;
       }
 
-      const cleanedPiece = {
+  const npQInv = parseInt(newPiece.QtéenInventaire, 10);
+  const npQMin = parseInt(newPiece.Qtéminimum, 10);
+  const npQMax = parseInt(newPiece.Qtémax, 10);
+
+  const cleanedPiece = {
         NomPièce: newPiece.NomPièce.trim(),
         DescriptionPièce: newPiece.DescriptionPièce?.trim() || "",
         NumPièce: newPiece.NumPièce?.trim() || "",
@@ -231,19 +236,23 @@ function Dashboard () {
         NumPièceAutreFournisseur: newPiece.NumPièceAutreFournisseur?.trim() || "",
         RefFabricant: newPiece.RefFabricant || null,
         Lieuentreposage: newPiece.Lieuentreposage?.trim() || "",
-        QtéenInventaire: parseInt(newPiece.QtéenInventaire) || 0,
-        Qtéminimum: parseInt(newPiece.Qtéminimum) || 0,
-        Qtémax: parseInt(newPiece.Qtémax) || 100,
+  QtéenInventaire: isNaN(npQInv) ? 0 : npQInv,
+  Qtéminimum: isNaN(npQMin) ? 0 : npQMin,
+  Qtémax: isNaN(npQMax) ? 100 : npQMax,
         Prix_unitaire: parseFloat(newPiece.Prix_unitaire) || 0,
         Soumission_LD: newPiece.Soumission_LD?.trim() || "",
         SoumDem: newPiece.SoumDem || false
       };
 
-      console.log('➕ Création de pièce:', cleanedPiece); // Debug
+  import("./lib/utils").then(({ log }) => log('➕ Création de pièce:', cleanedPiece)); // Debug
 
-      const response = await axios.post(`${API}/pieces`, cleanedPiece);
+      const piece = await fetchJson(`${API}/pieces`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(cleanedPiece)
+      });
       
-      console.log('✅ Pièce créée:', response.data); // Debug
+      log('✅ Pièce créée:', piece);
 
       // Fermer le dialog
       setIsAddDialogOpen(false);
@@ -284,6 +293,11 @@ function Dashboard () {
     }
     
     try {
+      const qInv = parseInt(editingPiece.QtéenInventaire, 10);
+      const qMin = parseInt(editingPiece.Qtéminimum, 10);
+      const qMax = parseInt(editingPiece.Qtémax, 10);
+      const prixVal = parseFloat(editingPiece.Prix_unitaire);
+
       const dataToSend = {
         NomPièce: editingPiece.NomPièce || "",
         DescriptionPièce: editingPiece.DescriptionPièce || "",
@@ -293,22 +307,26 @@ function Dashboard () {
         NumPièceAutreFournisseur: editingPiece.NumPièceAutreFournisseur || "",
         RefFabricant: editingPiece.RefFabricant || null,
         Lieuentreposage: editingPiece.Lieuentreposage || "",
-        QtéenInventaire: parseInt(editingPiece.QtéenInventaire) >= 0 ? parseInt(editingPiece.QtéenInventaire) : 0,
-        Qtéminimum: parseInt(editingPiece.Qtéminimum) >= 0 ? parseInt(editingPiece.Qtéminimum) : 0,
-        Qtémax: parseInt(editingPiece.Qtémax) > 0 ? parseInt(editingPiece.Qtémax) : 100,
-        Prix_unitaire: parseFloat(editingPiece.Prix_unitaire) >= 0 ? parseFloat(editingPiece.Prix_unitaire) : 0,
+        QtéenInventaire: isNaN(qInv) ? 0 : qInv,
+        Qtéminimum: isNaN(qMin) ? 0 : qMin,
+        Qtémax: isNaN(qMax) ? 100 : qMax,
+        Prix_unitaire: isNaN(prixVal) ? 0 : prixVal,
         Soumission_LD: editingPiece.Soumission_LD || "",
         SoumDem: editingPiece.SoumDem || false
       };
 
-      console.log('📤 Données envoyées:', dataToSend); // Debug
+  import("./lib/utils").then(({ log }) => log('📤 Données envoyées:', dataToSend)); // Debug
 
-      await axios.put(`${API}/pieces/${editingPiece.RéfPièce}`, dataToSend);
+      await fetchJson(`${API}/pieces/${editingPiece.RéfPièce}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataToSend)
+      });
       setEditingPiece(null);
       await loadData(currentPage);
     } catch (error) {
-      console.error("❌ Erreur lors de la mise à jour:", error.response?.data || error.message);
-      alert("Erreur: " + (error.response?.data?.detail || error.response?.data?.message || error.message));
+      log("❌ Erreur lors de la mise à jour:", error);
+      alert("Erreur: " + error.message);
     }
   };
 
@@ -316,10 +334,11 @@ function Dashboard () {
   const handleDeletePiece = async (pieceId) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer cette pièce ?")) {
       try {
-        await axios.delete(`${API}/pieces/${pieceId}`);
+        await fetchJson(`${API}/pieces/${pieceId}`, { method: 'DELETE' });
         loadData(currentPage);
       } catch (error) {
-        console.error("Erreur lors de la suppression:", error);
+        log("❌ Erreur lors de la suppression:", error);
+        alert("Erreur lors de la suppression: " + error.message);
       }
     }
   };

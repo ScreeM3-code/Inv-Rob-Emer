@@ -74,8 +74,9 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, fabricant, onE
             max={piece.QtéenInventaire}
             value={qrQty}
             onChange={(e) => {
-              const v = parseInt(e.target.value || '1');
-              setQrQty(Math.max(1, Math.min(v, piece.QtéenInventaire || 1)));
+              const v = parseInt(e.target.value || '1', 10);
+              const n = isNaN(v) ? 1 : v;
+              setQrQty(Math.max(1, Math.min(n, piece.QtéenInventaire || 1)));
             }}
             className="w-20 h-8"
           />

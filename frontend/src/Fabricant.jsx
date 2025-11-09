@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from "react";
+import { fetchJson, log } from './lib/utils';
 import { Button } from "@/components/ui/button";
 import { Plus, Loader2, Factory, Search, X } from "lucide-react";
 import { Input } from "@/components/ui/input";
@@ -20,14 +21,12 @@ export default function FabricantsPage() {
     setLoading(true);
     setError(null);
     try {
-      const response = await fetch(`${API}/fabricant`);
-      if (!response.ok) throw new Error("Erreur réseau");
-      const data = await response.json();
-      console.log("📦 Fabricants chargés:", data); // DEBUG
-      setFabricants(data || []);
+  const data = await fetchJson(`${API}/fabricant`);
+  log("📦 Fabricants chargés:", data);
+  setFabricants(data || []);
     } catch (err) {
-      console.error("Erreur chargement fabricants:", err);
-      setError("Impossible de charger les fabricants.");
+      log("❌ Erreur chargement fabricants:", err);
+      setError(`Impossible de charger les fabricants: ${err.message}`);
     } finally {
       setLoading(false);
     }
@@ -46,21 +45,13 @@ export default function FabricantsPage() {
         
         const method = fabricantData.RefFabricant ? 'PUT' : 'POST';
 
-        console.log('📤 Envoi au backend:', { url, method, data: fabricantData }); // DEBUG
-
-        const response = await fetch(url, {
-            method: method,
-            headers: {'Content-Type': 'application/json'},
-            body: JSON.stringify(fabricantData)
-        });
-
-        if (!response.ok) {
-            const errorData = await response.json().catch(() => ({}));
-            console.error('❌ Erreur backend:', errorData);
-            throw new Error(errorData.detail || "La sauvegarde a échoué");
-        }
-        
-        console.log('✅ Sauvegarde réussie');
+    log('📤 Envoi au backend:', { url, method, data: fabricantData });
+    await fetchJson(url, {
+      method: method,
+      headers: {'Content-Type': 'application/json'},
+      body: JSON.stringify(fabricantData)
+    });
+    log('✅ Sauvegarde réussie');
         setIsFormOpen(false);
         setEditingFabricant(null);
         await loadFabricants();
@@ -74,8 +65,7 @@ export default function FabricantsPage() {
   const handleDelete = async (id) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce fabricant ?")) {
       try {
-        const response = await fetch(`${API}/fabricant/${id}`, { method: 'DELETE' });
-        if (!response.ok) throw new Error("La suppression a échoué");
+  await fetchJson(`${API}/fabricant/${id}`, { method: 'DELETE' });
         await loadFabricants();
       } catch (err) {
         console.error("Erreur suppression:", err);

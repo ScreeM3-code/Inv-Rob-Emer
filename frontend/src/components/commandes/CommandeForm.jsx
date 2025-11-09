@@ -1,4 +1,5 @@
 import React from 'react';
+import { log } from '../../lib/utils';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -13,9 +14,31 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
     soumission_LD: ""
   });
 
-  const handleChange = (field, value) => {
-    setFormData(prev => ({ ...prev, [field]: value }));
-  };
+    // Debounce pour les champs texte
+    const debouncedSetFormData = React.useCallback(
+      (fn => {
+        let timeoutId;
+        return (field, value) => {
+          if (['Qtécommander', 'Prix_unitaire'].includes(field)) {
+            // Mise à jour immédiate pour les champs numériques
+            fn(prev => ({ ...prev, [field]: value }));
+            return;
+          }
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => fn(prev => ({ ...prev, [field]: value })), 100);
+        };
+      })(setFormData),
+      []
+    );
+
+    // Mémoiser les valeurs pour éviter des re-renders inutiles
+    const memoizedValues = React.useMemo(() => ({
+      Qtécommander: formData.Qtécommander,
+      Prix_unitaire: formData.Prix_unitaire,
+      Datecommande: formData.Datecommande,
+      Cmd_info: formData.Cmd_info,
+      soumission_LD: formData.soumission_LD
+    }), [formData]);
 
   const handleSubmit = () => {
     if (!formData.Qtécommander || formData.Qtécommander <= 0) {
@@ -23,7 +46,7 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
       return;
     }
 
-    console.log('📦 Données envoyées depuis CommandeForm:', {
+    log('📦 Données envoyées depuis CommandeForm:', {
       ...piece,
       ...formData,
       Qtécommandée: formData.Qtécommander,
@@ -59,8 +82,11 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
               <Input
                 type="number"
                 min="1"
-                value={formData.Qtécommander}
-                onChange={(e) => handleChange('Qtécommander', parseInt(e.target.value) || 0)}
+                  defaultValue={memoizedValues.Qtécommander}
+                onChange={(e) => {
+                  const v = parseInt(e.target.value, 10);
+                    debouncedSetFormData('Qtécommander', isNaN(v) ? 0 : v);
+                }}
               />
             </div>
             <div>
@@ -69,8 +95,8 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
                 type="number"
                 step="0.01"
                 min="0"
-                value={formData.Prix_unitaire}
-                onChange={(e) => handleChange('Prix_unitaire', parseFloat(e.target.value) || 0)}
+                  defaultValue={memoizedValues.Prix_unitaire}
+                  onChange={(e) => debouncedSetFormData('Prix_unitaire', parseFloat(e.target.value) || 0)}
               />
             </div>
           </div>
@@ -80,15 +106,15 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
               <Label>Date de commande</Label>
               <Input
                 type="date"
-                value={formData.Datecommande}
-                onChange={(e) => handleChange('Datecommande', e.target.value)}
+                  defaultValue={memoizedValues.Datecommande}
+                  onChange={(e) => debouncedSetFormData('Datecommande', e.target.value)}
               />
             </div>
             <div>
               <Label># de Souimssion</Label>
               <Input
-                value={formData.soumission_LD}
-                onChange={(e) => handleChange('soumission_LD', e.target.value)}
+                  defaultValue={memoizedValues.soumission_LD}
+                  onChange={(e) => debouncedSetFormData('soumission_LD', e.target.value)}
                 placeholder="Numéro de Soumission"
               />
             </div>
@@ -96,7 +122,8 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
           <div>
             <Label>Commentaire / Info commande</Label>
             <Input
-              value={formData.Cmd_info}
+                defaultValue={memoizedValues.Cmd_info}
+                onChange={(e) => debouncedSetFormData('Cmd_info', e.target.value)}
               onChange={(e) => handleChange('Cmd_info', e.target.value)}
               placeholder="Numéro de bon de commande, fournisseur contacté, etc."
             />

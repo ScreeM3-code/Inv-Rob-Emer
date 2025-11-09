@@ -4,13 +4,12 @@ import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetTrigger, SheetFooter
 import { Button } from "@/components/ui/button";
 import { X, Trash2 } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
+import { fetchJson } from '../../lib/utils';
 
 const API_URL = "http://localhost:8000/api";
 
 const fetchFournisseurs = async () => {
-  const res = await fetch(`${API_URL}/fournisseurs`);
-  if (!res.ok) throw new Error("Erreur de chargement des fournisseurs");
-  return res.json();
+  return fetchJson(`${API_URL}/fournisseurs`);
 }
 
 export default function CartPanel({ children }) {

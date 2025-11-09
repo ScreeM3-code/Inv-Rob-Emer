@@ -81,7 +81,8 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
 
 
   const handleQuantityChange = (pieceId, value) => {
-    const numValue = parseInt(value) || 0;
+    const parsed = parseInt(value, 10);
+    const numValue = isNaN(parsed) ? 0 : parsed;
     const piece = pieces.find(p => p.RéfPièce === pieceId);
     const maxStock = piece?.QtéenInventaire || 0;
     
