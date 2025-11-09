@@ -63,6 +63,7 @@ function Dashboard () {
     stock: "tous",
     groupe: "tous"
   });
+  // Note: quick-remove quantity is now per-card; removed global quickRemoveQty
 
   // Filtrage des pièces
   let filteredPieces = pieces;
@@ -140,14 +141,25 @@ function Dashboard () {
     return () => clearTimeout(timer);
   }, [searchTerm, filters.statut, filters.stock]);
 
-  const handleQuickRemove = async (piece) => {
+  const handleQuickRemove = async (piece, amountArg) => {
+    const amount = parseInt(amountArg) || 0;
+    if (amount <= 0) {
+      alert('Entrez une quantité valide (> 0) pour la sortie rapide.');
+      return;
+    }
+
     if (piece.QtéenInventaire <= 0) {
       alert("Le stock est déjà à zéro.");
       return;
     }
 
+    if (amount > piece.QtéenInventaire) {
+      alert("La quantité demandée dépasse le stock disponible.");
+      return;
+    }
+
     const originalPiece = pieces.find((p) => p.RéfPièce === piece.RéfPièce);
-    const updatedPiece = { ...piece, QtéenInventaire: piece.QtéenInventaire - 1 };
+    const updatedPiece = { ...piece, QtéenInventaire: piece.QtéenInventaire - amount };
 
     setPieces((prev) =>
       prev.map((p) => (p.RéfPièce === piece.RéfPièce ? updatedPiece : p))
@@ -170,7 +182,7 @@ function Dashboard () {
 
       const historyEntry = {
         Opération: "Sortie rapide",
-        QtéSortie: "1",
+        QtéSortie: amount.toString(),
         RéfPièce: piece.RéfPièce,
         nompiece: piece.NomPièce,
         numpiece: piece.NumPièce,
@@ -200,6 +212,7 @@ function Dashboard () {
     }
   };
 
+
   // Ajouter une pièce
   const handleAddPiece = async () => {
     try {
@@ -223,7 +236,7 @@ function Dashboard () {
         Qtémax: parseInt(newPiece.Qtémax) || 100,
         Prix_unitaire: parseFloat(newPiece.Prix_unitaire) || 0,
         Soumission_LD: newPiece.Soumission_LD?.trim() || "",
-        SoumDem: newPiece.SoumDem?.trim() || ""
+        SoumDem: newPiece.SoumDem || false
       };
 
       console.log('➕ Création de pièce:', cleanedPiece); // Debug
@@ -271,7 +284,6 @@ function Dashboard () {
     }
     
     try {
-      // Préparer les données à envoyer (uniquement les champs modifiables)
       const dataToSend = {
         NomPièce: editingPiece.NomPièce || "",
         DescriptionPièce: editingPiece.DescriptionPièce || "",
@@ -281,19 +293,21 @@ function Dashboard () {
         NumPièceAutreFournisseur: editingPiece.NumPièceAutreFournisseur || "",
         RefFabricant: editingPiece.RefFabricant || null,
         Lieuentreposage: editingPiece.Lieuentreposage || "",
-        QtéenInventaire: parseInt(editingPiece.QtéenInventaire) || 0,
-        Qtéminimum: parseInt(editingPiece.Qtéminimum) || 0,
-        Qtémax: parseInt(editingPiece.Qtémax) || 100,
-        Prix_unitaire: parseFloat(editingPiece.Prix_unitaire) || 0,
+        QtéenInventaire: parseInt(editingPiece.QtéenInventaire) >= 0 ? parseInt(editingPiece.QtéenInventaire) : 0,
+        Qtéminimum: parseInt(editingPiece.Qtéminimum) >= 0 ? parseInt(editingPiece.Qtéminimum) : 0,
+        Qtémax: parseInt(editingPiece.Qtémax) > 0 ? parseInt(editingPiece.Qtémax) : 100,
+        Prix_unitaire: parseFloat(editingPiece.Prix_unitaire) >= 0 ? parseFloat(editingPiece.Prix_unitaire) : 0,
         Soumission_LD: editingPiece.Soumission_LD || "",
-        SoumDem: editingPiece.SoumDem || ""
+        SoumDem: editingPiece.SoumDem || false
       };
+
+      console.log('📤 Données envoyées:', dataToSend); // Debug
 
       await axios.put(`${API}/pieces/${editingPiece.RéfPièce}`, dataToSend);
       setEditingPiece(null);
-      loadData(currentPage);
+      await loadData(currentPage);
     } catch (error) {
-      console.error("Erreur lors de la mise à jour:", error.response?.data || error.message);
+      console.error("❌ Erreur lors de la mise à jour:", error.response?.data || error.message);
       alert("Erreur: " + (error.response?.data?.detail || error.response?.data?.message || error.message));
     }
   };
@@ -348,6 +362,7 @@ function Dashboard () {
           >
             <Plus className="w-4 h-4 mr-2" /> Ajouter une Pièce
           </Button>
+          
         </div>
 
         {/* Stats Cards */}
@@ -482,7 +497,7 @@ function Dashboard () {
                   fabricant={fabricant}
                   onEdit={() => setEditingPiece(piece)}
                   onDelete={() => handleDeletePiece(piece.RéfPièce)}
-                  onQuickRemove={() => handleQuickRemove(piece)}
+                  onQuickRemove={(qty) => handleQuickRemove(piece, qty)}
                 />
               );
             })}

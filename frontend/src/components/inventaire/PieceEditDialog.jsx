@@ -134,10 +134,11 @@ export default function PieceEditDialog({
                 <Input
                   type="number"
                   min={0}
-                  value={piece.QtéenInventaire ?? ""}
+                  value={piece.QtéenInventaire ?? 0}
                   onChange={(e) => {
                     const v = e.target.value;
-                    onChange('QtéenInventaire', v === "" ? "" : Math.max(0, parseInt(v) || 0));
+                    // ✅ Accepter la valeur vide pendant la saisie, mais la convertir en 0 si vide
+                    onChange('QtéenInventaire', v === "" ? 0 : Math.max(0, parseInt(v) || 0));
                   }}
                 />
               </div>
@@ -146,10 +147,10 @@ export default function PieceEditDialog({
                 <Input
                   type="number"
                   min={0}
-                  value={piece.Qtéminimum ?? ""}
+                  value={piece.Qtéminimum ?? 0}
                   onChange={(e) => {
                     const v = e.target.value;
-                    onChange('Qtéminimum', v === "" ? "" : Math.max(0, parseInt(v) || 0));
+                    onChange('Qtéminimum', v === "" ? 0 : Math.max(0, parseInt(v) || 0));
                   }}
                 />
               </div>
@@ -158,10 +159,10 @@ export default function PieceEditDialog({
                 <Input
                   type="number"
                   min={0}
-                  value={piece.Qtémax ?? ""}
+                  value={piece.Qtémax ?? 100}
                   onChange={(e) => {
                     const v = e.target.value;
-                    onChange('Qtémax', v === "" ? "" : Math.max(0, parseInt(v) || 0));
+                    onChange('Qtémax', v === "" ? 100 : Math.max(0, parseInt(v) || 0));
                   }}
                 />
               </div>
@@ -183,10 +184,10 @@ export default function PieceEditDialog({
                 type="number"
                 step="0.01"
                 min={0}
-                value={piece.Prix_unitaire ?? ""}
+                value={piece.Prix_unitaire ?? 0}
                 onChange={(e) => {
                   const v = e.target.value;
-                  onChange('Prix_unitaire', v === "" ? "" : Math.max(0, parseFloat(v) || 0));
+                  onChange('Prix_unitaire', v === "" ? 0 : Math.max(0, parseFloat(v) || 0));
                 }}
               />
             </div>
@@ -200,9 +201,7 @@ export default function PieceEditDialog({
           <Button
             onClick={onSave}
             disabled={
-              !piece.NomPièce ||
-              piece.QtéenInventaire === "" ||
-              piece.Prix_unitaire === ""
+              !piece.NomPièce?.trim()
             }
             className="bg-rio-red hover:bg-rio-red-dark"
           >

@@ -91,49 +91,49 @@ function Commandes() {
     }
   };
 
-  const handleUpdateOrder = async (updatedPiece) => {
-    try {
-      console.log('🔄 Mise à jour commande:', updatedPiece);
-      
-      const cleanedOrder = {
-        ...updatedPiece,
-        RéfPièce: updatedPiece.RéfPièce,
-        NomPièce: updatedPiece.NomPièce || "",
-        DescriptionPièce: updatedPiece.DescriptionPièce || "",
-        NumPièce: updatedPiece.NumPièce || "",
-        RéfFournisseur: updatedPiece.RéfFournisseur || null,
-        RéfAutreFournisseur: updatedPiece.RéfAutreFournisseur || null,
-        NumPièceAutreFournisseur: updatedPiece.NumPièceAutreFournisseur || "",
-        RefFabricant: updatedPiece.RefFabricant || null,
-        Lieuentreposage: updatedPiece.Lieuentreposage || "",
-        QtéenInventaire: updatedPiece.QtéenInventaire ?? 0,
-        Qtéminimum: updatedPiece.Qtéminimum ?? 0,
-        Qtémax: updatedPiece.Qtémax ?? 100,
-        Prix_unitaire: updatedPiece.Prix_unitaire ?? 0,
-        Soumission_LD: updatedPiece.Soumission_LD || "",
-        Qtécommandée: updatedPiece.Qtécommandée ?? 0,
-        Qtéreçue: updatedPiece.Qtéreçue ?? 0,
-        Datecommande: updatedPiece.Datecommande || "",
-        Qtéarecevoir: updatedPiece.Qtéarecevoir ?? 0,
-        Cmd_info: updatedPiece.Cmd_info || "",
-        Qtéàcommander: updatedPiece.Qtéàcommander ?? 0,
-      };
-      
-      delete cleanedOrder.NomFabricant;
-      delete cleanedOrder.fournisseur_principal;
-      delete cleanedOrder.autre_fournisseur;
+const handleUpdateOrder = async (updatedPiece, isNewOrder = false) => {
+  try {
+    console.log('🔄 Mise à jour commande:', updatedPiece);
+    
+    const cleanedOrder = {
+      ...updatedPiece,
+      RéfPièce: updatedPiece.RéfPièce,
+      NomPièce: updatedPiece.NomPièce || "",
+      DescriptionPièce: updatedPiece.DescriptionPièce || "",
+      NumPièce: updatedPiece.NumPièce || "",
+      RéfFournisseur: updatedPiece.RéfFournisseur || null,
+      RéfAutreFournisseur: updatedPiece.RéfAutreFournisseur || null,
+      NumPièceAutreFournisseur: updatedPiece.NumPièceAutreFournisseur || "",
+      RefFabricant: updatedPiece.RefFabricant || null,
+      Lieuentreposage: updatedPiece.Lieuentreposage || "",
+      QtéenInventaire: updatedPiece.QtéenInventaire ?? 0,
+      Qtéminimum: updatedPiece.Qtéminimum ?? 0,
+      Qtémax: updatedPiece.Qtémax ?? 100,
+      Prix_unitaire: updatedPiece.Prix_unitaire ?? 0,
+      Soumission_LD: updatedPiece.Soumission_LD || "",
+      Qtécommandée: updatedPiece.Qtécommandée ?? 0,
+      Qtéreçue: updatedPiece.Qtéreçue ?? 0,
+      Datecommande: updatedPiece.Datecommande || "",
+      Qtéarecevoir: updatedPiece.Qtéarecevoir ?? 0,
+      Cmd_info: updatedPiece.Cmd_info || "",
+      Qtéàcommander: updatedPiece.Qtéàcommander ?? 0,
+    };
+    
+    delete cleanedOrder.NomFabricant;
+    delete cleanedOrder.fournisseur_principal;
+    delete cleanedOrder.autre_fournisseur;
 
-      console.log('📤 Envoi au backend:', cleanedOrder);
+    console.log('📤 Envoi au backend:', cleanedOrder);
 
-      // 1. Mettre à jour la pièce
-      const updateResponse = await axios.put(`${API}/pieces/${updatedPiece.RéfPièce}`, cleanedOrder);
-      console.log('✅ Réponse backend (update):', updateResponse.data);
-      
-      // 2. Récupérer l'utilisateur actuel
+    // 1. Mettre à jour la pièce
+    const updateResponse = await axios.put(`${API}/pieces/${updatedPiece.RéfPièce}`, cleanedOrder);
+    console.log('✅ Réponse backend (update):', updateResponse.data);
+    
+    // 2. Si c'est une NOUVELLE commande (pas juste une édition), ajouter l'historique
+    if (isNewOrder) {
       const userResponse = await axios.get(`${API}/current-user`);
       const userName = userResponse.data.user || "Système";
       
-      // 3. Ajouter une entrée dans l'historique
       const historiqueEntry = {
         Opération: "Commande",
         DateCMD: new Date().toISOString(),
@@ -143,7 +143,7 @@ function Commandes() {
         numpiece: updatedPiece.NumPièce,
         qtécommande: String(updatedPiece.Qtécommandée || 0),
         QtéSortie: "0",
-        description: updatedPiece.description,
+        description: updatedPiece.DescriptionPièce || "",
         User: userName,
         Delais: null
       };
@@ -153,17 +153,22 @@ function Commandes() {
       const histResponse = await axios.post(`${API}/historique`, historiqueEntry);
       console.log('✅ Réponse backend (historique):', histResponse.data);
       
-      setGoOrder(null);
-      await loadData(currentPage);
-      
       alert('✅ Commande passée avec succès !');
-    } catch (error) {
-      console.error("❌ Erreur lors de la mise à jour:", error.response?.data || error.message);
-      alert("❌ Erreur: " + (error.response?.data?.detail || error.message));
+    } else {
+      alert('✅ Pièce modifiée avec succès !');
     }
-  };
+    
+    setEditingOrder(null);
+    setGoOrder(null);
+    await loadData(currentPage);
+    
+  } catch (error) {
+    console.error("❌ Erreur lors de la mise à jour:", error.response?.data || error.message);
+    alert("❌ Erreur: " + (error.response?.data?.detail || error.message));
+  }
+};
 
-  return (
+   return (
     <div className="min-h-screen bg-gray-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
@@ -218,7 +223,7 @@ function Commandes() {
           piece={editingOrder}
           fournisseurs={fournisseurs}
           fabricants={fabricants}
-          onSave={handleUpdateOrder}
+          onSave={(updatedPiece) => handleUpdateOrder(updatedPiece, false)} // ✅ false = pas d'historique
           onCancel={() => setEditingOrder(null)}
         />
       )}
@@ -229,7 +234,7 @@ function Commandes() {
           piece={goOrder}
           fournisseurs={fournisseurs}
           fabricants={fabricants}
-          onSave={handleUpdateOrder}
+          onSave={(updatedPiece) => handleUpdateOrder(updatedPiece, true)} // ✅ true = ajouter historique
           onCancel={() => setGoOrder(null)}
         />
       )}

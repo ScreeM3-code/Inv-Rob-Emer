@@ -42,10 +42,33 @@ export default function Groupes() {
         fetch(`${API}/groupes`).then(r => r.json()),
         fetch(`${API}/pieces`).then(r => r.json())
       ]);
-      
-      setCategories(categoriesRes || []);
-      setGroupes(groupesRes || []);
-      setPieces(piecesRes || []);
+      // Normaliser les IDs en nombres pour éviter les problèmes de comparaison (string vs number)
+      const normCategories = (categoriesRes || []).map(c => ({
+        ...c,
+        RefCategorie: c.RefCategorie != null ? Number(c.RefCategorie) : c.RefCategorie
+      }));
+
+      const normGroupes = (groupesRes || []).map(g => ({
+        ...g,
+        RefGroupe: g.RefGroupe != null ? Number(g.RefGroupe) : g.RefGroupe,
+          RefCategorie: g.RefCategorie != null ? Number(g.RefCategorie) : g.RefCategorie,
+        pieces: (g.pieces || []).map(p => ({
+          ...p,
+          id: p.id != null ? Number(p.id) : p.id,
+          RefGroupe: p.RefGroupe != null ? Number(p.RefGroupe) : p.RefGroupe,
+          RéfPièce: p.RéfPièce != null ? Number(p.RéfPièce) : p.RéfPièce,
+          Quantite: p.Quantite != null ? Number(p.Quantite) : p.Quantite
+        }))
+      }));
+
+      const normPieces = (piecesRes || []).map(p => ({
+        ...p,
+        RéfPièce: p.RéfPièce != null ? Number(p.RéfPièce) : p.RéfPièce
+      }));
+
+      setCategories(normCategories);
+      setGroupes(normGroupes);
+      setPieces(normPieces);
     } catch (error) {
       console.error('Erreur chargement:', error);
     } finally {
@@ -136,6 +159,17 @@ export default function Groupes() {
 
   // ======== PIÈCES DANS GROUPE ========
   
+    const handleRemovePieceFromGroupe = async (pieceGroupeId) => {
+    if (!window.confirm('Retirer cette pièce du groupe ?')) return;
+    
+    try {
+      await fetch(`${API}/groupes/pieces/${pieceGroupeId}`, { method: 'DELETE' });
+      await loadData();
+    } catch (error) {
+      console.error('Erreur suppression pièce:', error);
+    }
+  };
+
   const handleAddPieceToGroupe = async () => {
     try {
       const response = await fetch(`${API}/groupes/pieces`, {
@@ -264,30 +298,42 @@ export default function Groupes() {
               <div className="space-y-4">
                 {categories.map(categorie => {
                   const isExpanded = expandedCategories.has(categorie.RefCategorie);
+                  // Filtrer les groupes de cette catégorie (IDs normalisés en nombres dans loadData)
                   const categorieGroupes = groupes.filter(g => g.RefCategorie === categorie.RefCategorie);
                   
                   return (
-                    <div key={categorie.RefCategorie} className="border rounded-lg p-4 bg-white">
+                    <div key={categorie.RefCategorie} className="border-2 rounded-lg overflow-hidden bg-white shadow-sm">
                       {/* En-tête catégorie */}
-                      <div className="flex items-center justify-between mb-2">
-                        <div className="flex items-center space-x-2 flex-1">
+                      <div 
+                        className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-blue-50 cursor-pointer hover:from-slate-100 hover:to-blue-100 transition-colors"
+                        onClick={() => toggleCategory(categorie.RefCategorie)}
+                      >
+                        <div className="flex items-center space-x-3 flex-1">
                           <button 
-                            onClick={() => toggleCategory(categorie.RefCategorie)}
-                            className="p-1 hover:bg-gray-100 rounded"
+                            className="p-1 hover:bg-white rounded transition-colors"
+                            onClick={(e) => {
+                              e.stopPropagation();
+                              toggleCategory(categorie.RefCategorie);
+                            }}
                           >
-                            {isExpanded ? <ChevronDown className="h-5 w-5" /> : <ChevronRight className="h-5 w-5" />}
+                            {isExpanded ? 
+                              <ChevronDown className="h-5 w-5 text-blue-600" /> : 
+                              <ChevronRight className="h-5 w-5 text-slate-400" />
+                            }
                           </button>
-                          <Layers className="h-5 w-5 text-blue-600" />
+                          <Layers className="h-6 w-6 text-blue-600" />
                           <div>
-                            <h3 className="font-semibold text-lg">{categorie.NomCategorie}</h3>
+                            <h3 className="font-bold text-lg text-slate-900">{categorie.NomCategorie}</h3>
                             {categorie.Description && (
-                              <p className="text-sm text-gray-500">{categorie.Description}</p>
+                              <p className="text-sm text-slate-600">{categorie.Description}</p>
                             )}
                           </div>
-                          <Badge variant="outline">{categorieGroupes.length} groupe(s)</Badge>
+                          <Badge variant="outline" className="bg-white">
+                            {categorieGroupes.length} groupe{categorieGroupes.length !== 1 ? 's' : ''}
+                          </Badge>
                         </div>
                         
-                        <div className="flex space-x-2">
+                        <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
                           <Button
                             size="sm"
                             variant="outline"
@@ -295,6 +341,7 @@ export default function Groupes() {
                               open: true, 
                               data: { RefCategorie: categorie.RefCategorie, NomGroupe: '', Description: '' }
                             })}
+                            className="bg-white hover:bg-blue-50"
                           >
                             <Plus className="h-4 w-4 mr-1" />
                             Groupe
@@ -310,27 +357,51 @@ export default function Groupes() {
                             size="sm"
                             variant="ghost"
                             onClick={() => handleDeleteCategorie(categorie.RefCategorie)}
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
                           >
-                            <Trash2 className="h-4 w-4 text-red-500" />
+                            <Trash2 className="h-4 w-4" />
                           </Button>
                         </div>
                       </div>
                       
                       {/* Groupes de la catégorie */}
                       {isExpanded && (
-                        <div className="ml-8 mt-4 space-y-3">
+                        <div className="p-4 bg-slate-50 space-y-3">
                           {categorieGroupes.length === 0 ? (
-                            <p className="text-sm text-gray-500 italic">Aucun groupe dans cette catégorie</p>
+                            <div className="text-center py-8 text-slate-500 bg-white rounded-lg border-2 border-dashed">
+                              <Package className="mx-auto h-8 w-8 text-slate-300 mb-2" />
+                              <p className="text-sm">Aucun groupe dans cette catégorie</p>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => setGroupeDialog({ 
+                                  open: true, 
+                                  data: { RefCategorie: categorie.RefCategorie, NomGroupe: '', Description: '' }
+                                })}
+                                className="mt-3"
+                              >
+                                <Plus className="h-3 w-3 mr-1" />
+                                Créer le premier groupe
+                              </Button>
+                            </div>
                           ) : (
                             categorieGroupes.map(groupe => (
-                              <GroupeCard
-                                key={groupe.RefGroupe}
-                                groupe={groupe}
-                                pieces={pieces}
-                                onEdit={() => setGroupeDialog({ open: true, data: groupe })}
-                                onDelete={handleDeleteGroupe}
-                                onSortirPieces={handleSortirPieces}
-                              />
+                              <div key={groupe.RefGroupe} className="ml-4 border-l-4 border-blue-200 pl-4">
+                                <GroupeCard
+                                  groupe={groupe}
+                                  pieces={pieces}
+                                  onEdit={() => setGroupeDialog({ open: true, data: groupe })}
+                                  onDelete={handleDeleteGroupe}
+                                  onSortirPieces={handleSortirPieces}
+                                  onAddPiece={() => setPieceDialog({ 
+                                    open: true, 
+                                    groupeId: groupe.RefGroupe,
+                                    selectedPiece: null,
+                                    quantite: 1 
+                                  })}
+                                  onRemovePiece={handleRemovePieceFromGroupe}
+                                />
+                              </div>
                             ))
                           )}
                         </div>

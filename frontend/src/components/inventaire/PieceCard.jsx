@@ -3,6 +3,7 @@ import React from 'react';
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
 import { AlertTriangle, Edit, Package, Trash2, Building2, Factory, Warehouse, Minus, CircleCheck } from "lucide-react";
 
 const getStockStatus = {
@@ -16,6 +17,7 @@ const getStockStatus = {
 
 export function PieceCard({ piece, fournisseur, autreFournisseur, fabricant, onEdit, onDelete, onQuickRemove }) {
   const stockStatus = getStockStatus[piece.statut_stock] || getStockStatus.ok;
+  const [qrQty, setQrQty] = React.useState(1);
 
   const StatItem = ({ label, value, isPrice = false }) => (
     <div className="text-center bg-slate-50 p-3 rounded-lg">
@@ -56,15 +58,28 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, fabricant, onE
         </div>
       </CardContent>
       <CardFooter className="border-t p-3 flex justify-between items-center">
-        <Button 
-            variant="outline" 
-            size="icon"
-            onClick={() => onQuickRemove(piece)}
-            className="border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600"
-            title="Sortir 1 pièce du stock"
-        >
-          <Minus className="w-5 h-5" />
-        </Button>
+        <div className="flex items-center gap-2">
+      <Button 
+        variant="outline" 
+        size="icon"
+        onClick={() => onQuickRemove(qrQty)}
+        className="border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600"
+        title={`Sortir ${qrQty} pièce(s) du stock`}
+      >
+            <Minus className="w-5 h-5" />
+          </Button>
+          <Input
+            type="number"
+            min="1"
+            max={piece.QtéenInventaire}
+            value={qrQty}
+            onChange={(e) => {
+              const v = parseInt(e.target.value || '1');
+              setQrQty(Math.max(1, Math.min(v, piece.QtéenInventaire || 1)));
+            }}
+            className="w-20 h-8"
+          />
+        </div>
         <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={onDelete}><Trash2 className="w-4 h-4 text-red-500" /></Button>
             <Button variant="outline" size="sm" onClick={onEdit}><Edit className="w-4 h-4 mr-2" />Modifier</Button>

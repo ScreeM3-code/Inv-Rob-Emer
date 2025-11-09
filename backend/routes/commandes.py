@@ -188,52 +188,86 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
 
 @router.put("/ordersall/{piece_id}")
 async def receive_all_order(
-    piece_id: int,
-    conn: asyncpg.Connection = Depends(get_db_connection)
+        piece_id: int,
+        conn: asyncpg.Connection = Depends(get_db_connection)
 ):
     """Réception totale d'une commande"""
     try:
         now = datetime.utcnow()
-        
+
+        # 1. Récupérer les infos de la commande AVANT la mise à jour
+        piece_info = await conn.fetchrow(
+            'SELECT "Qtécommandée", "Qtéarecevoir" FROM "Pièce" WHERE "RéfPièce" = $1',
+            piece_id
+        )
+
+        if not piece_info:
+            raise HTTPException(status_code=404, detail="Pièce non trouvée")
+
+        qty_received = piece_info["Qtécommandée"] or 0
+
+        if qty_received <= 0:
+            raise HTTPException(status_code=400, detail="Aucune quantité à recevoir")
+
+        # 2. Mettre à jour la pièce
         query = '''
             UPDATE "Pièce"
-            SET "QtéenInventaire" = "QtéenInventaire" + COALESCE("Qtécommandée", 0),
-                "Qtéreçue" = COALESCE("Qtécommandée", 0),
+            SET "QtéenInventaire" = "QtéenInventaire" + $2,
+                "Qtéreçue" = COALESCE("Qtéreçue", 0) + $2,
                 "Qtéarecevoir" = 0,
                 "Qtécommandée" = 0,
                 "Datecommande" = NULL,
                 "Cmd_info" = NULL,
-                "Modified" = $2
+                "Modified" = $3
             WHERE "RéfPièce" = $1
         '''
-        result = await conn.execute(query, piece_id, now)
-
-        # ✅ FIX: Calcul correct du délai
-        await conn.execute("""
-            WITH last_entry AS (
-                SELECT id, "DateCMD"
-                FROM "historique"
-                WHERE "RéfPièce" = $2
-                  AND ("Opération" = 'Commande' OR "Opération" = 'Achat')
-                  AND "DateRecu" IS NULL
-                ORDER BY "id" DESC
-                LIMIT 1
-            )
-            UPDATE "historique"
-            SET "DateRecu" = $1,
-                "Delais" = EXTRACT(EPOCH FROM ($1 - "DateCMD")) / 86400
-            WHERE id IN (SELECT id FROM last_entry);
-        """, now, piece_id)
+        result = await conn.execute(query, piece_id, qty_received, now)
 
         if result == "UPDATE 0":
             raise HTTPException(status_code=404, detail="Pièce non trouvée")
 
-        return {"message": "Réception totale effectuée", "piece_id": piece_id}
+        # 3. Mettre à jour l'historique (avec gestion d'erreur)
+        # 3. Mettre à jour l'historique (avec gestion d'erreur)
+        try:
+            await conn.execute("""
+                UPDATE "historique"
+                SET "DateRecu" = $1::timestamp,
+                    "Delais" = CASE 
+                        WHEN "DateCMD" IS NOT NULL 
+                        THEN EXTRACT(EPOCH FROM ($1::timestamp - "DateCMD"::timestamp)) / 86400
+                        ELSE NULL
+                    END
+                WHERE "RéfPièce" = $2
+                  AND ("Opération" = 'Commande' OR "Opération" = 'Achat')
+                  AND "DateRecu" IS NULL
+                  AND id = (
+                    SELECT id FROM "historique"
+                    WHERE "RéfPièce" = $2
+                      AND ("Opération" = 'Commande' OR "Opération" = 'Achat')
+                      AND "DateRecu" IS NULL
+                    ORDER BY COALESCE("DateCMD", '1970-01-01'::timestamp) DESC
+                    LIMIT 1
+                  );
+            """, now, piece_id)
+        except Exception as hist_error:
+            print(f"⚠️ Erreur mise à jour historique (non bloquant): {hist_error}")
+
+        return {
+            "message": "Réception totale effectuée",
+            "piece_id": piece_id,
+            "quantity_received": qty_received
+        }
+
     except HTTPException:
         raise
     except Exception as e:
         print(f"❌ Erreur receive_all_order: {e}")
-        raise HTTPException(status_code=500, detail="Erreur lors de la réception")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=500, detail=f"Erreur lors de la réception: {str(e)}")
+
+
+
 
 @router.put("/orderspar/{piece_id}")
 async def receive_partial_order(

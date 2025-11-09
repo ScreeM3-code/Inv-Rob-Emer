@@ -17,25 +17,34 @@ function useInfiniteScroll(items, itemsPerPage = 50) {
   const loaderRef = useRef(null);
 
   useEffect(() => {
+    // Reset display count when the total number of items changes
     setDisplayCount(itemsPerPage);
-  }, [items, itemsPerPage]);
+  }, [items.length, itemsPerPage]);
 
   useEffect(() => {
-    const node = loaderRef.current;
-    if (!node) return;
-
-    const observer = new IntersectionObserver(
-      (entries) => {
-        if (entries[0].isIntersecting && displayCount < items.length) {
-          setDisplayCount(prev => Math.min(prev + itemsPerPage, items.length));
+    let ticking = false;
+    const handler = () => {
+      if (ticking) return;
+      ticking = true;
+      requestAnimationFrame(() => {
+        const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
+        // When scrolled past 80% of document height, load more
+        if (scrollTop + clientHeight >= scrollHeight * 0.8) {
+          if (displayCount < items.length) {
+            setDisplayCount(prev => Math.min(prev + itemsPerPage, items.length));
+          }
         }
-      },
-      { root: null, rootMargin: '200px', threshold: 0.1 }
-    );
+        ticking = false;
+      });
+    };
 
-    observer.observe(node);
-    return () => observer.disconnect();
-  }, [displayCount, items.length, itemsPerPage]);
+    // Only attach handler when there are more items to load
+    if (items.length > displayCount) {
+      window.addEventListener('scroll', handler, { passive: true });
+      return () => window.removeEventListener('scroll', handler);
+    }
+    return () => {};
+  }, [items.length, itemsPerPage, displayCount]);
 
   const displayedItems = items.slice(0, displayCount);
   const hasMore = displayCount < items.length;
@@ -49,8 +58,7 @@ function Historique() {
   const [filters, setFilters] = useState({
     search: '',
     operation: 'tous',
-    dateFrom: '',
-    dateTo: ''
+    user: 'tous'
   });
 
     const filteredHistorique = historique.filter(item => {
@@ -59,11 +67,16 @@ function Historique() {
       item.numpiece?.toLowerCase().includes(filters.search.toLowerCase()) ||
       item.description?.toLowerCase().includes(filters.search.toLowerCase());
     
-    const operationMatch = filters.operation === 'tous' || item.Opération === filters.operation;
+    // Combiner 'Sortie' et 'Sortie rapide' sous la même option 'Sortie'
+    const operationMatch =
+      filters.operation === 'tous' ||
+      (filters.operation === 'Sortie' && (item.Opération === 'Sortie' || item.Opération === 'Sortie rapide')) ||
+      item.Opération === filters.operation;
+
+    const userMatch = filters.user === 'tous' || (item.User || 'Système') === filters.user;
     
-    const dateMatch = true; // TODO: Implémenter le filtrage par date si nécessaire
     
-    return searchMatch && operationMatch && dateMatch;
+    return searchMatch && operationMatch && userMatch;
   });
 
   const { displayedItems, loaderRef, hasMore } = useInfiniteScroll(filteredHistorique, 50);
@@ -112,6 +125,40 @@ function Historique() {
     } catch {
       return 'N/A';
     }
+  };
+
+  const formatDelai = (delaiJours) => {
+    if (!delaiJours || delaiJours === 0) return 'N/A';
+    
+    const jours = Math.floor(delaiJours);
+    
+    // Si moins de 31 jours, afficher en jours
+    if (jours < 31) {
+      return `${jours} jour${jours > 1 ? 's' : ''}`;
+    }
+    
+    // Si moins de 365 jours, afficher en mois et jours
+    if (jours < 365) {
+      const mois = Math.floor(jours / 30);
+      const joursRestants = jours % 30;
+      
+      if (joursRestants === 0) {
+        return `${mois} mois`;
+      }
+      return `${mois} mois ${joursRestants} jour${joursRestants > 1 ? 's' : ''}`;
+    }
+    
+    // Si plus d'un an, afficher en années, mois et jours
+    const annees = Math.floor(jours / 365);
+    const joursRestants = jours % 365;
+    const mois = Math.floor(joursRestants / 30);
+    const joursFinaux = joursRestants % 30;
+    
+    let result = `${annees} an${annees > 1 ? 's' : ''}`;
+    if (mois > 0) result += ` ${mois} mois`;
+    if (joursFinaux > 0) result += ` ${joursFinaux} jour${joursFinaux > 1 ? 's' : ''}`;
+    
+    return result;
   };
 
   const exportHistorique = () => {
@@ -177,7 +224,7 @@ function Historique() {
             </CardTitle>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <div className="grid grid-cols-3 gap-4">
               <div>
                 <label className="text-sm font-medium text-gray-700">Recherche</label>
                 <div className="relative">
@@ -200,30 +247,27 @@ function Historique() {
                   <SelectContent>
                     <SelectItem value="tous">Toutes les opérations</SelectItem>
                     <SelectItem value="Achat">Achat</SelectItem>
-                    <SelectItem value="Sortie">Sortie</SelectItem>
-                    <SelectItem value="Sortie rapide">Sortie rapide</SelectItem>
+                    <SelectItem value="Sortie">Sortie (inclut "Sortie rapide")</SelectItem>
                     <SelectItem value="Commande">Commande</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
-                <label className="text-sm font-medium text-gray-700">Date de début</label>
-                <Input
-                  type="date"
-                  value={filters.dateFrom}
-                  onChange={(e) => setFilters({...filters, dateFrom: e.target.value})}
-                />
+                <label className="text-sm font-medium text-gray-700">Utilisateur</label>
+                <Select value={filters.user} onValueChange={(value) => setFilters({...filters, user: value})}>
+                  <SelectTrigger>
+                    <SelectValue placeholder="Tous les utilisateurs" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tous">Tous les utilisateurs</SelectItem>
+                    {Array.from(new Set(historique.map(h => h.User || 'Système'))).sort().map(u => (
+                      <SelectItem key={u} value={u}>{u}</SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
               </div>
-              
-              <div>
-                <label className="text-sm font-medium text-gray-700">Date de fin</label>
-                <Input
-                  type="date"
-                  value={filters.dateTo}
-                  onChange={(e) => setFilters({...filters, dateTo: e.target.value})}
-                />
-              </div>
+
             </div>
           </CardContent>
         </Card>
@@ -275,8 +319,8 @@ function Historique() {
                           {item.qtécommande || item.QtéSortie || 'N/A'}
                         </TableCell>
                         <TableCell>{item.User || 'Système'}</TableCell>
-                        <TableCell>
-                          {item.Delais ? `${item.Delais} jours` : 'N/A'}
+                        <TableCell className="font-medium whitespace-nowrap w-40">
+                          {formatDelai(item.Delais)}
                         </TableCell>
                       </TableRow>
                     ))
@@ -284,20 +328,16 @@ function Historique() {
                 </TableBody>
               </Table>
             </div>
-            {/* Trigger pour charger plus */}
-            {loading ? (
-              <div className="flex justify-center py-4">
-                <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
-                <span className="ml-2 text-sm text-gray-600">Chargement...</span>
-              </div>
-            ) : hasMore ? (
+            
+            {/* Trigger pour charger plus d'entrées */}
+            {hasMore && (
               <div className="flex justify-center py-4" ref={loaderRef}>
                 <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
                 <span className="ml-2 text-sm text-gray-600">
-                  Chargement de {displayedItems.length}/{filteredHistorique.length} entrées...
+                  Affichage de {displayedItems.length}/{filteredHistorique.length} entrées...
                 </span>
               </div>
-            ) : null}
+            )}
           </CardContent>
         </Card>
       </div>

@@ -1,7 +1,9 @@
-"""Modèles Pydantic pour l'historique"""
+# Dans backend/models/historique.py, remplace le validator par celui-ci :
+
 from pydantic import BaseModel, validator
 from typing import Optional
 from datetime import datetime
+
 
 class HistoriqueCreate(BaseModel):
     DateCMD: Optional[datetime] = None
@@ -16,6 +18,7 @@ class HistoriqueCreate(BaseModel):
     User: Optional[str] = None
     Delais: Optional[float] = None
 
+
 class HistoriqueResponse(BaseModel):
     DateCMD: Optional[datetime]
     DateRecu: Optional[datetime]
@@ -29,31 +32,19 @@ class HistoriqueResponse(BaseModel):
     User: Optional[str]
     Delais: Optional[float]
 
-    @validator("DateRecu", pre=True, always=True)
-    def parse_daterecu(cls, v):
+    # ✅ NOUVEAU : Validator simplifié qui accepte None, string ISO, et datetime
+    @validator("DateCMD", "DateRecu", pre=True, always=True)
+    def parse_date(cls, v):
         if v is None:
             return None
-        # already a datetime
         if isinstance(v, datetime):
             return v
-        # bytes / memoryview -> str
-        if isinstance(v, memoryview):
-            v = v.tobytes().decode()
-        if isinstance(v, (bytes, bytearray)):
-            v = bytes(v).decode()
-        # numeric timestamp
-        if isinstance(v, (int, float)):
-            try:
-                return datetime.fromtimestamp(v)
-            except Exception:
-                raise ValueError(f"Invalid timestamp for DateRecu: {v!r}")
-        # string: try isoformat then dateutil fallback
         if isinstance(v, str):
             try:
-                return datetime.fromisoformat(v)
+                return datetime.fromisoformat(v.replace('Z', '+00:00'))
             except Exception:
-                try:
-                    return dateutil.parser.parse(v)
-                except Exception:
-                    raise ValueError(f"Invalid datetime string for DateRecu: {v!r}")
-        raise ValueError(f"Unsupported type for DateRecu: {type(v)}")
+                return None
+        return None
+
+    class Config:
+        arbitrary_types_allowed = True
