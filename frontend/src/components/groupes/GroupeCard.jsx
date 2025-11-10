@@ -96,12 +96,12 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
   };
 
   return (
-    <Card className="bg-white/90 shadow-lg hover:shadow-xl transition-shadow">
+    <Card className="shadow-lg hover:shadow-xl transition-shadow">
       <CardHeader>
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <button
-              className="p-1 rounded hover:bg-slate-100"
+              className="p-1 rounded"
               onClick={() => setExpanded(prev => !prev)}
               aria-label={expanded ? 'Masquer les pièces' : 'Afficher les pièces'}
             >
@@ -160,8 +160,8 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
                 key={gp.id ?? `${groupe.RefGroupe}-${gp.RéfPièce}`} 
                 className={`p-3 rounded-lg border-2 ${
                   status.available 
-                    ? 'border-green-200 bg-green-50' 
-                    : 'border-red-200 bg-red-50'
+                    ? 'border-green-200 bg-green-50 dark:bg-green-900/50' 
+                    : 'border-red-200 bg-red-50 dark:bg-red-900/50'
                 }`}
               >
                 <div className="flex items-start justify-between mb-2">
@@ -179,11 +179,11 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
                     </div>
                     
                     {piece && (
-                      <div className="space-y-1 text-xs text-slate-600">
+                      <div className="space-y-1 text-xs">
                         <p>N° pièce: <span className="font-mono">{piece.NumPièce}</span></p>
                         <p>N° fournisseur: <span className="font-mono">{piece.NumPièceAutreFournisseur || 'N/A'}</span></p>
                         {piece.DescriptionPièce && (
-                          <p className="text-slate-500">{piece.DescriptionPièce}</p>
+                          <p className="">{piece.DescriptionPièce}</p>
                         )}
                       </div>
                     )}
@@ -214,7 +214,7 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
                     </div>
 
                         <div className="flex items-center gap-2 mt-2 pt-2">
-                          <Label className="text-xs text-slate-600 min-w-fit">Qté à sortir:</Label>
+                          <Label className="text-xs text-slate-600 min-w-fit dark:text-white">Qté à sortir:</Label>
                           <Input
                             type="number"
                             min="0"
@@ -268,7 +268,7 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
           <Button
             onClick={handleSortir}
             disabled={!canPerformSortie || !allQuantitiesValid}
-            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:opacity-50"
+            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:opacity-50 text-white"
             title={
               !allQuantitiesValid 
                 ? "Certaines quantités dépassent le stock" 

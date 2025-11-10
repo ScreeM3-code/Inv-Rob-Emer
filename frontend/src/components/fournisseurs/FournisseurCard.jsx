@@ -5,7 +5,7 @@ import { Building2, User, Phone, Mail, MapPin, Edit, Trash2, Users } from "lucid
 
 export default function FournisseurCard({ fournisseur, onEdit, onDelete, onManageContacts }) {
   const InfoItem = ({ icon, text }) => (
-    <div className="flex items-center gap-2 text-sm text-slate-600">
+    <div className="flex items-center gap-2 text-sm text-slate-600 dark:text-white">
       {icon}
       <span className="truncate">{text}</span>
     </div>
@@ -17,7 +17,7 @@ export default function FournisseurCard({ fournisseur, onEdit, onDelete, onManag
   const contacts = fournisseur.contacts || [];
 
   return (
-    <Card className="flex flex-col bg-white/90 shadow-lg hover:shadow-xl transition-shadow">
+    <Card className="flex flex-col shadow-lg hover:shadow-xl transition-shadow">
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
           {fournisseur.Domaine ? (

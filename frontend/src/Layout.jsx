@@ -1,14 +1,17 @@
 import React from "react";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import { Package, Store, Cog, FileText, Layers } from "lucide-react";
+import ThemeToggle from "@/components/ui/ThemeToggle";
+import AnimatedBackground from "@/components/ui/AnimatedBackground";
 
 export default function Layout() {
   const location = useLocation();
 
   return (
     <div className="min-h-screen flex flex-col">
+      <AnimatedBackground /> 
       {/* Header avec navigation */}
-      <header className="bg-white shadow-sm border-b border-gray-200">
+      <header className="bg-white dark:bg-slate-900/80 backdrop-blur-sm shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex justify-between items-center py-6">
             <div className="flex items-center space-x-8">
@@ -16,10 +19,11 @@ export default function Layout() {
               <div className="flex items-center space-x-4">
                 <Package className="h-8 w-8 text-rio-red" />
                 <div>
-                  <h1 className="text-2xl font-bold text-gray-900">Inventaire Robots</h1>
-                  <p className="text-sm text-gray-600">Maintenance</p>
+                  <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Inventaire Robots</h1>
+                  <p className="text-sm text-gray-600 dark:text-white">Maintenance</p>
                 </div>
               </div>
+              <ThemeToggle />
 
               {/* Navigation */}
               <nav className="flex space-x-6">

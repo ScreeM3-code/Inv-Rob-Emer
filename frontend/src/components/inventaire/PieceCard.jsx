@@ -29,10 +29,10 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, fabricant, onE
   );
 
   return (
-    <Card className="flex flex-col bg-white/90 shadow-lg hover:shadow-xl transition-shadow duration-300">
+    <Card className="flex flex-col glass-card hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
       <CardHeader>
         <div className="flex justify-between items-start">
-          <CardTitle className="text-lg font-bold text-slate-900 pr-4">{piece.NomPièce}</CardTitle>
+          <CardTitle className="text-lg font-bold pr-4">{piece.NomPièce}</CardTitle>
           {stockStatus && (
             <Badge className={`flex-shrink-0 ${stockStatus.color}`}>
               {stockStatus.icon}
@@ -41,7 +41,7 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, fabricant, onE
           )}
         </div>
         <p className="text-sm text-slate-500 font-mono pt-1">Réf: {piece.NumPièce}</p>
-        {piece.DescriptionPièce && <CardDescription className="pt-2 text-slate-700">{piece.DescriptionPièce}</CardDescription>}
+        {piece.DescriptionPièce && <CardDescription className="pt-3">{piece.DescriptionPièce}</CardDescription>}
       </CardHeader>
       <CardContent className="flex-grow space-y-4">
         <div className="grid grid-cols-4 gap-2">
@@ -51,10 +51,10 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, fabricant, onE
           <StatItem label="Prix" value={piece.Prix_unitaire?.toFixed(2) || '0.00'} isPrice />
         </div>
         <div className="space-y-2 text-sm border-t pt-4">
-          <div className="flex items-center gap-2 text-slate-600"><Building2 className="w-4 h-4 text-blue-500" /> <strong>Fournisseur:</strong> {fournisseur?.NomFournisseur || 'N/A'}</div>
-          <div className="flex items-center gap-2 text-slate-600"><Building2 className="w-4 h-4 text-gray-400" /> <strong>Autre Fourn.:</strong> {autreFournisseur?.NomFournisseur || 'N/A'}</div>
-          <div className="flex items-center gap-2 text-slate-600"><Factory className="w-4 h-4 text-blue-500" /> <strong>Fabricant:</strong> {fabricant?.NomFabricant || 'N/A'}</div>
-          <div className="flex items-center gap-2 text-slate-600"><Warehouse className="w-4 h-4 text-blue-500" /> <strong>Lieu:</strong> {piece.Lieuentreposage || 'N/A'}</div>
+          <div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-blue-500" /> <strong>Fournisseur:</strong> {fournisseur?.NomFournisseur || 'N/A'}</div>
+          <div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-gray-400" /> <strong>Autre Fourn.:</strong> {autreFournisseur?.NomFournisseur || 'N/A'}</div>
+          <div className="flex items-center gap-2"><Factory className="w-4 h-4 text-blue-500" /> <strong>Fabricant:</strong> {fabricant?.NomFabricant || 'N/A'}</div>
+          <div className="flex items-center gap-2"><Warehouse className="w-4 h-4 text-blue-500" /> <strong>Lieu:</strong> {piece.Lieuentreposage || 'N/A'}</div>
         </div>
       </CardContent>
       <CardFooter className="border-t p-3 flex justify-between items-center">

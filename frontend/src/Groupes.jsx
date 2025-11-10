@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import GroupeCard from '@/components/groupes/GroupeCard';
 import { Badge } from '@/components/ui/badge';
+import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { 
   Plus, Trash2, Edit, Layers, FolderTree, Package, 
   ChevronDown, ChevronRight, Loader2 
@@ -249,28 +250,29 @@ export default function Groupes() {
   if (loading) {
     return (
       <div className="min-h-screen bg-gray-50 flex items-center justify-center">
-        <Loader2 className="w-8 h-8 animate-spin text-blue-600" />
+        <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-white" />
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen from-slate-50 via-blue-50 to-indigo-50">
+       <AnimatedBackground /> 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
         {/* Header */}
         <div className="flex justify-between items-center mb-6">
           <div className="flex items-center space-x-4">
-            <FolderTree className="h-8 w-8 text-blue-600" />
+            <FolderTree className="h-8 w-8 text-blue-600 dark:text-white" />
             <div>
-              <h1 className="text-2xl font-bold text-gray-900">Groupes de Pièces</h1>
-              <p className="text-sm text-gray-600">Organisez vos pièces par entretiens et opérations</p>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Groupes de Pièces</h1>
+              <p className="text-sm text-gray-600 dark:text-white">Organisez vos pièces par entretiens et opérations</p>
             </div>
           </div>
           
           <Button 
             onClick={() => setCategorieDialog({ open: true, data: { NomCategorie: '', Description: '' } })}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
           >
             <Plus className="h-4 w-4 mr-2" />
             Nouvelle Catégorie
@@ -296,15 +298,15 @@ export default function Groupes() {
                   const categorieGroupes = groupes.filter(g => g.RefCategorie === categorie.RefCategorie);
                   
                   return (
-                    <div key={categorie.RefCategorie} className="border-2 rounded-lg overflow-hidden bg-white shadow-sm">
+                    <div key={categorie.RefCategorie} className="border-2 rounded-lg overflow-hidden shadow-sm">
                       {/* En-tête catégorie */}
                       <div 
-                        className="flex items-center justify-between p-4 bg-gradient-to-r from-slate-50 to-blue-50 cursor-pointer hover:from-slate-100 hover:to-blue-100 transition-colors"
+                        className="flex items-center justify-between p-4 from-slate-50 to-blue-50 cursor-pointer hover:from-slate-100 hover:to-blue-100 transition-colors"
                         onClick={() => toggleCategory(categorie.RefCategorie)}
                       >
                         <div className="flex items-center space-x-3 flex-1">
                           <button 
-                            className="p-1 hover:bg-white rounded transition-colors"
+                            className="p-1 hover:b rounded transition-colors"
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleCategory(categorie.RefCategorie);
@@ -317,12 +319,12 @@ export default function Groupes() {
                           </button>
                           <Layers className="h-6 w-6 text-blue-600" />
                           <div>
-                            <h3 className="font-bold text-lg text-slate-900">{categorie.NomCategorie}</h3>
+                            <h3 className="font-bold text-lg text-slate-900 dark:text-white">{categorie.NomCategorie}</h3>
                             {categorie.Description && (
-                              <p className="text-sm text-slate-600">{categorie.Description}</p>
+                              <p className="text-sm text-slate-600 dark:text-white">{categorie.Description}</p>
                             )}
                           </div>
-                          <Badge variant="outline" className="bg-white">
+                          <Badge variant="outline" className="bg-white text-black">
                             {categorieGroupes.length} groupe{categorieGroupes.length !== 1 ? 's' : ''}
                           </Badge>
                         </div>
@@ -335,7 +337,7 @@ export default function Groupes() {
                               open: true, 
                               data: { RefCategorie: categorie.RefCategorie, NomGroupe: '', Description: '' }
                             })}
-                            className="bg-white hover:bg-blue-50"
+                            className="bg-white hover:bg-blue-50 text-black"
                           >
                             <Plus className="h-4 w-4 mr-1" />
                             Groupe
@@ -362,7 +364,7 @@ export default function Groupes() {
                       {isExpanded && (
                         <div className="p-4 bg-slate-50 space-y-3">
                           {categorieGroupes.length === 0 ? (
-                            <div className="text-center py-8 text-slate-500 bg-white rounded-lg border-2 border-dashed">
+                            <div className="text-center py-8 text-slate-500 rounded-lg border-2 border-dashed">
                               <Package className="mx-auto h-8 w-8 text-slate-300 mb-2" />
                               <p className="text-sm">Aucun groupe dans cette catégorie</p>
                               <Button

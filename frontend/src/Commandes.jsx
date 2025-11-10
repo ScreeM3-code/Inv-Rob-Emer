@@ -6,6 +6,7 @@ import CommandeForm from "@/components/commandes/CommandeForm";
 import CommandeCard from "@/components/commandes/CommandeCard";
 import CartWidget from "@/components/cart/CartWidget";
 import { useCart } from "@/components/cart/CartContext";
+import AnimatedBackground from "@/components/ui/AnimatedBackground";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -155,13 +156,14 @@ const handleUpdateOrder = async (updatedPiece, isNewOrder = false) => {
 };
 
    return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen flex flex-col">
+      <AnimatedBackground /> 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-2xl font-bold text-gray-900">Commandes à passer</h1>
-          <p className="text-sm text-gray-600">Pièces nécessitant une commande</p>
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Commandes à passer</h1>
+          <p className="text-sm text-gray-600 dark:text-white">Pièces nécessitant une commande</p>
         </div>
 
         {/* Liste des commandes */}
@@ -209,7 +211,7 @@ const handleUpdateOrder = async (updatedPiece, isNewOrder = false) => {
           piece={editingOrder}
           fournisseurs={fournisseurs}
           fabricants={fabricants}
-          onSave={(updatedPiece) => handleUpdateOrder(updatedPiece, false)} // ✅ false = pas d'historique
+          onSave={(updatedPiece) => handleUpdateOrder(updatedPiece, false)}
           onCancel={() => setEditingOrder(null)}
         />
       )}
@@ -220,7 +222,7 @@ const handleUpdateOrder = async (updatedPiece, isNewOrder = false) => {
           piece={goOrder}
           fournisseurs={fournisseurs}
           fabricants={fabricants}
-          onSave={(updatedPiece) => handleUpdateOrder(updatedPiece, true)} // ✅ true = ajouter historique
+          onSave={(updatedPiece) => handleUpdateOrder(updatedPiece, true)}
           onCancel={() => setGoOrder(null)}
         />
       )}

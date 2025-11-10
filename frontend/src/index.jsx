@@ -6,6 +6,7 @@ import { QueryClient, QueryClientProvider } from '@tanstack/react-query'; // ←
 import "./index.css";
 import AppRouter from "./Router";
 import { CartProvider } from "@/components/cart/CartContext";
+import { ThemeProvider } from "@/contexts/ThemeContext";
 
 // ← Ajouter cette ligne
 const queryClient = new QueryClient();
@@ -14,11 +15,13 @@ const root = ReactDOM.createRoot(document.getElementById("root"));
 root.render(
   <React.StrictMode>
     <BrowserRouter>
-      <QueryClientProvider client={queryClient}> {/* ← Ajouter */}
-        <CartProvider>
-          <AppRouter />
-        </CartProvider>
-      </QueryClientProvider> {/* ← Ajouter */}
+      <QueryClientProvider client={queryClient}>
+        <ThemeProvider> {/* AJOUTE */}
+          <CartProvider>
+            <AppRouter />
+          </CartProvider>
+        </ThemeProvider> {/* AJOUTE */}
+      </QueryClientProvider>
     </BrowserRouter>
   </React.StrictMode>,
 );

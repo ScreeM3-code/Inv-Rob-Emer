@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import FournisseurCard from "@/components/fournisseurs/FournisseurCard";
 import FournisseurFormDialog from "@/components/fournisseurs/FournisseurFormDialog";
 import ContactManagerDialog from "@/components/fournisseurs/ContactManagerDialog";
+import AnimatedBackground from "@/components/ui/AnimatedBackground";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -159,34 +160,36 @@ export default function FournisseursPage() {
   });
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+   <div className="min-h-screen from-slate-50 via-blue-50 to-indigo-50">
+      <AnimatedBackground /> 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+
         {/* Header */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
           <div className="flex items-center space-x-4">
             <Building2 className="h-8 w-8 text-blue-600" />
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Fournisseurs</h1>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Fournisseurs</h1>
               <p className="text-slate-600">Gérez vos contacts et partenaires commerciaux</p>
             </div>
           </div>
           <Button 
             onClick={() => openForm()} 
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:text-white"
           >
-            <Plus className="w-4 h-4 mr-2" /> Ajouter un Fournisseur
+            <Plus className="w-4 h-4 mr-2 dark:text-white" /> Ajouter un Fournisseur
           </Button>
         </div>
         
         {/* Barre de recherche */}
-        <div className="mb-6 bg-white/90 backdrop-blur-sm rounded-lg shadow-lg p-4">
+        <div className="mb-6 backdrop-blur-sm rounded-lg shadow-lg p-4">
           <div className="relative">
             <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
             <Input 
               placeholder="Rechercher un fournisseur (nom, contact, email, téléphone, produit, adresse)..." 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="pl-12 pr-10 h-12 text-base bg-white/50"
+              className="pl-12 pr-10 h-12 text-base"
             />
             {searchTerm && (
               <button
@@ -243,7 +246,7 @@ export default function FournisseursPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16 bg-white/60 rounded-lg border-2 border-dashed border-slate-200">
+              <div className="text-center py-16 rounded-lg border-2 border-dashed border-slate-200">
                 <Building2 className="mx-auto w-20 h-20 text-slate-300 mb-4" />
                 <h3 className="text-xl font-semibold text-slate-900 mb-2">
                   {searchTerm ? 'Aucun fournisseur trouvé' : 'Aucun fournisseur'}

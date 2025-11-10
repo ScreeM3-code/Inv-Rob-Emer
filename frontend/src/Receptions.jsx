@@ -7,6 +7,7 @@ import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
 import { ClipboardCheck, Package, Truck, AlertCircle, CheckCircle } from 'lucide-react';
 import { fetchJson, log } from './lib/utils';
+import AnimatedBackground from "@/components/ui/AnimatedBackground";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -85,22 +86,24 @@ function Receptions() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
+        <AnimatedBackground /> 
         <div className="text-xl text-gray-600">Chargement des réceptions...</div>
       </div>
     );
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen">
+      <AnimatedBackground />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
         {/* Header */}
         <div className="flex items-center space-x-4 mb-6">
           <ClipboardCheck className="h-8 w-8 text-rio-red" />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900">Réceptions de Commandes</h1>
-            <p className="text-sm text-gray-600">Gestion des livraisons et mise à jour du stock</p>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Réceptions de Commandes</h1>
+            <p className="text-sm text-gray-600 dark:text-white">Gestion des livraisons et mise à jour du stock</p>
           </div>
         </div>
 

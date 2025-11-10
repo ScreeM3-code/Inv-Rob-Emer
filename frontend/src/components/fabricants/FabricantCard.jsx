@@ -8,7 +8,7 @@ export default function FabricantCard({ fabricant, onEdit, onDelete }) {
   const handleLogoError = (e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; };
 
   return (
-    <Card className="flex flex-col bg-white/90 shadow-lg hover:shadow-xl transition-shadow">
+    <Card className="flex flex-col shadow-lg hover:shadow-xl transition-shadow">
       <CardHeader>
         <CardTitle className="flex items-center gap-3">
           {fabricant.Domaine ? (

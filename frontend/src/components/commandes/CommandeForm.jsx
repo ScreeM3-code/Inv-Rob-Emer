@@ -122,9 +122,8 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
           <div>
             <Label>Commentaire / Info commande</Label>
             <Input
-                defaultValue={memoizedValues.Cmd_info}
-                onChange={(e) => debouncedSetFormData('Cmd_info', e.target.value)}
-              onChange={(e) => handleChange('Cmd_info', e.target.value)}
+              defaultValue={memoizedValues.Cmd_info}
+              onChange={(e) => debouncedSetFormData('Cmd_info', e.target.value)}
               placeholder="Numéro de bon de commande, fournisseur contacté, etc."
             />
           </div>

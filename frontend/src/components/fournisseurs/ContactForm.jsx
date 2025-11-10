@@ -22,7 +22,7 @@ export default function ContactForm({ contact, onSave, onCancel }) {
   };
 
   return (
-    <Card className="bg-slate-50 border-slate-200">
+    <Card className="border-slate-200 dark:border-slate-700 shadow-sm">
       <CardContent className="p-4">
         <form onSubmit={handleSubmit} className="space-y-4">
           <div className="grid grid-cols-2 gap-4">

@@ -9,6 +9,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from ".
 import { Plus, Package, Loader2, Edit3, Trash2, AlertTriangle, TrendingUp, Search, Users, Building2, DollarSign, FileText, Phone, MapPin, Cog, Store } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import PieceEditDialog from "@/components/inventaire/PieceEditDialog";
+import AnimatedBackground from "@/components/ui/AnimatedBackground";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -345,7 +346,8 @@ function Dashboard () {
 
  
    return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen from-slate-50 via-blue-50 to-indigo-50">
+      <AnimatedBackground /> 
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Stats */}
         {/* Header avec bouton d'ajout */}
@@ -386,48 +388,55 @@ function Dashboard () {
 
         {/* Stats Cards */}
         <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
-          <Card className="bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow">
+          <Card className="glass-card hover:shadow-2xl transition-all duration-300 group">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Pièces</CardTitle>
-              <Package className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium dark:text-gray-100">Total Pièces</CardTitle>
+              <div className="p-2 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 group-hover:scale-110 transition-transform">
+                <Package className="h-4 w-4 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{stats.total_pieces.toLocaleString()}</div>
+              <div className="text-2xl font-bold dark:text-gray-100">{stats.total_pieces.toLocaleString()}</div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow">
+          <Card className="glass-card hover:shadow-2xl transition-all duration-300 group">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Stock Critique</CardTitle>
-              <AlertTriangle className="h-4 w-4 text-red-500" />
+              <CardTitle className="text-sm font-medium dark:text-gray-100">Stock Critique</CardTitle>
+              <div className="p-2 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 group-hover:scale-110 transition-transform">
+                <AlertTriangle className="h-4 w-4 text-red-400" />
+               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-red-600">{stats.stock_critique.toLocaleString()}</div>
+              <div className="text-2xl font-bold  dark:text-gray-100">{stats.stock_critique.toLocaleString()}</div>
             </CardContent>
           </Card>
           
-          <Card className="bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow">
+          <Card className="glass-card hover:shadow-2xl transition-all duration-300 group">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Valeur Stock</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
+              <CardTitle className="text-sm font-medium dark:text-gray-100">Valeur Stock</CardTitle>
+              <div className="p-2 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 group-hover:scale-110 transition-transform">
+                <DollarSign className="h-4 w-4 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">
+              <div className="text-2xl font-bold  dark:text-gray-100">
                 {stats.valeur_stock.toLocaleString('fr-CA', {style: 'currency', currency: 'CAD'})}
               </div>
             </CardContent>
           </Card>
           
-          <Card 
-            className="bg-white/90 backdrop-blur-sm shadow-lg hover:shadow-xl transition-shadow cursor-pointer"
+          <Card className="glass-card hover:shadow-2xl transition-all duration-300 group cursor-pointer"
             onClick={() => navigate("/commandes")}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">À Commander</CardTitle>
-              <Package className="h-4 w-4 text-yellow-500" />
+              <CardTitle className="text-sm font-medium dark:text-gray-100">À Commander</CardTitle>
+              <div className="p-2 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 group-hover:scale-110 transition-transform">
+                <Package className="h-4 w-4 text-white" />
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">
+              <div className="text-2xl font-bold text-yellow-600  dark:text-yellow-600">
                 {stats.pieces_a_commander.toLocaleString()}
               </div>
             </CardContent>
@@ -436,20 +445,20 @@ function Dashboard () {
 
 
         {/* Search et Filtres */}
-        <Card className="mb-6 bg-white/90 backdrop-blur-sm border-0 shadow-lg">
+        <Card className="mb-6 backdrop-blur-sm border-0 shadow-lg">
           <CardContent className="p-6">
             <div className="flex flex-col lg:flex-row gap-4 items-center">
               <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4" />
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" />
                 <Input
                   placeholder="Rechercher par nom ou référence..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10 bg-white/50"
+                  className="pl-10"
                 />
               </div>
               
-              <div className="flex items-center gap-2 text-sm text-slate-600">
+              <div className="flex items-center gap-2 text-sm">
                 <span className="font-medium">Filtres:</span>
                 {/* <Select
                   value={filters.statut}
