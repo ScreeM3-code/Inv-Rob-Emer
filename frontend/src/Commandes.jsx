@@ -61,6 +61,7 @@ function Commandes() {
     try {
       const data = await fetchJson(`${API}/historique/${piece.RéfPièce}`);
       log("📊 Données reçues de l'API (historique):", data);
+      setViewingHistoryFor(piece);
       setHistoryData(data);
     } catch (err) {
       console.error("Erreur chargement historique:", err);

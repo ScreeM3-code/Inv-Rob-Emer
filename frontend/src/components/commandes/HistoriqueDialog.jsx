@@ -6,24 +6,25 @@ import { Loader2 } from "lucide-react";
 import { format } from 'date-fns';
 import { fr } from 'date-fns/locale';
 
-const getOperationBadge = (operation) => {
-    const op = operation?.toLowerCase() || '';
-    if (op.includes('entrée') || op.includes('reception') || op.includes('création') || op.includes('creation')) {
-      return <Badge className="bg-green-100 text-green-800 hover:bg-green-100 capitalize">{operation}</Badge>;
+  const getOperationBadge = (operation) => {
+    switch (operation) {
+      case 'Achat':
+        return <Badge className="bg-green-500 text-white">Achat</Badge>;
+      case 'Sortie':
+        return <Badge className="bg-blue-500 text-white">Sortie</Badge>;
+      case 'Sortie rapide':
+        return <Badge className="bg-orange-500 text-white">Sortie rapide</Badge>;
+      case 'Commande':
+        return <Badge className="bg-purple-500 text-white">Commande</Badge>;
+      default:
+        return <Badge variant="outline">{operation}</Badge>;
     }
-    if (op.includes('sortie')) {
-      return <Badge className="bg-red-100 text-red-800 hover:bg-red-100 capitalize">{operation}</Badge>;
-    }
-    if (op.includes('ajustement')) {
-      return <Badge className="bg-yellow-100 text-yellow-800 hover:bg-yellow-100 capitalize">{operation}</Badge>;
-    }
-    return <Badge className="capitalize">{operation}</Badge>;
-};
+  };
 
 export default function HistoriqueDialog({ piece, history, isLoading, onOpenChange }) {
   return (
     <Dialog open={true} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-4xl bg-white">
+      <DialogContent className="sm:max-w-4xl">
         <DialogHeader>
           <DialogTitle className="text-xl font-bold">Historique pour : {piece.NomPièce}</DialogTitle>
           <DialogDescription>Réf: {piece.NumPièce}</DialogDescription>

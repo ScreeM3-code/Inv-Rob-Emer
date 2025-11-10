@@ -249,42 +249,41 @@ export default function Groupes() {
 
   if (loading) {
     return (
-      <div className="min-h-screen bg-gray-50 flex items-center justify-center">
+      <div className="min-h-screen flex items-center justify-center">
         <Loader2 className="w-8 h-8 animate-spin text-blue-600 dark:text-white" />
       </div>
     );
   }
 
-  return (
-    <div className="min-h-screen from-slate-50 via-blue-50 to-indigo-50">
-       <AnimatedBackground /> 
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
-        
-        {/* Header */}
-        <div className="flex justify-between items-center mb-6">
-          <div className="flex items-center space-x-4">
-            <FolderTree className="h-8 w-8 text-blue-600 dark:text-white" />
-            <div>
-              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Groupes de Pièces</h1>
-              <p className="text-sm text-gray-600 dark:text-white">Organisez vos pièces par entretiens et opérations</p>
-            </div>
+return (
+  <div className="min-h-screen">
+    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      
+      {/* Header */}
+      <div className="flex justify-between items-center mb-6">
+        <div className="flex items-center space-x-4">
+          <FolderTree className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Groupes de Pièces</h1>
+            <p className="text-sm text-gray-600 dark:text-gray-400">Organisez vos pièces par entretiens et opérations</p>
           </div>
-          
-          <Button 
-            onClick={() => setCategorieDialog({ open: true, data: { NomCategorie: '', Description: '' } })}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 text-white"
-          >
-            <Plus className="h-4 w-4 mr-2" />
-            Nouvelle Catégorie
-          </Button>
         </div>
+        
+        <Button 
+          onClick={() => setCategorieDialog({ open: true, data: { NomCategorie: '', Description: '' } })}
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+        >
+          <Plus className="h-4 w-4 mr-2" />
+          Nouvelle Catégorie
+        </Button>
+      </div>
 
-        {/* Arborescence */}
-        <Card>
-          <CardHeader>
-            <CardTitle>Arborescence des groupes</CardTitle>
-          </CardHeader>
-          <CardContent>
+      {/* Arborescence */}
+      <Card className="glass-card border-slate-200 dark:border-slate-700">
+        <CardHeader>
+          <CardTitle className="dark:text-gray-100">Arborescence des groupes</CardTitle>
+        </CardHeader>
+        <CardContent>
             {categories.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <FolderTree className="mx-auto h-12 w-12 text-gray-300 mb-3" />
@@ -294,7 +293,6 @@ export default function Groupes() {
               <div className="space-y-4">
                 {categories.map(categorie => {
                   const isExpanded = expandedCategories.has(categorie.RefCategorie);
-                  // Filtrer les groupes de cette catégorie (IDs normalisés en nombres dans loadData)
                   const categorieGroupes = groupes.filter(g => g.RefCategorie === categorie.RefCategorie);
                   
                   return (
@@ -306,7 +304,7 @@ export default function Groupes() {
                       >
                         <div className="flex items-center space-x-3 flex-1">
                           <button 
-                            className="p-1 hover:b rounded transition-colors"
+                            className="p-1 rounded transition-colors"
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleCategory(categorie.RefCategorie);
@@ -362,7 +360,7 @@ export default function Groupes() {
                       
                       {/* Groupes de la catégorie */}
                       {isExpanded && (
-                        <div className="p-4 bg-slate-50 space-y-3">
+                        <div className="p-4 space-y-3">
                           {categorieGroupes.length === 0 ? (
                             <div className="text-center py-8 text-slate-500 rounded-lg border-2 border-dashed">
                               <Package className="mx-auto h-8 w-8 text-slate-300 mb-2" />
@@ -382,7 +380,7 @@ export default function Groupes() {
                             </div>
                           ) : (
                             categorieGroupes.map(groupe => (
-                              <div key={groupe.RefGroupe} className="ml-4 border-l-4 border-blue-200 pl-4">
+                              <div key={groupe.RefGroupe} className="ml-4 border-l-4 border-blue-200 pl-4 dark:border-blue-800">
                                 <GroupeCard
                                   groupe={groupe}
                                   pieces={pieces}
