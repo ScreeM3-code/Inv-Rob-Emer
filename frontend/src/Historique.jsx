@@ -160,32 +160,6 @@ function Historique() {
     return result;
   };
 
-  const exportHistorique = () => {
-    const csvContent = [
-      ['Date', 'Opération', 'Pièce', 'N° Pièce', 'Description', 'Quantité', 'Utilisateur', 'Délai'],
-      ...filteredHistorique.map(item => [
-        formatDate(item.DateCMD || item.DateRecu),
-        item.Opération || '',
-        item.nompiece || '',
-        item.numpiece || '',
-        item.description || '',
-        item.qtécommande || item.QtéSortie || '',
-        item.User || '',
-        item.Delais || ''
-      ])
-    ].map(row => row.join(',')).join('\n');
-
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const link = document.createElement('a');
-    const url = URL.createObjectURL(blob);
-    link.setAttribute('href', url);
-    link.setAttribute('download', `historique_${new Date().toISOString().split('T')[0]}.csv`);
-    link.style.visibility = 'hidden';
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
@@ -209,11 +183,6 @@ function Historique() {
               <p className="text-sm text-gray-600 dark:text-white">Traçabilité complète des opérations d'inventaire</p>
             </div>
           </div>
-          
-          <Button onClick={exportHistorique} variant="outline">
-            <Download className="h-4 w-4 mr-2" />
-            Exporter CSV
-          </Button>
         </div>
 
         {/* Filtres */}

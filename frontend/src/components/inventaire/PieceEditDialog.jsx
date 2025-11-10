@@ -15,13 +15,11 @@ export default function PieceEditDialog({
 }) {
   if (!piece) return null;
 
-  // Debounce les mises à jour pour les champs texte
   const debouncedOnChange = React.useCallback(
     (fn => {
       let timeoutId;
       return (field, value) => {
         if (['QtéenInventaire', 'Qtéminimum', 'Qtémax', 'Prix_unitaire'].includes(field)) {
-          // Mise à jour immédiate pour les champs numériques
           fn(field, value);
           return;
         }
@@ -46,7 +44,7 @@ export default function PieceEditDialog({
 
   return (
     <Dialog open={true} onOpenChange={onCancel}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
+      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-blue-600">
         <DialogHeader>
           <DialogTitle>Modifier la pièce</DialogTitle>
         </DialogHeader>
@@ -89,7 +87,7 @@ export default function PieceEditDialog({
 
           {/* Fournisseurs */}
           <div className="border-t pt-4">
-            <h4 className="font-semibold text-gray-700 mb-3">Fournisseurs</h4>
+            <h4 className="font-semibold text-gray-700 mb-3 dark:text-white">Fournisseurs</h4>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Fournisseur principal</Label>
@@ -168,7 +166,7 @@ export default function PieceEditDialog({
 
           {/* Quantités */}
           <div className="border-t pt-4">
-            <h4 className="font-semibold text-gray-700 mb-3">Quantités et stock</h4>
+            <h4 className="font-semibold text-gray-700 mb-3 dark:text-white">Quantités et stock</h4>
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label>Qté stock *</Label>
@@ -250,7 +248,7 @@ export default function PieceEditDialog({
             disabled={
               !piece.NomPièce?.trim()
             }
-            className="bg-rio-red hover:bg-rio-red-dark"
+            className="bg-rio-red hover:bg-rio-red-dark text-white"
           >
             Sauvegarder
           </Button>

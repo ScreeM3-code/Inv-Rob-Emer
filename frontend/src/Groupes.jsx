@@ -8,7 +8,6 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import GroupeCard from '@/components/groupes/GroupeCard';
 import { Badge } from '@/components/ui/badge';
-import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { 
   Plus, Trash2, Edit, Layers, FolderTree, Package, 
   ChevronDown, ChevronRight, Loader2 

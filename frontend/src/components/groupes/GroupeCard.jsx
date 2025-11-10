@@ -114,7 +114,9 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
             <Package className="w-6 h-6 text-blue-600" />
             <div>
               <div className="flex items-center gap-2">
-                <CardTitle className="text-lg">{groupe.NomGroupe}</CardTitle>
+                <CardTitle className="text-lg cursor-pointer"  
+                onClick={() => setExpanded(prev => !prev)}>{groupe.NomGroupe}</CardTitle>
+                
                 <Badge className="bg-white text-slate-600 text-sm px-2 py-0.5">
                   {groupe.pieces ? groupe.pieces.length : 0} pièce{(groupe.pieces?.length || 0) > 1 ? 's' : ''}
                 </Badge>
@@ -160,8 +162,8 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
                 key={gp.id ?? `${groupe.RefGroupe}-${gp.RéfPièce}`} 
                 className={`p-3 rounded-lg border-2 ${
                   status.available 
-                    ? 'border-green-200 bg-green-50 dark:bg-green-900/50' 
-                    : 'border-red-200 bg-red-50 dark:bg-red-900/50'
+                    ? 'border-green-200 bg-green-50 dark:bg-green-700/100' 
+                    : 'border-red-200 bg-red-50 dark:bg-red-700/100'
                 }`}
               >
                 <div className="flex items-start justify-between mb-2">

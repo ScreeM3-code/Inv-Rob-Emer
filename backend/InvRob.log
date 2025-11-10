@@ -6,3 +6,8 @@
 2025-11-09 13:50:51,123 - Inventaire-Robot - INFO - ✅ 911 Pièce trouvés
 2025-11-09 13:50:51,129 - uvicorn.error - INFO - Application startup complete.
 2025-11-09 13:50:51,129 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-11-09 21:22:45,894 - uvicorn.error - INFO - Shutting down
+2025-11-09 21:22:45,995 - uvicorn.error - INFO - Waiting for application shutdown.
+2025-11-09 21:22:45,996 - Inventaire-Robot - INFO - Pool PostgreSQL fermé.
+2025-11-09 21:22:45,996 - uvicorn.error - INFO - Application shutdown complete.
+2025-11-09 21:22:45,996 - uvicorn.error - INFO - Finished server process [8162]

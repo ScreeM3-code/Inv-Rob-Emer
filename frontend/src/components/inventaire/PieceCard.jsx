@@ -5,6 +5,8 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { AlertTriangle, Edit, Package, Trash2, Building2, Factory, Warehouse, Minus, CircleCheck } from "lucide-react";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Layers, Check } from "lucide-react";
 
 const getStockStatus = {
   critique: { label: "Critique", color: "bg-red-600 text-white", icon: <AlertTriangle className="w-4 h-4" /> },
@@ -15,7 +17,7 @@ const getStockStatus = {
 
 
 
-export function PieceCard({ piece, fournisseur, autreFournisseur, fabricant, onEdit, onDelete, onQuickRemove }) {
+export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pieceGroupes, groupes, fabricant, onEdit, onDelete, onQuickRemove, onAddToGroupe }) {
   const stockStatus = getStockStatus[piece.statut_stock] || getStockStatus.ok;
   const [qrQty, setQrQty] = React.useState(1);
 
@@ -59,6 +61,60 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, fabricant, onE
       </CardContent>
       <CardFooter className="border-t p-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
+      <Popover>
+        <PopoverTrigger asChild>
+          <Button 
+            variant="outline" 
+            size="sm"
+            className="border-blue-500 text-blue-500 hover:bg-blue-50"
+          >
+            Groupes
+            {pieceGroupes?.length > 0 && (
+              <Badge className="ml-2 bg-blue-500 text-white">{pieceGroupes.length}</Badge>
+            )}
+          </Button>
+        </PopoverTrigger>
+        <PopoverContent className="w-80">
+          <div className="space-y-2">
+            <h4 className="font-semibold text-sm">Ajouter à un groupe</h4>
+            {groupes.length === 0 ? (
+              <p className="text-sm text-gray-500">Aucun groupe disponible</p>
+            ) : (
+              <div className="max-h-60 overflow-y-auto space-y-1">
+                {groupes.map(groupe => {
+                  const isInGroupe = pieceGroupes?.some(pg => pg.RefGroupe === groupe.RefGroupe);
+                  return (
+                    <Button
+                      key={groupe.RefGroupe}
+                      variant={isInGroupe ? "default" : "outline"}
+                      className="w-full justify-start"
+                      size="sm"
+                      onClick={() => onAddToGroupe(piece.RéfPièce, groupe.RefGroupe)}
+                    >
+                      {isInGroupe && <Check className="w-4 h-4 mr-2" />}
+                      <span className="truncate">{groupe.NomGroupe}</span>
+                      <Input
+                        type="number"
+                        min="1"
+                        max={piece.QtéenInventaire}
+                        value={qrQty}
+                        onChange={(e) => {
+                          const v = parseInt(e.target.value || '1', 10);
+                          const n = isNaN(v) ? 1 : v;
+                          setQrQty(Math.max(1, Math.min(n, piece.QtéenInventaire || 1)));
+                        }}
+                        className="w-14 h-8 border-blue-600"
+                      />
+                    </Button>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+        </PopoverContent>
+      </Popover>
+
+      
       <Button 
         variant="outline" 
         size="icon"
@@ -78,12 +134,12 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, fabricant, onE
               const n = isNaN(v) ? 1 : v;
               setQrQty(Math.max(1, Math.min(n, piece.QtéenInventaire || 1)));
             }}
-            className="w-20 h-8"
+            className="w-14 h-8 border-blue-600"
           />
         </div>
         <div className="flex items-center gap-2">
             <Button variant="ghost" size="icon" onClick={onDelete}><Trash2 className="w-4 h-4 text-red-500" /></Button>
-            <Button variant="outline" size="sm" onClick={onEdit}><Edit className="w-4 h-4 mr-2" />Modifier</Button>
+            <Button className="border-blue-600" variant="outline" size="sm" onClick={onEdit}><Edit className="w-4 h-4 mr-2" />Modifier</Button>
         </div>
       </CardFooter>
     </Card>

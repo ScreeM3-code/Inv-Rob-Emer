@@ -41,7 +41,7 @@ export default function ContactManagerDialog({ fournisseur, onSaveContact, onDel
              editingContact?.RéfContact === contact.RéfContact ? (
               <ContactForm key={contact.RéfContact} contact={editingContact} onSave={handleSave} onCancel={cancelForm} />
             ) : (
-              <div key={contact.RéfContact} className="p-3 bg-white rounded-lg border flex items-start justify-between">
+              <div key={contact.RéfContact} className="p-3 rounded-lg border flex items-start justify-between">
                 <div className="space-y-1 text-sm">
                    <p className="font-semibold text-base flex items-center gap-2"><User className="w-4 h-4 text-blue-600"/>{contact.Nom} {contact.Titre && <span className="text-xs text-slate-500 font-normal">({contact.Titre})</span>}</p>
                    {contact.Email && <a href={`mailto:${contact.Email}`} className="flex items-center gap-2 text-blue-700 hover:underline"><Mail className="w-4 h-4"/>{contact.Email}</a>}

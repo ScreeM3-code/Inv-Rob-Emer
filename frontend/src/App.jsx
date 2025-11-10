@@ -59,6 +59,8 @@ function Dashboard () {
   const [isAddDialogOpen, setIsAddDialogOpen] = useState(false);
   const [editingPiece, setEditingPiece] = useState(null);
   const [currentPage, setCurrentPage] = useState(1);
+  const [groupes, setGroupes] = useState([]);
+  const [categories, setCategories] = useState([]);
   const [filters, setFilters] = useState({
     statut: "tous",
     stock: "tous",
@@ -81,6 +83,12 @@ function Dashboard () {
       setLoading(true);
 
       const cleanedSearch = search.trim();
+
+      const groupes = await fetchJson(`${API}/groupes`);
+        setGroupes(groupes || []);
+        setCategories(groupes.NomCategorie || []);
+        
+      
       
       // ✅ Construire l'URL avec les filtres
       const params = new URLSearchParams();
@@ -117,6 +125,24 @@ function Dashboard () {
     }
   };
 
+  const handleAddToGroupe = async (pieceId, groupeId) => {
+    try {
+      await fetchJson(`${API}/groupes/pieces`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          RefGroupe: groupeId,
+          RéfPièce: pieceId,
+          Quantite: 1 // Quantité par défaut
+        })
+      });
+      alert('✅ Pièce ajoutée au groupe !');
+      await loadData(currentPage, searchTerm);
+    } catch (error) {
+      console.error('❌ Erreur:', error);
+      alert('Erreur : ' + error.message);
+    }
+  };
 
   const [fabricants, setFabricants] = useState([]);
   const [newPiece, setNewPiece] = useState({
@@ -355,8 +381,8 @@ function Dashboard () {
           <div className="flex items-center space-x-4">
             <Package className="h-8 w-8 text-blue-600" />
             <div>
-              <h1 className="text-3xl font-bold text-slate-900">Inventaire des Pièces</h1>
-              <p className="text-slate-600">Gérez vos pièces et votre stock</p>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Inventaire des Pièces</h1>
+              <p className="text-slate-600 dark:text-white">Gérez vos pièces et votre stock</p>
             </div>
           </div>
           <Button 
@@ -379,7 +405,7 @@ function Dashboard () {
               });
               setIsAddDialogOpen(true);
             }}
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
           >
             <Plus className="w-4 h-4 mr-2" /> Ajouter une Pièce
           </Button>
@@ -523,9 +549,13 @@ function Dashboard () {
                   fournisseur={fournisseur}
                   autreFournisseur={autreFournisseur}
                   fabricant={fabricant}
+                  categories={categories}
+                  groupes={groupes}
+                  pieceGroupes={groupes.flatMap(g => g.pieces || []).filter(gp => gp.RéfPièce === piece.RéfPièce)}
                   onEdit={() => setEditingPiece(piece)}
                   onDelete={() => handleDeletePiece(piece.RéfPièce)}
                   onQuickRemove={(qty) => handleQuickRemove(piece, qty)}
+                  onAddToGroupe={handleAddToGroupe}
                 />
               );
             })}

@@ -36,11 +36,11 @@ export default function CommandeCard({
                     </Badge>
                   )}
                 </h3>
-                <p className="text-sm text-gray-600">
+                <p className="text-sm text-gray-600 dark:text-gray-200">
                   N° {order.NumPièce} ••• N° Fabricant: {order.NumPièceAutreFournisseur} ••• SAP : {order.RTBS} 
                 </p>
                 {order.DescriptionPièce && (
-                  <p className="text-sm text-gray-500 mt-1">{order.DescriptionPièce}</p>
+                  <p className="text-sm text-gray-500 mt-1 dark:text-gray-200">{order.DescriptionPièce}</p>
                 )}
               </div>
             </div>
@@ -48,19 +48,19 @@ export default function CommandeCard({
             {/* Stats quantités */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mb-4 text-sm">
               <div>
-                <span className="text-gray-500">À commander:</span>
-                <div className="font-semibold text-yellow-600">{order.Qtéàcommander}</div>
+                <span className="text-gray-500 dark:text-gray-200">À commander:</span>
+                <div className="font-semibold text-yellow-600 dark:text-gray-200">{order.Qtéàcommander}</div>
               </div>
               <div>
-                <span className="text-gray-500">Inventaire:</span>
-                <div className="font-semibold text-yellow-600">{order.QtéenInventaire}</div>
+                <span className="text-gray-500 dark:text-gray-200">Inventaire:</span>
+                <div className="font-semibold text-yellow-600 dark:text-gray-200">{order.QtéenInventaire}</div>
               </div>
               <div>
-                <span className="text-gray-500">Min:</span>
-                <div className="font-semibold text-yellow-600">{order.Qtéminimum}</div>
+                <span className="text-gray-500 dark:text-gray-200">Min:</span>
+                <div className="font-semibold text-yellow-600 dark:text-gray-200">{order.Qtéminimum}</div>
               </div>
               <div>
-                <span className="text-gray-500">Prix unitaire:</span>
+                <span className="text-gray-500 dark:text-gray-200">Prix unitaire:</span>
                 <div className="font-semibold">
                   {order.Prix_unitaire.toLocaleString("fr-CA", {
                     style: "currency",
@@ -73,7 +73,7 @@ export default function CommandeCard({
             {/* Fournisseurs */}
             {(order.fournisseur_principal || order.autre_fournisseur || order.NomFabricant) && (
               <div className="mt-4 pt-4 border-t border-gray-200">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center dark:text-gray-200">
                   <Users className="h-4 w-4 mr-2" />
                   Fournisseurs
                 </h4>
@@ -95,7 +95,7 @@ export default function CommandeCard({
                   )}
                 </div>
                 {order.NumPièceAutreFournisseur && (
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 mt-1 dark:text-gray-200">
                     N° autre fournisseur: {order.NumPièceAutreFournisseur}
                   </p>
                 )}
@@ -105,13 +105,13 @@ export default function CommandeCard({
             {/* Soumissions (numéros) */}
             {order.Soumission_LD && (
               <div className="mt-4 pt-4 border-t border-gray-200">
-                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center">
+                <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center dark:text-gray-200">
                   <FileText className="h-4 w-4 mr-2" />
                   Soumissions
                 </h4>
                 <div className="grid grid-cols-2 gap-3 text-sm">
                   <div>
-                    <span className="text-gray-500">Soumission LD:</span>
+                    <span className="text-gray-500 dark:text-gray-200">Soumission:</span>
                     <div className="font-medium">{order.Soumission_LD}</div>
                   </div>
                 </div>
@@ -120,15 +120,16 @@ export default function CommandeCard({
           </div>
 
           {/* Boutons d'action */}
-          <div className="flex flex-col space-y-2 ml-4">
+          <div className="flex flex-col space-y-2 ml-4 ">
             {/* Historique */}
             <Button
               variant="outline"
               size="sm"
               onClick={() => onViewHistory(order)}
               title="Voir l'historique"
+              className="border-blue-600"
             >
-              <History className="h-4 w-4" />
+              <History className="h-4 w-4 " />
             </Button>
 
             {/* Ajouter au panier de soumission */}
@@ -158,6 +159,7 @@ export default function CommandeCard({
               variant="outline"
               size="sm"
               onClick={() => onEdit(order)}
+              className="border-blue-600"
             >
               <Edit3 className="h-4 w-4" />
             </Button>

@@ -170,7 +170,7 @@ export default function FournisseursPage() {
             <Building2 className="h-8 w-8 text-blue-600" />
             <div>
               <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Fournisseurs</h1>
-              <p className="text-slate-600">Gérez vos contacts et partenaires commerciaux</p>
+              <p className="text-slate-600 dark:text-white">Gérez vos contacts et Fournisseur</p>
             </div>
           </div>
           <Button 
