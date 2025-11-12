@@ -15,11 +15,16 @@ class PieceBase(BaseModel):
     Lieuentreposage: Optional[str] = ""
     QtéenInventaire: Optional[int] = 0
     Qtéminimum: Optional[int] = 0
+    Qtécommandée: Optional[int] = 0
+    Datecommande: Optional[datetime] = None
     Qtémax: Optional[int] = 100
     statut_stock: Optional[str] = None
     Prix_unitaire: Optional[float] = 0.0
     Soumission_LD: Optional[str] = ""
     SoumDem: Optional[bool] = False
+    RTBS: Optional[str] = ""
+    NoFESTO: Optional[str] = ""
+    Discontinué: Optional[str] = ""
 
 class PieceCreate(BaseModel):
     NomPièce: Optional[str] = ""

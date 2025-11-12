@@ -227,14 +227,13 @@ async def receive_all_order(
             raise HTTPException(status_code=404, detail="Pièce non trouvée")
 
         # 3. Mettre à jour l'historique (avec gestion d'erreur)
-        # 3. Mettre à jour l'historique (avec gestion d'erreur)
         try:
             await conn.execute("""
                 UPDATE "historique"
-                SET "DateRecu" = $1::timestamp,
+                SET "DateRecu" = $1,
                     "Delais" = CASE 
                         WHEN "DateCMD" IS NOT NULL 
-                        THEN EXTRACT(EPOCH FROM ($1::timestamp - "DateCMD"::timestamp)) / 86400
+                        THEN EXTRACT(EPOCH FROM ($1 - "DateCMD")) / 86400
                         ELSE NULL
                     END
                 WHERE "RéfPièce" = $2
@@ -245,7 +244,7 @@ async def receive_all_order(
                     WHERE "RéfPièce" = $2
                       AND ("Opération" = 'Commande' OR "Opération" = 'Achat')
                       AND "DateRecu" IS NULL
-                    ORDER BY COALESCE("DateCMD", '1970-01-01'::timestamp) DESC
+                    ORDER BY COALESCE("DateCMD", '1970-01-01') DESC
                     LIMIT 1
                   );
             """, now, piece_id)

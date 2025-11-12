@@ -1,7 +1,4 @@
 rapports
-géré les catégorie/groupe et les qté dans la page pieces / si deja dans groupe reclie et supp du groupe
+
 pouvoir modifier la qté par default des pieces dans groupe
 
-UPDATE public.historique
-	SET "Opération"='Sortie'
-	WHERE "Opération"='Sorti'

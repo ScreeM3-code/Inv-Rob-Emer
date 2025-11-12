@@ -10,6 +10,7 @@ import { Plus, Package, Loader2, Edit3, Trash2, AlertTriangle, TrendingUp, Searc
 import { useNavigate } from "react-router-dom";
 import PieceEditDialog from "@/components/inventaire/PieceEditDialog";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
+import { Badge } from "./components/ui/badge";
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -64,12 +65,22 @@ function Dashboard () {
   const [filters, setFilters] = useState({
     statut: "tous",
     stock: "tous",
-    groupe: "tous"
+    groupe: "tous",
+    commande: "tous"
   });
   // Note: quick-remove quantity is now per-card; removed global quickRemoveQty
 
   // Filtrage des pièces
-  let filteredPieces = pieces;
+  let filteredPieces = pieces.filter(piece => {
+    // Filtre de commande
+    if (filters.commande === "en_commande" && (!piece.Qtécommandée || piece.Qtécommandée <= 0)) {
+      return false;
+    }
+    if (filters.commande === "sans_commande" && piece.Qtécommandée > 0) {
+      return false;
+    }
+    return true;
+  });
 
   const { displayedItems, loaderRef, hasMore } = useInfiniteScroll(filteredPieces, 30);
 
@@ -101,17 +112,19 @@ function Dashboard () {
       log('🔍 URL appelée:', piecesUrl);
 
       try {
-        const [pieces, fournisseurs, stats, fabricants] = await Promise.all([
+        const [pieces, fournisseurs, stats, fabricants, groupes] = await Promise.all([
           fetchJson(piecesUrl),
           fetchJson(`${API}/fournisseurs`),
           fetchJson(`${API}/stats`),
-          fetchJson(`${API}/fabricant`)
+          fetchJson(`${API}/fabricant`),
+          fetchJson(`${API}/groupes`)
         ]);
 
         setPieces(Array.isArray(pieces) ? pieces : []);
         setFournisseurs(fournisseurs || []);
         setStats(stats || { total_pieces: 0, stock_critique: 0, valeur_stock: 0, pieces_a_commander: 0 });
         setFabricants(fabricants || []);
+        setGroupes(groupes || []);
       } catch (error) {
         log("❌ Erreur lors du chargement:", error);
         // Reset states to safe defaults on error
@@ -125,7 +138,7 @@ function Dashboard () {
     }
   };
 
-  const handleAddToGroupe = async (pieceId, groupeId) => {
+  const handleAddToGroupe = async (pieceId, groupeId, quantite = 1) => {
     try {
       await fetchJson(`${API}/groupes/pieces`, {
         method: 'POST',
@@ -133,13 +146,25 @@ function Dashboard () {
         body: JSON.stringify({
           RefGroupe: groupeId,
           RéfPièce: pieceId,
-          Quantite: 1 // Quantité par défaut
+          Quantite: quantite
         })
       });
-      alert('✅ Pièce ajoutée au groupe !');
       await loadData(currentPage, searchTerm);
     } catch (error) {
-      console.error('❌ Erreur:', error);
+      console.error('❌ Erreur ajout au groupe:', error);
+      alert('Erreur : ' + (error.message || 'Cette pièce est peut-être déjà dans ce groupe'));
+    }
+  };
+
+  // Retirer une pièce d'un groupe
+  const handleRemoveFromGroupe = async (pieceGroupeId) => {
+    try {
+      await fetchJson(`${API}/groupes/pieces/${pieceGroupeId}`, {
+        method: 'DELETE'
+      });
+      await loadData(currentPage, searchTerm);
+    } catch (error) {
+      console.error('❌ Erreur retrait du groupe:', error);
       alert('Erreur : ' + error.message);
     }
   };
@@ -173,7 +198,7 @@ function Dashboard () {
     }, 300); // Réduit à 300ms
     
     return () => clearTimeout(timer);
-  }, [searchTerm, filters.statut, filters.stock]);
+  }, [searchTerm, filters.statut, filters.stock, filters.commande]);
 
   const handleQuickRemove = async (piece, amountArg) => {
     const parsedAmount = parseInt(amountArg, 10);
@@ -263,9 +288,9 @@ function Dashboard () {
         NumPièceAutreFournisseur: newPiece.NumPièceAutreFournisseur?.trim() || "",
         RefFabricant: newPiece.RefFabricant || null,
         Lieuentreposage: newPiece.Lieuentreposage?.trim() || "",
-  QtéenInventaire: isNaN(npQInv) ? 0 : npQInv,
-  Qtéminimum: isNaN(npQMin) ? 0 : npQMin,
-  Qtémax: isNaN(npQMax) ? 100 : npQMax,
+        QtéenInventaire: isNaN(npQInv) ? 0 : npQInv,
+        Qtéminimum: isNaN(npQMin) ? 0 : npQMin,
+        Qtémax: isNaN(npQMax) ? 100 : npQMax,
         Prix_unitaire: parseFloat(newPiece.Prix_unitaire) || 0,
         Soumission_LD: newPiece.Soumission_LD?.trim() || "",
         SoumDem: newPiece.SoumDem || false
@@ -515,6 +540,19 @@ function Dashboard () {
                     <SelectItem value="critique">Stock Critique</SelectItem>
                   </SelectContent>
                 </Select>
+                <Select
+                  value={filters.commande}
+                  onValueChange={(value) => setFilters({...filters, commande: value})}
+                >
+                  <SelectTrigger className="w-[180px]">
+                    <SelectValue placeholder="Commandes" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tous">Toutes commandes</SelectItem>
+                    <SelectItem value="en_commande">En commande</SelectItem>
+                    <SelectItem value="sans_commande">Sans commande</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
             </div>
           </CardContent>
@@ -549,13 +587,13 @@ function Dashboard () {
                   fournisseur={fournisseur}
                   autreFournisseur={autreFournisseur}
                   fabricant={fabricant}
-                  categories={categories}
                   groupes={groupes}
                   pieceGroupes={groupes.flatMap(g => g.pieces || []).filter(gp => gp.RéfPièce === piece.RéfPièce)}
                   onEdit={() => setEditingPiece(piece)}
                   onDelete={() => handleDeletePiece(piece.RéfPièce)}
                   onQuickRemove={(qty) => handleQuickRemove(piece, qty)}
                   onAddToGroupe={handleAddToGroupe}
+                  onRemoveFromGroupe={handleRemoveFromGroupe}
                 />
               );
             })}

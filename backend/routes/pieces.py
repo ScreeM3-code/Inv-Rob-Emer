@@ -110,6 +110,7 @@ async def get_pieces(
                 Qtéminimum=qty_minimum,
                 Qtémax=qty_max,
                 Qtéàcommander=qty_a_commander,
+                Qtécommandée=safe_int(piece_dict.get("Qtécommandée")),
                 Prix_unitaire=safe_float(piece_dict.get("Prix unitaire", 0)),
                 Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
                 SoumDem=piece_dict.get("SoumDem", ""),
@@ -119,7 +120,9 @@ async def get_pieces(
                 RefFabricant=piece_dict.get("RefFabricant"),
                 statut_stock=statut_stock,
                 Created=piece_dict.get("Created"),
-                Modified=piece_dict.get("Modified")
+                Modified=piece_dict.get("Modified"),
+                RTBS=safe_string(piece_dict.get("RTBS")),
+                NoFESTO=safe_string(piece_dict.get("NoFESTO"))
             )
             result.append(piece_response)
 
@@ -203,7 +206,9 @@ async def get_piece(piece_id: int, request: Request):
             RefFabricant=piece_dict.get("RefFabricant"),
             statut_stock=statut_stock,
             Created=piece_dict.get("Created"),
-            Modified=piece_dict.get("Modified")
+            Modified=piece_dict.get("Modified"),
+            Discontinué=safe_string(piece_dict.get("Discontinué", ""))
+
         )
     except HTTPException:
         raise
