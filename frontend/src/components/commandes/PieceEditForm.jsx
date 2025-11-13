@@ -64,12 +64,12 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
 
   return (
     <Dialog open={true} onOpenChange={onCancel}>
-      <DialogContent className="max-w-2xl">
+      <DialogContent className="max-w-2xl max-h-[90vh] border-blue-600">
         <DialogHeader>
           <DialogTitle>Modifier la pièce</DialogTitle>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4 max-h-96 overflow-y-auto">
+        <div className="grid gap-4 py-4 min-w-200 overflow-y-auto">
           {/* Informations de base */}
           <div>
             <Label>Nom de la pièce *</Label>
@@ -79,12 +79,28 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
             />
           </div>
 
-          <div>
+          <div className="grid grid-cols-4 gap-4">
             <Label>N° de pièce</Label>
             <Input
               defaultValue={formData.NumPièce || ""}
               onChange={(e) => handleChange('NumPièce', e.target.value)}
             />
+            <Label>N° Fournisseur</Label>
+            <Input
+              defaultValue={formData.NumPièceAutreFournisseur || ""}
+              onChange={(e) => handleChange('NumPièceAutreFournisseur', e.target.value)}
+            />
+            <Label>N° SAP</Label>
+            <Input
+              defaultValue={formData.RTBS || ""}
+              onChange={(e) => handleChange('RTBS', e.target.value)}
+            />
+            <Label>N° Festo</Label>
+            <Input
+              defaultValue={formData.NoFESTO || ""}
+              onChange={(e) => handleChange('NoFESTO', e.target.value)}
+            />
+
           </div>
 
           <div>
@@ -97,7 +113,7 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
 
           {/* Fournisseurs */}
           <div className="border-t pt-4">
-            <h4 className="font-semibold text-gray-700 mb-3">Fournisseurs</h4>
+            <h4 className="font-semibold text-gray-700 mb-3 dark:text-white ">Fournisseurs</h4>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Fournisseur principal</Label>
@@ -147,14 +163,6 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
                 </Select>
               </div>
             </div>
-
-            <div className="mt-2">
-              <Label>N° pièce autre fournisseur</Label>
-              <Input
-                defaultValue={formData.NumPièceAutreFournisseur || ""}
-                onChange={(e) => handleChange('NumPièceAutreFournisseur', e.target.value)}
-              />
-            </div>
           </div>
 
           {/* Fabricant */}
@@ -184,7 +192,7 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
 
           {/* Quantités */}
           <div className="border-t pt-4">
-            <h4 className="font-semibold text-gray-700 mb-3">Quantités</h4>
+            <h4 className="font-semibold text-gray-700 mb-3 dark:text-white">Quantités</h4>
             <div className="grid grid-cols-3 gap-4">
               <div>
                 <Label>Qté stock</Label>

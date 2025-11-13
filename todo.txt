@@ -2,3 +2,8 @@ rapports
 
 pouvoir modifier la qté par default des pieces dans groupe
 
+# SAP dans piecesCard
+p-e mettre un modifier pieces au leiux de commande dans commande pour plus complet
+# festo dans commande et piecesCard
+les # affichier seulement si il y un #
+Panier plus complet peux changer de fournisseur ...

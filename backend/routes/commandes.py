@@ -162,7 +162,7 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
                 Datecommande=piece_dict.get("Datecommande"),
                 NomPièce=safe_string(piece_dict.get("NomPièce", "")),
                 NumPièce=safe_string(piece_dict.get("NumPièce", "")),
-                RTBS=safe_int(piece_dict.get("RTBS", "")),
+                RTBS=safe_string(piece_dict.get("RTBS", "")),
                 NumPièceAutreFournisseur=safe_string(piece_dict.get("NumPièceAutreFournisseur", "")),
                 DescriptionPièce=safe_string(piece_dict.get("DescriptionPièce", "")),
                 RéfFournisseur=piece_dict.get("RéfFournisseur"),
@@ -175,7 +175,8 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
                 autre_fournisseur=autre_fournisseur,
                 NomFabricant=safe_string(piece_dict.get("NomFabricant", "")),
                 Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
-                SoumDem=bool(piece_dict.get("SoumDem", False))
+                SoumDem=bool(piece_dict.get("SoumDem", False)),
+                NoFESTO=safe_string(piece_dict.get("NoFESTO"))
             )
 
             result.append(commande)

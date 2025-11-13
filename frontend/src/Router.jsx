@@ -8,7 +8,7 @@ import Commandes from "./Commandes";
 import Receptions from "./Receptions";
 import Historique from "./Historique";
 import Groupes from "./Groupes"; 
-
+import SoumissionsHistorique from "./SoumissionsHistorique";
 
 export default function AppRouter() {
   return (
@@ -22,6 +22,7 @@ export default function AppRouter() {
         <Route path="receptions" element={<Receptions />} />
         <Route path="historique" element={<Historique />} />
         <Route path="groupes" element={<Groupes />} />
+        <Route path="soumissions-historique" element={<SoumissionsHistorique />} />
       </Route>
     </Routes>
   );

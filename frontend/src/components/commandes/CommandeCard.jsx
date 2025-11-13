@@ -3,7 +3,10 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit3, FileText, PackagePlus, ShoppingCart, Users, CheckCircle, XCircle, History } from "lucide-react";
+import { Edit3, FileText, PackagePlus, Users, CheckCircle, XCircle, History, MailPlus } from "lucide-react";
+import { fetchJson } from '../../lib/utils';
+
+const API_URL = import.meta.env.VITE_BACKEND_URL + '/api';
 
 export default function CommandeCard({ 
   order, 
@@ -23,22 +26,46 @@ export default function CommandeCard({
               <div className="flex-1">
                 <h3 className="font-semibold text-lg flex items-center gap-2">
                   {order.NomPièce}
-                  {/* Badge Soumission Demandée */}
-                  {order.SoumDem === true || order.SoumDem === "true" ? (
-                    <Badge className="bg-green-500 text-white flex items-center gap-1">
-                      <CheckCircle className="w-3 h-3" />
-                      Soumission demandée
-                    </Badge>
-                  ) : (
-                    <Badge className="bg-red-500 text-white flex items-center gap-1">
-                      <XCircle className="w-3 h-3" />
-                      Pas de soumission
-                    </Badge>
-                  )}
+                  {/* Badge Soumission Demandée - CLIQUABLE */}
+                  <button
+                    onClick={async (e) => {
+                      e.stopPropagation();
+                      const newValue = !(order.SoumDem === true || order.SoumDem === "true");
+                      
+                      try {
+                        await fetchJson(`${API_URL}/pieces/${order.RéfPièce}`, {
+                          method: 'PUT',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({ SoumDem: newValue })
+                        });
+                        
+                        // Recharger la page ou mettre à jour l'état local
+                        window.location.reload();
+                      } catch (error) {
+                        alert('Erreur lors de la mise à jour: ' + error.message);
+                      }
+                    }}
+                    className="transition-all hover:scale-105"
+                  >
+                    {order.SoumDem === true || order.SoumDem === "true" ? (
+                      <Badge className="bg-green-500 text-white flex items-center gap-1 cursor-pointer hover:bg-green-600">
+                        <CheckCircle className="w-3 h-3" />
+                        Soumission demandée
+                      </Badge>
+                    ) : (
+                      <Badge className="bg-red-500 text-white flex items-center gap-1 cursor-pointer hover:bg-red-600">
+                        <XCircle className="w-3 h-3" />
+                        Pas de soumission
+                      </Badge>
+                    )}
+                  </button>
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-200">
-                  N° {order.NumPièce} ••• N° Fabricant: {order.NumPièceAutreFournisseur} ••• SAP : {order.RTBS} 
-                </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-200 flex flex-wrap gap-2">
+                    {order.NumPièce && <span>N° {order.NumPièce}</span>}
+                    {order.NumPièceAutreFournisseur && <span>#Fourn: {order.NumPièceAutreFournisseur}</span>}
+                    {order.RTBS && <span>SAP: {order.RTBS}</span>}
+                    {order.NoFESTO && <span>FESTO: {order.NoFESTO}</span>}
+                  </p>
                 {order.DescriptionPièce && (
                   <p className="text-sm text-gray-500 mt-1 dark:text-gray-200">{order.DescriptionPièce}</p>
                 )}
@@ -139,7 +166,7 @@ export default function CommandeCard({
               size="sm"
               className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ShoppingCart className="w-4 h-4 mr-2" /> 
+              <MailPlus className="w-4 h-4 mr-2" /> 
               {isInCart ? 'Dans le panier' : 'Soumission'}
             </Button>
 

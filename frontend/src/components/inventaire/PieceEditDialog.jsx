@@ -5,98 +5,124 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 
-export default function PieceEditDialog({ 
-  piece, 
-  fournisseurs, 
-  fabricants, 
-  onSave, 
-  onCancel,
-  onChange 
-}) {
-  if (!piece) return null;
+export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave, onCancel }) {
+  const [formData, setFormData] = React.useState(piece);
 
-  const debouncedOnChange = React.useCallback(
-    (fn => {
-      let timeoutId;
-      return (field, value) => {
-        if (['QtéenInventaire', 'Qtéminimum', 'Qtémax', 'Prix_unitaire'].includes(field)) {
-          fn(field, value);
-          return;
-        }
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => fn(field, value), 100);
-      };
-    })(onChange),
-    [onChange]
+  // Debounce les mises à jour d'état pour les champs texte
+  const debounce = (fn, delay) => {
+    let timeoutId;
+    return (...args) => {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => fn(...args), delay);
+    };
+  };
+
+  // Version debounced du setState pour les champs texte
+  const debouncedSetFormData = React.useCallback(
+    debounce((field, value) => {
+      setFormData(prev => ({ ...prev, [field]: value }));
+    }, 100),
+    []
   );
 
-  // Mémoiser les valeurs du formulaire
-  const memoizedValues = React.useMemo(() => ({
-    NomPièce: piece.NomPièce || "",
-    DescriptionPièce: piece.DescriptionPièce || "",
-    NumPièce: piece.NumPièce || "",
-    NumPièceAutreFournisseur: piece.NumPièceAutreFournisseur || "",
-    RéfFournisseur: piece.RéfFournisseur?.toString() || "none",
-    RéfAutreFournisseur: piece.RéfAutreFournisseur?.toString() || "none",
-    RefFabricant: piece.RefFabricant?.toString() || "none",
-    Lieuentreposage: piece.Lieuentreposage || "",
-  }), [piece]);
+  const handleChange = React.useCallback((field, value) => {
+    // Pour les champs numériques, mettre à jour immédiatement
+    if (['QtéenInventaire', 'Qtéminimum', 'Qtémax', 'Prix_unitaire'].includes(field)) {
+      setFormData(prev => ({ ...prev, [field]: value }));
+      return;
+    }
+    
+    // Pour les champs texte, utiliser le debounce
+    debouncedSetFormData(field, value);
+  }, []);
+
+  const handleSubmit = () => {
+    // Validation
+    if (!formData.NomPièce?.trim()) {
+      alert("Le nom de la pièce est obligatoire");
+      return;
+    }
+
+    const qInv = parseInt(formData.QtéenInventaire, 10);
+    const qMin = parseInt(formData.Qtéminimum, 10);
+    const qMax = parseInt(formData.Qtémax, 10);
+    const prix = parseFloat(formData.Prix_unitaire);
+
+    const cleanedData = {
+      ...formData,
+      QtéenInventaire: isNaN(qInv) ? 0 : qInv,
+      Qtéminimum: isNaN(qMin) ? 0 : qMin,
+      Qtémax: isNaN(qMax) ? 100 : qMax,
+      Prix_unitaire: isNaN(prix) ? 0 : prix,
+      RéfFournisseur: formData.RéfFournisseur || null,
+      RéfAutreFournisseur: formData.RéfAutreFournisseur || null,
+      RefFabricant: formData.RefFabricant || null,
+    };
+
+    onSave(cleanedData);
+  };
 
   return (
     <Dialog open={true} onOpenChange={onCancel}>
-      <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto border-blue-600">
+      <DialogContent className="max-w-2xl max-h-[90vh] border-blue-600">
         <DialogHeader>
           <DialogTitle>Modifier la pièce</DialogTitle>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
-          {/* Nom et Description */}
+        <div className="grid gap-4 py-4 min-w-200 overflow-y-auto">
+          {/* Informations de base */}
           <div>
             <Label>Nom de la pièce *</Label>
             <Input
-                defaultValue={memoizedValues.NomPièce}
-                onChange={(e) => debouncedOnChange('NomPièce', e.target.value)}
+              defaultValue={formData.NomPièce || ""}
+              onChange={(e) => handleChange('NomPièce', e.target.value)}
             />
+          </div>
+
+          <div className="grid grid-cols-4 gap-4">
+            <Label>N° de pièce</Label>
+            <Input
+              defaultValue={formData.NumPièce || ""}
+              onChange={(e) => handleChange('NumPièce', e.target.value)}
+            />
+            <Label>N° Fournisseur</Label>
+            <Input
+              defaultValue={formData.NumPièceAutreFournisseur || ""}
+              onChange={(e) => handleChange('NumPièceAutreFournisseur', e.target.value)}
+            />
+            <Label>N° SAP</Label>
+            <Input
+              defaultValue={formData.RTBS || ""}
+              onChange={(e) => handleChange('RTBS', e.target.value)}
+            />
+            <Label>N° Festo</Label>
+            <Input
+              defaultValue={formData.NoFESTO || ""}
+              onChange={(e) => handleChange('NoFESTO', e.target.value)}
+            />
+
           </div>
 
           <div>
             <Label>Description</Label>
             <Input
-                defaultValue={memoizedValues.DescriptionPièce}
-                onChange={(e) => debouncedOnChange('DescriptionPièce', e.target.value)}
+              defaultValue={formData.DescriptionPièce || ""}
+              onChange={(e) => handleChange('DescriptionPièce', e.target.value)}
             />
-          </div>
-
-          {/* Numéros de pièce */}
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <Label>N° de pièce</Label>
-              <Input
-                  defaultValue={memoizedValues.NumPièce}
-                  onChange={(e) => debouncedOnChange('NumPièce', e.target.value)}
-              />
-            </div>
-            <div>
-              <Label>N° pièce autre fournisseur</Label>
-              <Input
-                  defaultValue={memoizedValues.NumPièceAutreFournisseur}
-                  onChange={(e) => debouncedOnChange('NumPièceAutreFournisseur', e.target.value)}
-              />
-            </div>
           </div>
 
           {/* Fournisseurs */}
           <div className="border-t pt-4">
-            <h4 className="font-semibold text-gray-700 mb-3 dark:text-white">Fournisseurs</h4>
+            <h4 className="font-semibold text-gray-700 mb-3 dark:text-white ">Fournisseurs</h4>
             <div className="grid grid-cols-2 gap-4">
               <div>
                 <Label>Fournisseur principal</Label>
                 <Select
-                  value={piece.RéfFournisseur?.toString() || "none"}
+                  value={formData.RéfFournisseur?.toString() || "none"}
                   onValueChange={(value) => {
-                    if (value === "none") return onChange('RéfFournisseur', null);
+                    if (value === "none") return handleChange('RéfFournisseur', null);
                     const n = parseInt(value, 10);
-                    onChange('RéfFournisseur', isNaN(n) ? null : n);
+                    handleChange('RéfFournisseur', isNaN(n) ? null : n);
                   }}
                 >
                   <SelectTrigger>
@@ -104,7 +130,7 @@ export default function PieceEditDialog({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Aucun fournisseur</SelectItem>
-                    {fournisseurs.map((f) => (
+                    {fournisseurs?.map((f) => (
                       <SelectItem key={f.RéfFournisseur} value={f.RéfFournisseur.toString()}>
                         {f.NomFournisseur}
                       </SelectItem>
@@ -112,15 +138,15 @@ export default function PieceEditDialog({
                   </SelectContent>
                 </Select>
               </div>
-              
+
               <div>
                 <Label>Autre fournisseur</Label>
                 <Select
-                  value={piece.RéfAutreFournisseur?.toString() || "none"}
+                  value={formData.RéfAutreFournisseur?.toString() || "none"}
                   onValueChange={(value) => {
-                    if (value === "none") return onChange('RéfAutreFournisseur', null);
+                    if (value === "none") return handleChange('RéfAutreFournisseur', null);
                     const n = parseInt(value, 10);
-                    onChange('RéfAutreFournisseur', isNaN(n) ? null : n);
+                    handleChange('RéfAutreFournisseur', isNaN(n) ? null : n);
                   }}
                 >
                   <SelectTrigger>
@@ -128,7 +154,7 @@ export default function PieceEditDialog({
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="none">Aucun fournisseur</SelectItem>
-                    {fournisseurs.map((f) => (
+                    {fournisseurs?.map((f) => (
                       <SelectItem key={f.RéfFournisseur} value={f.RéfFournisseur.toString()}>
                         {f.NomFournisseur}
                       </SelectItem>
@@ -143,11 +169,11 @@ export default function PieceEditDialog({
           <div className="border-t pt-4">
             <Label>Fabricant</Label>
             <Select
-              value={piece.RefFabricant?.toString() || "none"}
+              value={formData.RefFabricant?.toString() || "none"}
               onValueChange={(value) => {
-                if (value === "none") return onChange('RefFabricant', null);
+                if (value === "none") return handleChange('RefFabricant', null);
                 const n = parseInt(value, 10);
-                onChange('RefFabricant', isNaN(n) ? null : n);
+                handleChange('RefFabricant', isNaN(n) ? null : n);
               }}
             >
               <SelectTrigger>
@@ -155,7 +181,7 @@ export default function PieceEditDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Aucun fabricant</SelectItem>
-                {fabricants.map((fab) => (
+                {fabricants?.map((fab) => (
                   <SelectItem key={fab.RefFabricant} value={fab.RefFabricant.toString()}>
                     {fab.NomFabricant}
                   </SelectItem>
@@ -166,74 +192,55 @@ export default function PieceEditDialog({
 
           {/* Quantités */}
           <div className="border-t pt-4">
-            <h4 className="font-semibold text-gray-700 mb-3 dark:text-white">Quantités et stock</h4>
+            <h4 className="font-semibold text-gray-700 mb-3 dark:text-white">Quantités</h4>
             <div className="grid grid-cols-3 gap-4">
               <div>
-                <Label>Qté stock *</Label>
+                <Label>Qté stock</Label>
                 <Input
                   type="number"
-                  min={0}
-                  value={piece.QtéenInventaire ?? 0}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    // Accept empty string while typing; convert to numbers safely
-                    if (v === "") return onChange('QtéenInventaire', 0);
-                    const n = parseInt(v, 10);
-                    onChange('QtéenInventaire', Math.max(0, isNaN(n) ? 0 : n));
-                  }}
+                  min="0"
+                  value={formData.QtéenInventaire ?? ""}
+                  onChange={(e) => handleChange('QtéenInventaire', e.target.value)}
                 />
               </div>
               <div>
-                <Label>Qté min *</Label>
+                <Label>Qté min</Label>
                 <Input
                   type="number"
-                  min={0}
-                  value={piece.Qtéminimum ?? 0}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (v === "") return onChange('Qtéminimum', 0);
-                    const n = parseInt(v, 10);
-                    onChange('Qtéminimum', Math.max(0, isNaN(n) ? 0 : n));
-                  }}
+                  min="0"
+                  value={formData.Qtéminimum ?? ""}
+                  onChange={(e) => handleChange('Qtéminimum', e.target.value)}
                 />
               </div>
               <div>
                 <Label>Qté max</Label>
                 <Input
                   type="number"
-                  min={0}
-                  value={piece.Qtémax ?? 100}
-                  onChange={(e) => {
-                    const v = e.target.value;
-                    if (v === "") return onChange('Qtémax', 100);
-                    const n = parseInt(v, 10);
-                    onChange('Qtémax', Math.max(0, isNaN(n) ? 0 : n));
-                  }}
+                  min="0"
+                  value={formData.Qtémax ?? ""}
+                  onChange={(e) => handleChange('Qtémax', e.target.value)}
                 />
               </div>
             </div>
           </div>
 
-          {/* Emplacement et Prix */}
+          {/* Stockage et prix */}
           <div className="grid grid-cols-2 gap-4">
             <div>
               <Label>Emplacement</Label>
               <Input
-                value={piece.Lieuentreposage || ""}
-                onChange={(e) => onChange('Lieuentreposage', e.target.value)}
+                defaultValue={formData.Lieuentreposage || ""}
+                onChange={(e) => handleChange('Lieuentreposage', e.target.value)}
               />
             </div>
             <div>
-              <Label>Prix unitaire (CAD $) *</Label>
+              <Label>Prix unitaire (CAD $)</Label>
               <Input
                 type="number"
                 step="0.01"
-                min={0}
-                value={piece.Prix_unitaire ?? 0}
-                onChange={(e) => {
-                  const v = e.target.value;
-                  onChange('Prix_unitaire', v === "" ? 0 : Math.max(0, parseFloat(v) || 0));
-                }}
+                min="0"
+                value={formData.Prix_unitaire ?? ""}
+                onChange={(e) => handleChange('Prix_unitaire', e.target.value)}
               />
             </div>
           </div>
@@ -244,11 +251,9 @@ export default function PieceEditDialog({
             Annuler
           </Button>
           <Button
-            onClick={onSave}
-            disabled={
-              !piece.NomPièce?.trim()
-            }
-            className="bg-rio-red hover:bg-rio-red-dark text-white"
+            onClick={handleSubmit}
+            className="bg-rio-red hover:bg-rio-red-dark"
+            disabled={!formData.NomPièce?.trim()}
           >
             Sauvegarder
           </Button>

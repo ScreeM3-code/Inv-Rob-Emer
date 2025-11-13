@@ -8,3 +8,8 @@
 2025-11-12 13:20:48,466 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
 2025-11-12 14:27:34,153 - uvicorn.error - WARNING - Invalid HTTP request received.
 2025-11-12 14:27:34,153 - uvicorn.error - WARNING - Invalid HTTP request received.
+2025-11-13 08:00:06,690 - uvicorn.error - INFO - Shutting down
+2025-11-13 08:00:06,798 - uvicorn.error - INFO - Waiting for application shutdown.
+2025-11-13 08:00:06,798 - Inventaire-Robot - INFO - Pool PostgreSQL fermé.
+2025-11-13 08:00:06,798 - uvicorn.error - INFO - Application shutdown complete.
+2025-11-13 08:00:06,798 - uvicorn.error - INFO - Finished server process [30832]
