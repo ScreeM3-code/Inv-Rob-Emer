@@ -52,6 +52,8 @@ export default function CartPanel({ children }) {
     return acc;
   }, {});
 
+  console.log('🔢 Grouped:', groupedBySupplier);
+
   const toggleField = (fieldId) => {
     setSelectedFields(prev => 
       prev.includes(fieldId) 
@@ -64,7 +66,7 @@ export default function CartPanel({ children }) {
     const bodyLines = [
       "Bonjour,",
       "",
-      `Nous souhaitons recevoir une soumission pour les pièces suivantes :`,
+      `Nous aimerions avoir une soumission pour ces pièces suivantes :`,
       ""
     ];
     
@@ -93,9 +95,9 @@ export default function CartPanel({ children }) {
       bodyLines.push("");
     }
     
-    bodyLines.push("Pourriez-vous nous faire parvenir vos meilleurs prix et délais de livraison ?");
+    bodyLines.push("Pourriez-vous nous faire parvenir prix et délais de livraison ?");
     bodyLines.push("");
-    bodyLines.push("Cordialement,");
+    bodyLines.push("Merci,");
     bodyLines.push("Équipe Maintenance");
     
     return bodyLines.join('\n');
@@ -116,7 +118,7 @@ export default function CartPanel({ children }) {
       return;
     }
 
-    const subject = `Demande de soumission - ${supplier.NomFournisseur}`;
+    const subject = `Demande de soumission`;
     const body = buildEmailBody(items, supplier);
 
     setPreviewDialog({
@@ -205,7 +207,7 @@ export default function CartPanel({ children }) {
                       <div key={item.RéfPièce} className="flex justify-between items-center text-sm">
                         <div>
                           <p className="font-medium">{item.NomPièce}</p>
-                          <p className="text-slate-500">Qté: {item.Qtéàcommander}</p>
+                          <p className="text-slate-500">Qté: {item.cartQty || item.Qtéàcommander || 1}</p>
                         </div>
                         <Button variant="ghost" size="icon" onClick={() => removeFromCart(item.RéfPièce)}>
                           <X className="w-4 h-4 text-red-500" />
@@ -258,7 +260,7 @@ export default function CartPanel({ children }) {
                     editableFournisseur: newFournisseurId,
                     supplier: newSupplier,
                     contactEmails: newEmails,
-                    subject: `Demande de soumission - ${newSupplier?.NomFournisseur}`,
+                    subject: `Demande de soumission`,
                     body: buildEmailBody(prev.items, newSupplier)
                   }));
                 }}
@@ -325,7 +327,7 @@ export default function CartPanel({ children }) {
             {/* Aperçu de l'email */}
             <div>
               <Label>Aperçu de l'email</Label>
-              <div className="mt-2 p-4 bg-slate-50 rounded border">
+              <div className="mt-2 p-4 rounded border">
                 <p className="text-sm font-semibold mb-2">Sujet: {previewDialog.subject}</p>
                 <pre className="text-xs whitespace-pre-wrap font-mono">{previewDialog.body}</pre>
               </div>

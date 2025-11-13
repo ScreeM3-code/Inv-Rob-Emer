@@ -159,7 +159,7 @@ export default function SoumissionsHistorique() {
         {/* Dialog Détails */}
         {selectedSoumission && (
           <Dialog open={true} onOpenChange={() => setSelectedSoumission(null)}>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-blue-600">
               <DialogHeader>
                 <DialogTitle>Détails de la soumission</DialogTitle>
               </DialogHeader>
@@ -167,31 +167,31 @@ export default function SoumissionsHistorique() {
               <div className="space-y-4">
                 <div className="grid grid-cols-2 gap-4">
                   <div>
-                    <p className="text-sm font-semibold text-gray-700">Date d'envoi</p>
-                    <p className="text-sm">{formatDate(selectedSoumission.DateEnvoi)}</p>
+                    <p className="text-sm font-semibold text-gray-700 dark:text-white">Date d'envoi</p>
+                    <p className="text-sm ">{formatDate(selectedSoumission.DateEnvoi)}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-700">Fournisseur</p>
+                    <p className="text-sm font-semibold text-gray-700 dark:text-white">Fournisseur</p>
                     <p className="text-sm">{selectedSoumission.fournisseur_nom}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-700">Utilisateur</p>
+                    <p className="text-sm font-semibold text-gray-700 dark:text-white">Utilisateur</p>
                     <p className="text-sm">{selectedSoumission.User}</p>
                   </div>
                   <div>
-                    <p className="text-sm font-semibold text-gray-700">Destinataires</p>
+                    <p className="text-sm font-semibold text-gray-700 dark:text-white">Destinataires</p>
                     <p className="text-sm">{selectedSoumission.EmailsDestinataires}</p>
                   </div>
                 </div>
 
                 <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Sujet</p>
-                  <p className="text-sm p-2 bg-gray-50 rounded border">{selectedSoumission.Sujet}</p>
+                  <p className="text-sm font-semibold text-gray-700 mb-2 dark:text-white">Sujet</p>
+                  <p className="text-sm p-2 rounded border border-blue-600">{selectedSoumission.Sujet}</p>
                 </div>
 
                 <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Pièces demandées</p>
-                  <div className="border rounded">
+                  <p className="text-sm font-semibold text-gray-700 mb-2 dark:text-white">Pièces demandées</p>
+                  <div className="border rounded border-blue-600">
                     <Table>
                       <TableHeader>
                         <TableRow>
@@ -204,7 +204,7 @@ export default function SoumissionsHistorique() {
                         {selectedSoumission.Pieces?.map((piece, idx) => (
                           <TableRow key={idx}>
                             <TableCell>{piece.NomPièce}</TableCell>
-                            <TableCell className="text-sm text-gray-500">
+                            <TableCell className="text-sm text-gray-500 dark:text-white ">
                               {piece.NumPièce}
                             </TableCell>
                             <TableCell>{piece.Quantite}</TableCell>
@@ -216,15 +216,15 @@ export default function SoumissionsHistorique() {
                 </div>
 
                 <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-2">Message</p>
-                  <pre className="text-xs whitespace-pre-wrap p-3 bg-gray-50 rounded border font-mono">
+                  <p className="text-sm font-semibold text-gray-700 mb-2 dark:text-white">Message</p>
+                  <pre className="text-xs whitespace-pre-wrap p-3 rounded border border-blue-600 font-mono">
                     {selectedSoumission.MessageCorps}
                   </pre>
                 </div>
 
                 {selectedSoumission.Notes && (
                   <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-2">Notes</p>
+                    <p className="text-sm font-semibold text-gray-700 mb-2 dark:text-white">Notes</p>
                     <p className="text-sm p-2 bg-yellow-50 rounded border border-yellow-200">
                       {selectedSoumission.Notes}
                     </p>
