@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import "./App.css";
 import { PieceCard } from "@/components/inventaire/PieceCard";
 import { fetchJson, log } from './lib/utils';
@@ -6,11 +6,11 @@ import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
-import { Plus, Package, Loader2, Edit3, Trash2, AlertTriangle, TrendingUp, Search, Users, Building2, DollarSign, FileText, Phone, MapPin, Cog, Store } from "lucide-react";
+import { Plus, Package, Loader2, AlertTriangle, Search, DollarSign } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import PieceEditDialog from "@/components/inventaire/PieceEditDialog";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
-import { Badge } from "./components/ui/badge";
+
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -447,7 +447,7 @@ function Dashboard () {
               </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold dark:text-gray-100">{stats.total_pieces.toLocaleString()}</div>
+              <div className="text-2xl font-bold dark:text-gray-100">{(stats.total_pieces || 0).toLocaleString()}</div>
             </CardContent>
           </Card>
           
@@ -459,7 +459,7 @@ function Dashboard () {
                </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold  dark:text-gray-100">{stats.stock_critique.toLocaleString()}</div>
+              <div className="text-2xl font-bold  dark:text-gray-100">{(stats.stock_critique || 0).toLocaleString()}</div>
             </CardContent>
           </Card>
           
@@ -472,7 +472,7 @@ function Dashboard () {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold  dark:text-gray-100">
-                {stats.valeur_stock.toLocaleString('fr-CA', {style: 'currency', currency: 'CAD'})}
+                {(stats.valeur_stock || 0).toLocaleString('fr-CA', {style: 'currency', currency: 'CAD'})}
               </div>
             </CardContent>
           </Card>
@@ -488,7 +488,7 @@ function Dashboard () {
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold text-yellow-600  dark:text-yellow-600">
-                {stats.pieces_a_commander.toLocaleString()}
+                {(stats.pieces_a_commander || 0).toLocaleString()}
               </div>
             </CardContent>
           </Card>

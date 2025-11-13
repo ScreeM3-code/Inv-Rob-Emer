@@ -78,8 +78,11 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
             )}
           </div>
         </div>
-        <p className="text-sm text-slate-500 font-mono pt-1">Réf: {piece.NumPièce}</p>
-        <p className="text-sm text-slate-500 font-mono pt-1">#: {piece.NumPièceAutreFournisseur}</p>
+          {piece.NumPièce && <p className="text-sm text-slate-500 font-mono pt-1">Réf: {piece.NumPièce}</p>}
+          {piece.NumPièceAutreFournisseur && <p className="text-sm text-slate-500 font-mono pt-1">#Fourn: {piece.NumPièceAutreFournisseur}</p>}
+          {piece.RTBS && <p className="text-sm text-slate-500 font-mono pt-1">SAP: {piece.RTBS}</p>}
+          {piece.NoFESTO && <p className="text-sm text-slate-500 font-mono pt-1">FESTO: {piece.NoFESTO}</p>}
+
         {piece.DescriptionPièce && <CardDescription className="pt-3">{piece.DescriptionPièce}</CardDescription>}
       </CardHeader>
       <CardContent className="flex-grow space-y-4">

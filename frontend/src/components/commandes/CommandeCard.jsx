@@ -3,7 +3,7 @@ import React from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit3, FileText, PackagePlus, ShoppingCart, Users, CheckCircle, XCircle, History } from "lucide-react";
+import { Edit3, FileText, PackagePlus, Users, CheckCircle, XCircle, History, MailPlus } from "lucide-react";
 
 export default function CommandeCard({ 
   order, 
@@ -36,9 +36,12 @@ export default function CommandeCard({
                     </Badge>
                   )}
                 </h3>
-                <p className="text-sm text-gray-600 dark:text-gray-200">
-                  N° {order.NumPièce} ••• N° Fabricant: {order.NumPièceAutreFournisseur} ••• SAP : {order.RTBS} 
-                </p>
+                  <p className="text-sm text-gray-600 dark:text-gray-200 flex flex-wrap gap-2">
+                    {order.NumPièce && <span>N° {order.NumPièce}</span>}
+                    {order.NumPièceAutreFournisseur && <span>#Fourn: {order.NumPièceAutreFournisseur}</span>}
+                    {order.RTBS && <span>SAP: {order.RTBS}</span>}
+                    {order.NoFESTO && <span>FESTO: {order.NoFESTO}</span>}
+                  </p>
                 {order.DescriptionPièce && (
                   <p className="text-sm text-gray-500 mt-1 dark:text-gray-200">{order.DescriptionPièce}</p>
                 )}
@@ -139,7 +142,7 @@ export default function CommandeCard({
               size="sm"
               className="bg-gradient-to-r from-green-500 to-green-600 hover:from-green-600 hover:to-green-700 shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              <ShoppingCart className="w-4 h-4 mr-2" /> 
+              <MailPlus className="w-4 h-4 mr-2" /> 
               {isInCart ? 'Dans le panier' : 'Soumission'}
             </Button>
 
