@@ -6,9 +6,11 @@ from .commandes import router as commandes_router
 from .historique import router as historique_router
 from .groupes import router as groupes_router
 from .soumissions import router as soumissions_router
+from .piece_images import router as piece_images_router
 
 __all__ = [
     'pieces_router',
+    'piece_images_router',
     'fournisseurs_router',
     'fabricants_router',
     'commandes_router',

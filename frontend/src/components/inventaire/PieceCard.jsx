@@ -1,13 +1,14 @@
 
-import React from 'react';
+import React, { useState } from "react";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { AlertTriangle, Edit, Package, Trash2, Building2, Factory, Warehouse, Minus, CircleCheck, Check, Layers, X } from "lucide-react";
+import { AlertTriangle, Edit, Package, Trash2, Building2, Factory, Warehouse, Minus, CircleCheck, Check, Layers, X, Search } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 
+const API = import.meta.env.VITE_BACKEND_URL + '/api';
 
 const getStockStatus = {
   critique: { label: "Critique", color: "bg-red-600 text-white", icon: <AlertTriangle className="w-4 h-4" /> },
@@ -23,6 +24,10 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
   const [qrQty, setQrQty] = React.useState(1);
   const [selectedQty, setSelectedQty] = React.useState(1);
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
+  const [imageError, setImageError] = React.useState(false);
+  const [showImageMenu, setShowImageMenu] = React.useState(false);
+  const imageUrl = `${API}/pieces/${piece.RéfPièce}/image`;
+  const fileInputRef = React.useRef(null);
 
   const StatItem = ({ label, value, isPrice = false }) => (
     <div className="text-center bg-slate-50 p-3 rounded-lg">
@@ -33,6 +38,60 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
     </div>
   );
 
+  const handleImageUpload = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    const formData = new FormData();
+    formData.append('file', file);
+
+    try {
+      await fetch(`${API}/pieces/${piece.RéfPièce}/upload-image`, {
+        method: 'POST',
+        body: formData
+      });
+      
+      // Recharger l'image
+      setImageError(false);
+      // Force reload de l'image
+      const img = document.querySelector(`img[alt="${piece.NomPièce}"]`);
+      if (img) {
+        img.src = `${imageUrl}?t=${Date.now()}`;
+      }
+    } catch (error) {
+      console.error('Erreur upload:', error);
+      alert('Erreur lors de l\'upload de l\'image');
+    }
+  };
+
+  const handleDeleteImage = async () => {
+    if (!confirm('Supprimer l\'image de cette pièce ?')) return;
+
+    try {
+      await fetch(`${API}/pieces/${piece.RéfPièce}/image`, {
+        method: 'DELETE'
+      });
+      setImageError(true);
+    } catch (error) {
+      console.error('Erreur suppression:', error);
+    }
+  };
+
+  const openSearchUrls = async () => {
+    try {
+      const response = await fetch(`${API}/pieces/${piece.RéfPièce}/search-urls`);
+      const data = await response.json();
+      
+      if (data.search_urls && data.search_urls.length > 0) {
+        // Ouvrir la première URL de recherche
+        window.open(data.search_urls[0].url, '_blank');
+      } else {
+        alert('Aucun numéro de pièce disponible pour la recherche');
+      }
+    } catch (error) {
+      console.error('Erreur:', error);
+    }
+  };
 
   const handleToggleGroupe = async (groupeId, e) => {
     e.stopPropagation(); // ← Empêche la propagation
@@ -58,8 +117,76 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
     return acc;
   }, {});
 
+
   return (
     <Card className="flex flex-col glass-card hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+      {/* NOUVELLE SECTION IMAGE */}
+      <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 overflow-hidden group">
+        {!imageError ? (
+          <img 
+            src={imageUrl}
+            alt={piece.NomPièce}
+            className="w-full h-full object-contain p-4 transition-transform group-hover:scale-105"
+            onError={() => setImageError(true)}
+          />
+        ) : (
+          <div className="flex items-center justify-center h-full">
+            <Package className="w-20 h-20 text-slate-300 dark:text-slate-600" />
+          </div>
+        )}
+        
+        {/* Overlay avec boutons d'action image */}
+        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
+          <div className="flex gap-2">
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={() => fileInputRef.current?.click()}
+              className="hover:bg-slate-100"
+            >
+              <Edit className="w-4 h-4 mr-1" />
+              Upload
+            </Button>
+            {!imageError && (
+              <Button
+                size="sm"
+                variant="secondary"
+                onClick={handleDeleteImage}
+                className="hover:bg-red-50 text-red-600"
+              >
+                <Trash2 className="w-4 h-4" />
+              </Button>
+            )}
+            <Button
+              size="sm"
+              variant="secondary"
+              onClick={openSearchUrls}
+              className="hover:bg-blue-50"
+            >
+              <Search className="w-4 h-4" />
+            </Button>
+          </div>
+        </div>
+        
+        {/* Badge overlay pour statut */}
+        <div className="absolute top-2 right-2">
+          {stockStatus && (
+            <Badge className={`${stockStatus.color}`}>
+              {stockStatus.icon}
+              <span className="ml-1.5">{stockStatus.label}</span>
+            </Badge>
+          )}
+        </div>
+        
+        {/* Input file caché */}
+        <input
+          ref={fileInputRef}
+          type="file"
+          accept="image/*"
+          onChange={handleImageUpload}
+          className="hidden"
+        />
+      </div>
       <CardHeader>
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg font-bold pr-4">{piece.NomPièce}</CardTitle>

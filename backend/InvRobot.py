@@ -25,6 +25,7 @@ from config import CORS_ORIGINS, BUILD_DIR
 from database import lifespan
 from routes import (
     pieces_router,
+    piece_images_router,
     fournisseurs_router,
     fabricants_router,
     commandes_router,
@@ -74,6 +75,7 @@ app.include_router(commandes_router, prefix="/api")
 app.include_router(historique_router, prefix="/api")
 app.include_router(groupes_router, prefix="/api")
 app.include_router(soumissions_router, prefix="/api")
+app.include_router(piece_images_router, prefix="/api")
 
 # Configuration du frontend (si build existe)
 if BUILD_DIR.exists():

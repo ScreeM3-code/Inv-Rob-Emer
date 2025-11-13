@@ -2,20 +2,12 @@ rapports
 
 pouvoir modifier la qté par default des pieces dans groupe
 
-CREATE TABLE "Soumissions" (
-    "RefSoumission" SERIAL PRIMARY KEY,
-    "DateEnvoi" TIMESTAMP DEFAULT NOW(),
-    "RéfFournisseur" INTEGER REFERENCES "Fournisseurs"("RéfFournisseur") ON DELETE SET NULL,
-    "EmailsDestinataires" TEXT, -- Liste des emails séparés par virgule
-    "Sujet" TEXT,
-    "MessageCorps" TEXT,
-    "Pieces" JSONB, -- Array des pièces avec leur info
-    "User" TEXT,
-    "Notes" TEXT,
-    "Created" TIMESTAMP DEFAULT NOW()
-);
-# SAP dans piecesCard
-p-e mettre un modifier pieces au leiux de commande dans commande pour plus complet
-# festo dans commande et piecesCard
-les # affichier seulement si il y un #
-Panier plus complet peux changer de fournisseur ...
+
+ALTER TABLE "Pièce" 
+ADD COLUMN IF NOT EXISTS "ImagePath" VARCHAR(255);
+
+-- Index pour performances
+CREATE INDEX IF NOT EXISTS idx_piece_image_path 
+ON "Pièce" ("ImagePath");
+
+

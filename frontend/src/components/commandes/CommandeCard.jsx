@@ -121,11 +121,6 @@ export default function CommandeCard({
                     </Badge>
                   )}
                 </div>
-                {order.NumPièceAutreFournisseur && (
-                  <p className="text-xs text-gray-500 mt-1 dark:text-gray-200">
-                    N° autre fournisseur: {order.NumPièceAutreFournisseur}
-                  </p>
-                )}
               </div>
             )}
 

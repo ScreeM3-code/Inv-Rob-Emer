@@ -1,8 +1,14 @@
-2025-11-12 21:00:10,434 - Inventaire-Robot - WARNING - ⚠️ Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
-2025-11-12 21:00:10,434 - Inventaire-Robot - INFO - 🚀 Mode production
-2025-11-12 21:00:10,451 - uvicorn.error - INFO - Started server process [204905]
-2025-11-12 21:00:10,451 - uvicorn.error - INFO - Waiting for application startup.
-2025-11-12 21:00:10,483 - Inventaire-Robot - INFO - ✅ Connexion PostgreSQL réussie
-2025-11-12 21:00:10,491 - Inventaire-Robot - INFO - ✅ 911 Pièce trouvés
-2025-11-12 21:00:10,493 - uvicorn.error - INFO - Application startup complete.
-2025-11-12 21:00:10,493 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-11-13 13:18:54,805 - Inventaire-Robot - INFO - \u2705 Frontend SPA configur�
+2025-11-13 13:18:54,805 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2025-11-13 13:18:54,872 - uvicorn.error - INFO - Started server process [40136]
+2025-11-13 13:18:54,872 - uvicorn.error - INFO - Waiting for application startup.
+2025-11-13 13:18:55,040 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL r�ussie
+2025-11-13 13:18:55,044 - Inventaire-Robot - INFO - \u2705 943 Pi�ce trouv�s
+2025-11-13 13:18:55,045 - uvicorn.error - INFO - Application startup complete.
+2025-11-13 13:18:55,046 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-11-13 15:56:09,053 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=2032&cx=&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=1 "HTTP/1.1 400 Bad Request"
+2025-11-13 15:56:09,135 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=3561&cx=&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=1 "HTTP/1.1 400 Bad Request"
+2025-11-13 15:56:09,617 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=208247&cx=&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=1 "HTTP/1.1 400 Bad Request"
+2025-11-13 15:56:22,540 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=3561&cx=&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=1 "HTTP/1.1 400 Bad Request"
+2025-11-13 15:56:22,550 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=2032&cx=&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=1 "HTTP/1.1 400 Bad Request"
+2025-11-13 15:56:22,620 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=208247&cx=&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=1 "HTTP/1.1 400 Bad Request"
