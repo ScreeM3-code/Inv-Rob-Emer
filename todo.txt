@@ -2,3 +2,15 @@ rapports
 
 pouvoir modifier la qté par default des pieces dans groupe
 
+CREATE TABLE "Soumissions" (
+    "RefSoumission" SERIAL PRIMARY KEY,
+    "DateEnvoi" TIMESTAMP DEFAULT NOW(),
+    "RéfFournisseur" INTEGER REFERENCES "Fournisseurs"("RéfFournisseur") ON DELETE SET NULL,
+    "EmailsDestinataires" TEXT, -- Liste des emails séparés par virgule
+    "Sujet" TEXT,
+    "MessageCorps" TEXT,
+    "Pieces" JSONB, -- Array des pièces avec leur info
+    "User" TEXT,
+    "Notes" TEXT,
+    "Created" TIMESTAMP DEFAULT NOW()
+);
