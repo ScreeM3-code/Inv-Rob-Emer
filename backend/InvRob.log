@@ -1,15 +1,8 @@
-2025-11-12 13:20:48,227 - Inventaire-Robot - INFO - \u2705 Frontend SPA configurÈ
-2025-11-12 13:20:48,228 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2025-11-12 13:20:48,316 - uvicorn.error - INFO - Started server process [30832]
-2025-11-12 13:20:48,316 - uvicorn.error - INFO - Waiting for application startup.
-2025-11-12 13:20:48,444 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL rÈussie
-2025-11-12 13:20:48,465 - Inventaire-Robot - INFO - \u2705 945 PiËce trouvÈs
-2025-11-12 13:20:48,466 - uvicorn.error - INFO - Application startup complete.
-2025-11-12 13:20:48,466 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-2025-11-12 14:27:34,153 - uvicorn.error - WARNING - Invalid HTTP request received.
-2025-11-12 14:27:34,153 - uvicorn.error - WARNING - Invalid HTTP request received.
-2025-11-13 08:00:06,690 - uvicorn.error - INFO - Shutting down
-2025-11-13 08:00:06,798 - uvicorn.error - INFO - Waiting for application shutdown.
-2025-11-13 08:00:06,798 - Inventaire-Robot - INFO - Pool PostgreSQL fermÈ.
-2025-11-13 08:00:06,798 - uvicorn.error - INFO - Application shutdown complete.
-2025-11-13 08:00:06,798 - uvicorn.error - INFO - Finished server process [30832]
+2025-11-12 21:00:10,434 - Inventaire-Robot - WARNING - ‚ö†Ô∏è Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
+2025-11-12 21:00:10,434 - Inventaire-Robot - INFO - üöÄ Mode production
+2025-11-12 21:00:10,451 - uvicorn.error - INFO - Started server process [204905]
+2025-11-12 21:00:10,451 - uvicorn.error - INFO - Waiting for application startup.
+2025-11-12 21:00:10,483 - Inventaire-Robot - INFO - ‚úÖ Connexion PostgreSQL r√©ussie
+2025-11-12 21:00:10,491 - Inventaire-Robot - INFO - ‚úÖ 911 Pi√®ce trouv√©s
+2025-11-12 21:00:10,493 - uvicorn.error - INFO - Application startup complete.
+2025-11-12 21:00:10,493 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
