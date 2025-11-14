@@ -254,7 +254,7 @@ function Historique() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead className="w-40">Date</TableHead>
+                    <TableHead className="w-20">Date</TableHead>
                     <TableHead>Opération</TableHead>
                     <TableHead>Pièce</TableHead>
                     <TableHead>N° Pièce</TableHead>
@@ -274,7 +274,7 @@ function Historique() {
                   ) : (
                     displayedItems.map((item, index) => (
                       <TableRow key={item.id || index}>
-                        <TableCell className="font-medium whitespace-nowrap w-40">
+                        <TableCell className="font-medium whitespace-nowrap w-20">
                           {formatDate(item.DateCMD || item.DateRecu)}
                         </TableCell>
                         <TableCell>
@@ -289,7 +289,7 @@ function Historique() {
                           {item.qtécommande || item.QtéSortie || 'N/A'}
                         </TableCell>
                         <TableCell>{item.User || 'Système'}</TableCell>
-                        <TableCell className="font-medium whitespace-nowrap w-40">
+                        <TableCell className="font-medium whitespace-nowrap w-20">
                           {formatDelai(item.Delais)}
                         </TableCell>
                       </TableRow>

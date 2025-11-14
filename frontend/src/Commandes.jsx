@@ -198,6 +198,7 @@ const handleUpdateOrder = async (updatedPiece, isNewOrder = false) => {
                   onViewHistory={handleViewHistory}
                   onEdit={() => setEditingOrder(order)}
                   onOrder={() => setGoOrder(order)}
+                  onRefresh={() => loadData(currentPage)}
                 />
               );
             })

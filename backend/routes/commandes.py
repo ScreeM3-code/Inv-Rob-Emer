@@ -230,24 +230,26 @@ async def receive_all_order(
         # 3. Mettre à jour l'historique (avec gestion d'erreur)
         try:
             await conn.execute("""
-                UPDATE "historique"
-                SET "DateRecu" = $1,
-                    "Delais" = CASE 
-                        WHEN "DateCMD" IS NOT NULL 
-                        THEN EXTRACT(EPOCH FROM ($1 - "DateCMD")) / 86400
-                        ELSE NULL
-                    END
-                WHERE "RéfPièce" = $2
-                  AND ("Opération" = 'Commande' OR "Opération" = 'Achat')
-                  AND "DateRecu" IS NULL
-                  AND id = (
-                    SELECT id FROM "historique"
+                    UPDATE "historique"
+                    SET "DateRecu" = $1,
+                            -- Comme "DateCMD" est un type DATE (sans heure), calculer le délai
+                            -- en jours en convertissant $1 en DATE puis en faisant la soustraction
+                            "Delais" = CASE
+                                    WHEN "DateCMD" IS NOT NULL
+                                    THEN ($1::date - "DateCMD")
+                                    ELSE NULL
+                            END
                     WHERE "RéfPièce" = $2
-                      AND ("Opération" = 'Commande' OR "Opération" = 'Achat')
-                      AND "DateRecu" IS NULL
-                    ORDER BY COALESCE("DateCMD", '1970-01-01') DESC
-                    LIMIT 1
-                  );
+                        AND ("Opération" = 'Commande' OR "Opération" = 'Achat')
+                        AND "DateRecu" IS NULL
+                        AND id = (
+                            SELECT id FROM "historique"
+                            WHERE "RéfPièce" = $2
+                                AND ("Opération" = 'Commande' OR "Opération" = 'Achat')
+                                AND "DateRecu" IS NULL
+                            ORDER BY COALESCE("DateCMD", '1970-01-01') DESC
+                            LIMIT 1
+                        );
             """, now, piece_id)
         except Exception as hist_error:
             print(f"⚠️ Erreur mise à jour historique (non bloquant): {hist_error}")

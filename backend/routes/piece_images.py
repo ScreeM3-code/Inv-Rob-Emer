@@ -5,6 +5,8 @@ from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse
 import asyncpg
 from typing import Optional
+from config import GOOGLE_API_KEY, GOOGLE_CSE_ID
+import httpx
 
 from database import get_db_connection
 from config import BASE_DIR
@@ -18,6 +20,34 @@ UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 # Image placeholder par défaut
 PLACEHOLDER_PATH = BASE_DIR / "static" / "placeholder_piece.png"
 
+
+async def search_image_google(search_term: str):
+    """Recherche une image via Google Custom Search API"""
+
+    if not GOOGLE_API_KEY or not GOOGLE_CSE_ID:
+        return None
+
+    url = "https://www.googleapis.com/customsearch/v1"
+    params = {
+        "q": search_term,
+        "cx": GOOGLE_CSE_ID,  # ✅ Maintenant rempli
+        "key": GOOGLE_API_KEY,
+        "searchType": "image",
+        "imgSize": "medium",
+        "num": 1
+    }
+    async with httpx.AsyncClient() as client:
+        try:
+            response = await client.get(url, params=params)
+            response.raise_for_status()
+            data = response.json()
+
+            if data.get("items") and len(data["items"]) > 0:
+                return data["items"][0]["link"]
+        except Exception as e:
+            print(f"❌ Erreur recherche Google: {e}")
+
+    return None
 
 @router.post("/{piece_id}/upload-image")
 async def upload_piece_image(

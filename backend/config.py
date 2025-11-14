@@ -39,6 +39,8 @@ DATABASE_URL = f"postgresql://{POSTGRES_USER}:{POSTGRES_PASSWORD}@{POSTGRES_HOST
 
 # Configuration CORS
 CORS_ORIGINS = os.environ.get('CORS_ORIGINS', '*').split(',')
+GOOGLE_API_KEY = os.environ.get('GOOGLE_API_KEY', '')
+GOOGLE_CSE_ID = os.environ.get('GOOGLE_CSE_ID', '')
 
 # Debug paths
 print(f"=" * 50)

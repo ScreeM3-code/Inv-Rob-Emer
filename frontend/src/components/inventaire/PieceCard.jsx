@@ -81,7 +81,7 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
     try {
       const response = await fetch(`${API}/pieces/${piece.RéfPièce}/search-urls`);
       const data = await response.json();
-      
+
       if (data.search_urls && data.search_urls.length > 0) {
         // Ouvrir la première URL de recherche
         window.open(data.search_urls[0].url, '_blank');
@@ -94,131 +94,102 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
   };
 
   const handleToggleGroupe = async (groupeId, e) => {
-    e.stopPropagation(); // ← Empêche la propagation
+    e?.stopPropagation();
     const isInGroupe = pieceGroupes?.some(pg => pg.RefGroupe === groupeId);
-    
     if (isInGroupe) {
-      // Retirer du groupe
       const groupePiece = pieceGroupes.find(pg => pg.RefGroupe === groupeId);
-      if (groupePiece?.id) {
-        await onRemoveFromGroupe(groupePiece.id);
-      }
+      if (groupePiece?.id) await onRemoveFromGroupe(groupePiece.id);
     } else {
-      // Ajouter au groupe avec la quantité sélectionnée
       await onAddToGroupe(piece.RéfPièce, groupeId, selectedQty);
     }
   };
 
-  // Grouper par catégorie
-  const groupesParCategorie = groupes.reduce((acc, groupe) => {
+  const groupesParCategorie = (groupes || []).reduce((acc, groupe) => {
     const catName = groupe.categorie?.NomCategorie || 'Sans catégorie';
     if (!acc[catName]) acc[catName] = [];
     acc[catName].push(groupe);
     return acc;
   }, {});
 
-
   return (
     <Card className="flex flex-col glass-card hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-      {/* NOUVELLE SECTION IMAGE */}
-      <div className="relative h-48 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 overflow-hidden group">
-        {!imageError ? (
-          <img 
-            src={imageUrl}
-            alt={piece.NomPièce}
-            className="w-full h-full object-contain p-4 transition-transform group-hover:scale-105"
-            onError={() => setImageError(true)}
-          />
-        ) : (
-          <div className="flex items-center justify-center h-full">
-            <Package className="w-20 h-20 text-slate-300 dark:text-slate-600" />
-          </div>
-        )}
-        
-        {/* Overlay avec boutons d'action image */}
-        <div className="absolute inset-0 bg-black bg-opacity-0 group-hover:bg-opacity-40 transition-all flex items-center justify-center opacity-0 group-hover:opacity-100">
-          <div className="flex gap-2">
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={() => fileInputRef.current?.click()}
-              className="hover:bg-slate-100"
-            >
-              <Edit className="w-4 h-4 mr-1" />
-              Upload
-            </Button>
-            {!imageError && (
-              <Button
-                size="sm"
-                variant="secondary"
-                onClick={handleDeleteImage}
-                className="hover:bg-red-50 text-red-600"
-              >
-                <Trash2 className="w-4 h-4" />
-              </Button>
-            )}
-            <Button
-              size="sm"
-              variant="secondary"
-              onClick={openSearchUrls}
-              className="hover:bg-blue-50"
-            >
-              <Search className="w-4 h-4" />
-            </Button>
-          </div>
-        </div>
-        
-        {/* Badge overlay pour statut */}
-        <div className="absolute top-2 right-2">
-          {stockStatus && (
-            <Badge className={`${stockStatus.color}`}>
-              {stockStatus.icon}
-              <span className="ml-1.5">{stockStatus.label}</span>
-            </Badge>
-          )}
-        </div>
-        
-        {/* Input file caché */}
-        <input
-          ref={fileInputRef}
-          type="file"
-          accept="image/*"
-          onChange={handleImageUpload}
-          className="hidden"
-        />
-      </div>
+      {/* Header: title only (badges moved to image area) */}
       <CardHeader>
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg font-bold pr-4">{piece.NomPièce}</CardTitle>
-          <div className="flex flex-col gap-2 flex-shrink-0">
-            {stockStatus && (
-              <Badge className={`${stockStatus.color}`}>
-                {stockStatus.icon}
-                <span className="ml-1.5">{stockStatus.label}</span>
-              </Badge>
+        </div>
+      </CardHeader>
+
+      {/* Image + numbers row */}
+      <div className="h-48 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 overflow-hidden group">
+        <div className="flex h-full">
+          {/* Left: image (50%) */}
+          <div className="w-1/2 relative flex items-center justify-center p-4 bg-white">
+            {!imageError ? (
+              <img src={imageUrl} alt={piece.NomPièce} className="w-full h-full object-contain transition-transform group-hover:scale-105" onError={() => setImageError(true)} />
+            ) : (
+              <div className="flex items-center justify-center h-full">
+                <Package className="w-20 h-20 text-slate-300 dark:text-slate-600" />
+              </div>
             )}
-            {piece.Qtécommandée > 0 && (
-              <Badge className="bg-purple-500 text-white">
-                <Package className="w-3 h-3 mr-1" />
-                En commande ({piece.Qtécommandée})
-              </Badge>
-            )}
+
+            {/* Badges overlay on image section */}
+            <div className="absolute top-3 left-3 flex flex-col gap-2 z-20">
+              {stockStatus && (
+                <Badge className={`${stockStatus.color} flex items-center`}>
+                  {stockStatus.icon}
+                  <span className="ml-1.5 text-xs">{stockStatus.label}</span>
+                </Badge>
+              )}
+              {piece.Qtécommandée > 0 && (
+                <Badge className="bg-purple-500 text-white flex items-center text-xs">
+                  <Package className="w-3 h-3 mr-1" />
+                  En commande ({piece.Qtécommandée})
+                </Badge>
+              )}
+            </div>
+
+            {/* Buttons centered on the image (left half) */}
+            <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
+              <div className="flex gap-2">
+                <Button size="sm" variant="secondary" onClick={() => fileInputRef.current?.click()} className="hover:bg-slate-100">
+                  <Edit className="w-4 h-4 mr-1" />Upload
+                </Button>
+                {!imageError && (
+                  <Button size="sm" variant="secondary" onClick={handleDeleteImage} className="hover:bg-red-50 text-red-600">
+                    <Trash2 className="w-4 h-4" />
+                  </Button>
+                )}
+                <Button size="sm" variant="secondary" onClick={openSearchUrls} className="hover:bg-blue-50">
+                  <Search className="w-4 h-4" />
+                </Button>
+              </div>
+            </div>
+
+            <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
+          </div>
+
+          {/* Right: numbers and identifiers (50%) */}
+          <div className="w-1/2 p-4 flex flex-col justify-center space-y-2">
+            <div className="text-sm text-slate-600 font-mono dark:text-white">FESTO: {piece.NoFESTO || 'N/A'}</div>
+            <div className="text-sm text-slate-600 font-mono dark:text-white">SAP: {piece.RTBS || 'N/A'}</div>
+            <div className="text-sm text-slate-600 font-mono dark:text-white">#Fourn: {piece.NumPièceAutreFournisseur || 'N/A'}</div>
+            <div className="text-sm text-slate-600 font-mono dark:text-white">Réf: {piece.NumPièce || 'N/A'}</div>
           </div>
         </div>
-          {piece.NumPièce && <p className="text-sm text-slate-500 font-mono pt-1">Réf: {piece.NumPièce}</p>}
-          {piece.NumPièceAutreFournisseur && <p className="text-sm text-slate-500 font-mono pt-1">#Fourn: {piece.NumPièceAutreFournisseur}</p>}
-          {piece.RTBS && <p className="text-sm text-slate-500 font-mono pt-1">SAP: {piece.RTBS}</p>}
-          {piece.NoFESTO && <p className="text-sm text-slate-500 font-mono pt-1">FESTO: {piece.NoFESTO}</p>}
+      </div>
 
-        {piece.DescriptionPièce && <CardDescription className="pt-3">{piece.DescriptionPièce}</CardDescription>}
-      </CardHeader>
       <CardContent className="flex-grow space-y-4">
+        {/* Description: placed under the image as requested */}
+        {piece.DescriptionPièce && <p className="text-sm text-slate-600">{piece.DescriptionPièce}</p>}
+
         <div className="grid grid-cols-4 gap-2">
           <StatItem label="Stock" value={piece.QtéenInventaire} />
           <StatItem label="Min." value={piece.Qtéminimum} />
           <StatItem label="Max." value={piece.Qtémax} />
           <StatItem label="Prix" value={piece.Prix_unitaire?.toFixed(2) || '0.00'} isPrice />
         </div>
+
         <div className="space-y-2 text-sm border-t pt-4">
           <div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-blue-500" /> <strong>Fournisseur:</strong> {fournisseur?.NomFournisseur || 'N/A'}</div>
           <div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-gray-400" /> <strong>Autre Fourn.:</strong> {autreFournisseur?.NomFournisseur || 'N/A'}</div>
@@ -226,47 +197,21 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
           <div className="flex items-center gap-2"><Warehouse className="w-4 h-4 text-blue-500" /> <strong>Lieu:</strong> {piece.Lieuentreposage || 'N/A'}</div>
         </div>
       </CardContent>
+
       <CardFooter className="border-t p-3 flex justify-between items-center">
         <div className="flex items-center gap-2">
-          <Button 
-            variant="outline" 
-            size="icon"
-            onClick={() => onQuickRemove(qrQty)}
-            className="border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600"
-            title={`Sortir ${qrQty} pièce(s) du stock`}
-          >
+          <Button variant="outline" size="icon" onClick={() => onQuickRemove(qrQty)} className="border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600" title={`Sortir ${qrQty} pièce(s) du stock`}>
             <Minus className="w-5 h-5" />
           </Button>
-          <Input
-            type="number"
-            min="1"
-            max={piece.QtéenInventaire}
-            value={qrQty}
-            onChange={(e) => {
-              const v = parseInt(e.target.value || '1', 10);
-              const n = isNaN(v) ? 1 : v;
-              setQrQty(Math.max(1, Math.min(n, piece.QtéenInventaire || 1)));
-            }}
-            className="w-20 h-8"
-          />
+          <Input type="number" min="1" max={piece.QtéenInventaire} value={qrQty} onChange={(e) => { const v = parseInt(e.target.value || '1', 10); const n = isNaN(v) ? 1 : v; setQrQty(Math.max(1, Math.min(n, piece.QtéenInventaire || 1))); }} className="w-20 h-8" />
         </div>
 
         <div className="flex items-center gap-2">
-          {/* ← NOUVEAU BOUTON GROUPES */}
           <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
             <PopoverTrigger asChild>
-              <Button 
-                variant="outline" 
-                size="sm"
-                className="border-blue-500 text-blue-500 hover:bg-blue-50 relative"
-              >
-                <Layers className="w-4 h-4 mr-2" />
-                Groupes
-                {pieceGroupes?.length > 0 && (
-                  <Badge className="ml-2 bg-blue-500 text-white h-5 min-w-5 flex items-center justify-center">
-                    {pieceGroupes.length}
-                  </Badge>
-                )}
+              <Button variant="outline" size="sm" className="border-blue-500 text-blue-500 hover:bg-blue-50 relative">
+                <Layers className="w-4 h-4 mr-2" /> Groupes
+                {pieceGroupes?.length > 0 && (<Badge className="ml-2 bg-blue-500 text-white h-5 min-w-5 flex items-center justify-center">{pieceGroupes.length}</Badge>)}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-96 max-h-[500px] overflow-y-auto" align="end">
@@ -275,52 +220,25 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
                   <h4 className="font-semibold text-sm">Ajouter à un groupe</h4>
                   <div className="flex items-center gap-2">
                     <Label className="text-xs text-slate-600">Qté:</Label>
-                    <Input
-                      type="number"
-                      min="1"
-                      value={selectedQty}
-                      onChange={(e) => setSelectedQty(Math.max(1, parseInt(e.target.value) || 1))}
-                      className="w-16 h-8"
-                    />
+                    <Input type="number" min="1" value={selectedQty} onChange={(e) => setSelectedQty(Math.max(1, parseInt(e.target.value) || 1))} className="w-16 h-8" />
                   </div>
                 </div>
-
-                {Object.keys(groupesParCategorie).length === 0 ? (
-                  <p className="text-sm text-gray-500">Aucun groupe disponible</p>
-                ) : (
+                {Object.keys(groupesParCategorie).length === 0 ? (<p className="text-sm text-gray-500">Aucun groupe disponible</p>) : (
                   <div className="space-y-3">
                     {Object.entries(groupesParCategorie).map(([categorie, groupesList]) => (
                       <div key={categorie} className="space-y-2">
-                        <h5 className="text-xs font-semibold text-slate-500 uppercase tracking-wide border-b pb-1">
-                          {categorie}
-                        </h5>
+                        <h5 className="text-xs font-semibold text-slate-500 uppercase tracking-wide border-b pb-1">{categorie}</h5>
                         <div className="space-y-1">
                           {groupesList.map(groupe => {
                             const isInGroupe = pieceGroupes?.some(pg => pg.RefGroupe === groupe.RefGroupe);
                             return (
-                              <Button
-                                key={groupe.RefGroupe}
-                                variant={isInGroupe ? "default" : "outline"}
-                                className={`w-full justify-start text-left h-auto py-2 ${
-                                  isInGroupe 
-                                    ? 'bg-green-500 hover:bg-green-600 text-white' 
-                                    : 'hover:bg-blue-50'
-                                }`}
-                                size="sm"
-                                onClick={(e) => handleToggleGroupe(groupe.RefGroupe, e)} // ← Ajoute (e)
-                              >
+                              <Button key={groupe.RefGroupe} variant={isInGroupe ? "default" : "outline"} className={`w-full justify-start text-left h-auto py-2 ${isInGroupe ? 'bg-green-500 hover:bg-green-600 text-white' : 'hover:bg-blue-50'}`} size="sm" onClick={(e) => handleToggleGroupe(groupe.RefGroupe, e)}>
                                 <div className="flex items-center justify-between w-full gap-2">
                                   <div className="flex items-center gap-2 flex-1 min-w-0">
-                                    {isInGroupe ? (
-                                      <Check className="w-4 h-4 flex-shrink-0" />
-                                    ) : (
-                                      <Layers className="w-4 h-4 flex-shrink-0" />
-                                    )}
+                                    {isInGroupe ? (<Check className="w-4 h-4 flex-shrink-0" />) : (<Layers className="w-4 h-4 flex-shrink-0" />)}
                                     <span className="truncate">{groupe.NomGroupe}</span>
                                   </div>
-                                  {isInGroupe && (
-                                    <X className="w-4 h-4 flex-shrink-0 opacity-70 hover:opacity-100" />
-                                  )}
+                                  {isInGroupe && (<X className="w-4 h-4 flex-shrink-0 opacity-70 hover:opacity-100" />)}
                                 </div>
                               </Button>
                             );
@@ -334,12 +252,8 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
             </PopoverContent>
           </Popover>
 
-          <Button variant="ghost" size="icon" onClick={onDelete}>
-            <Trash2 className="w-4 h-4 text-red-500" />
-          </Button>
-          <Button variant="outline" size="sm" onClick={onEdit}>
-            <Edit className="w-4 h-4 mr-2" />
-          </Button>
+          <Button variant="ghost" size="icon" onClick={onDelete}><Trash2 className="w-4 h-4 text-red-500" /></Button>
+          <Button variant="outline" size="sm" onClick={onEdit}><Edit className="w-4 h-4 mr-2" /></Button>
         </div>
       </CardFooter>
     </Card>

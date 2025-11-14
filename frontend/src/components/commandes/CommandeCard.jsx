@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
@@ -14,8 +14,14 @@ export default function CommandeCard({
   onAddToCart, 
   onViewHistory, 
   onEdit, 
-  onOrder 
+  onOrder,
+  onRefresh
 }) {
+  const [soumDem, setSoumDem] = useState(order.SoumDem === true || order.SoumDem === "true");
+
+  useEffect(() => {
+    setSoumDem(order.SoumDem === true || order.SoumDem === "true");
+  }, [order.SoumDem]);
   return (
     <Card className="hover:shadow-md transition-shadow">
       <CardContent className="p-6">
@@ -30,24 +36,26 @@ export default function CommandeCard({
                   <button
                     onClick={async (e) => {
                       e.stopPropagation();
-                      const newValue = !(order.SoumDem === true || order.SoumDem === "true");
-                      
+                      const newValue = !soumDem;
                       try {
                         await fetchJson(`${API_URL}/pieces/${order.RéfPièce}`, {
                           method: 'PUT',
                           headers: { 'Content-Type': 'application/json' },
                           body: JSON.stringify({ SoumDem: newValue })
                         });
-                        
-                        // Recharger la page ou mettre à jour l'état local
-                        window.location.reload();
+
+                        // Mettre à jour l'état local pour ré-render seulement la card
+                        setSoumDem(newValue);
+
+                        // Si le parent souhaite rafraîchir la liste, appeler le callback
+                        if (typeof onRefresh === 'function') onRefresh();
                       } catch (error) {
                         alert('Erreur lors de la mise à jour: ' + error.message);
                       }
                     }}
                     className="transition-all hover:scale-105"
                   >
-                    {order.SoumDem === true || order.SoumDem === "true" ? (
+                    {soumDem ? (
                       <Badge className="bg-green-500 text-white flex items-center gap-1 cursor-pointer hover:bg-green-600">
                         <CheckCircle className="w-3 h-3" />
                         Soumission demandée
