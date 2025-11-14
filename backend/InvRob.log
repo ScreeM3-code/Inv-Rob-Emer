@@ -1,8 +1,14 @@
-2025-11-14 11:02:20,256 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
-2025-11-14 11:02:20,257 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2025-11-14 11:02:20,398 - uvicorn.error - INFO - Started server process [39712]
-2025-11-14 11:02:20,398 - uvicorn.error - INFO - Waiting for application startup.
-2025-11-14 11:02:20,526 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2025-11-14 11:02:20,531 - Inventaire-Robot - INFO - \u2705 943 Pièce trouvés
-2025-11-14 11:02:20,532 - uvicorn.error - INFO - Application startup complete.
-2025-11-14 11:02:20,533 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-11-14 15:30:40,693 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
+2025-11-14 15:30:40,693 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2025-11-14 15:30:40,828 - uvicorn.error - INFO - Started server process [41316]
+2025-11-14 15:30:40,828 - uvicorn.error - INFO - Waiting for application startup.
+2025-11-14 15:30:40,956 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2025-11-14 15:30:40,960 - Inventaire-Robot - INFO - \u2705 943 Pièce trouvés
+2025-11-14 15:30:40,961 - uvicorn.error - INFO - Application startup complete.
+2025-11-14 15:30:40,962 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-11-14 15:30:48,769 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=FESTO+547578&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 429 Too Many Requests"
+2025-11-14 15:30:49,067 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=FESTO+547578&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 429 Too Many Requests"
+2025-11-14 15:34:56,653 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=FESTO+547578&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 429 Too Many Requests"
+2025-11-14 15:34:56,943 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=FESTO+547578&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 429 Too Many Requests"
+2025-11-14 15:41:22,211 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=FESTO+547578&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 429 Too Many Requests"
+2025-11-14 15:41:22,488 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=FESTO+547578&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 429 Too Many Requests"

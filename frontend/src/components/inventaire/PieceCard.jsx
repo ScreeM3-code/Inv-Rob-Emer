@@ -7,6 +7,7 @@ import { Input } from "@/components/ui/input";
 import { AlertTriangle, Edit, Package, Trash2, Building2, Factory, Warehouse, Minus, CircleCheck, Check, Layers, X, Search } from "lucide-react";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
+import ImageSelector from './ImageSelector';
 
 const API = import.meta.env.VITE_BACKEND_URL + '/api';
 
@@ -26,6 +27,7 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
   const [isPopoverOpen, setIsPopoverOpen] = React.useState(false);
   const [imageError, setImageError] = React.useState(false);
   const [showImageMenu, setShowImageMenu] = React.useState(false);
+  const [showImageSelector, setShowImageSelector] = useState(false);
   const imageUrl = `${API}/pieces/${piece.RéfPièce}/image`;
   const fileInputRef = React.useRef(null);
 
@@ -77,20 +79,8 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
     }
   };
 
-  const openSearchUrls = async () => {
-    try {
-      const response = await fetch(`${API}/pieces/${piece.RéfPièce}/search-urls`);
-      const data = await response.json();
-
-      if (data.search_urls && data.search_urls.length > 0) {
-        // Ouvrir la première URL de recherche
-        window.open(data.search_urls[0].url, '_blank');
-      } else {
-        alert('Aucun numéro de pièce disponible pour la recherche');
-      }
-    } catch (error) {
-      console.error('Erreur:', error);
-    }
+  const openSearchUrls = () => {
+    setShowImageSelector(true);
   };
 
   const handleToggleGroupe = async (groupeId, e) => {
@@ -256,6 +246,22 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
           <Button variant="outline" size="sm" onClick={onEdit}><Edit className="w-4 h-4 mr-2" /></Button>
         </div>
       </CardFooter>
+      {/* Dialog sélection d'image */}
+      {showImageSelector && (
+        <ImageSelector
+          pieceId={piece.RéfPièce}
+          pieceName={piece.NomPièce}
+          onClose={() => setShowImageSelector(false)}
+          onImageSaved={() => {
+            // Recharger l'image
+            setImageError(false);
+            const img = document.querySelector(`img[alt="${piece.NomPièce}"]`);
+            if (img) {
+              img.src = `${imageUrl}?t=${Date.now()}`;
+            }
+          }}
+        />
+      )}
     </Card>
   );
 }
