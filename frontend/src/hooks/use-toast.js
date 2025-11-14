@@ -2,8 +2,11 @@
 // Inspired by react-hot-toast library
 import * as React from "react"
 
-const TOAST_LIMIT = 1
-const TOAST_REMOVE_DELAY = 1000000
+const TOAST_LIMIT = 3
+// Time (ms) to wait after dismiss before removing the toast from state
+const TOAST_REMOVE_DELAY = 500
+// Visible duration (ms) for toasts before auto-dismiss
+const TOAST_VISIBLE_DURATION = 3000
 
 const actionTypes = {
   ADD_TOAST: "ADD_TOAST",
@@ -124,6 +127,15 @@ function toast({
       },
     },
   })
+
+  // Auto-dismiss after the configured visible duration
+  try {
+    setTimeout(() => {
+      dispatch({ type: "DISMISS_TOAST", toastId: id })
+    }, TOAST_VISIBLE_DURATION)
+  } catch (e) {
+    // ignore
+  }
 
   return {
     id: id,

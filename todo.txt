@@ -2,13 +2,15 @@ rapports
 
 pouvoir modifier la qté par default des pieces dans groupe
 Historique des avec ok commande recu sur chaque pièces + filtre / recherche
-reload de soumission demandé dans commande trop gros pour rien sa relaod lapage au complet 
-delais marche pas 
+
+delais marche pas /// a vérifier 
+
 Stat stock critique donne pas le bon #
-heure dans histrorique commande a enlever
+
+
 il a un fuck dans mes fournisseur et fournisseur autres les nom fite pas avec les # p-e revenir comme la gestion des contact
+
 historique rechercher pas # de pieces fournisseur
-image pièces mettre nom en haut / 50% gauche photo et droit # fournisseur/ fab
 
 
 ALTER TABLE "Pièce" 

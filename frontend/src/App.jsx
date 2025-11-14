@@ -10,6 +10,8 @@ import { Plus, Package, Loader2, AlertTriangle, Search, DollarSign } from "lucid
 import { useNavigate } from "react-router-dom";
 import PieceEditDialog from "@/components/inventaire/PieceEditDialog";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
+import { Toaster } from "@/components/ui/toaster";
+import { toast } from "@/hooks/use-toast";
 
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -252,6 +254,17 @@ function Dashboard () {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(historyEntry),
       });
+
+      // Afficher une confirmation toast
+      try {
+        toast({
+          title: 'Sortie rapide',
+          description: `${amount} pièce(s) retirée(s) : ${piece.NomPièce}`,
+        });
+      } catch (tErr) {
+        // ne bloque pas si le toast n'est pas disponible
+        console.warn('Toast error:', tErr);
+      }
     } catch (error) {
       console.error("Erreur lors de la sortie rapide:", error);
       if (originalPiece) {
@@ -398,7 +411,8 @@ function Dashboard () {
  
    return (
     <div className="min-h-screen from-slate-50 via-blue-50 to-indigo-50">
-      <AnimatedBackground /> 
+      <AnimatedBackground />
+      <Toaster />
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         {/* Stats */}
         {/* Header avec bouton d'ajout */}
