@@ -34,7 +34,9 @@ export default function SoumissionsHistorique() {
   const loadSoumissions = async () => {
     try {
       setLoading(true);
-      const data = await fetchJson(`${API_URL}/soumissions`);
+      // Force un nouveau fetch sans cache
+      const data = await fetchJson(`${API_URL}/soumissions?t=${Date.now()}`);
+      console.log('📊 Soumissions chargées:', data); // ← DEBUG
       setSoumissions(data || []);
     } catch (error) {
       console.error('Erreur chargement soumissions:', error);
@@ -58,12 +60,20 @@ export default function SoumissionsHistorique() {
 
   const handleStatutChange = async (soumissionId, newStatut) => {
     try {
-      await fetchJson(`${API_URL}/soumissions/${soumissionId}/statut?statut=${encodeURIComponent(newStatut)}`, {
-        method: 'PUT'
-      });
+      console.log(`🔄 Changement statut: ${soumissionId} → ${newStatut}`); // ← DEBUG
+      
+      const response = await fetchJson(
+        `${API_URL}/soumissions/${soumissionId}/statut?statut=${encodeURIComponent(newStatut)}`,
+        { method: 'PUT' }
+      );
+      
+      console.log('✅ Réponse backend:', response); // ← DEBUG
+      
+      // Recharger les données
       await loadSoumissions();
+      
     } catch (error) {
-      console.error('Erreur changement statut:', error);
+      console.error('❌ Erreur changement statut:', error);
       alert('Erreur: ' + error.message);
     }
   };
@@ -75,8 +85,6 @@ export default function SoumissionsHistorique() {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
-        hour: '2-digit',
-        minute: '2-digit'
       });
     } catch {
       return 'N/A';
@@ -201,55 +209,111 @@ export default function SoumissionsHistorique() {
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
-                  <TableBody>
-                    {filteredSoumissions.map((soumission) => (
-                      <TableRow key={soumission.RefSoumission}>
-                        <TableCell className="font-medium">
-                          {formatDate(soumission.DateEnvoi)}
-                        </TableCell>
-                        <TableCell>
-                          <Badge variant="outline" className="text-blue-600 border-blue-600">
-                            {soumission.fournisseur_nom || 'N/A'}
-                          </Badge>
-                        </TableCell>
-                        <TableCell>
-                          <Badge>{soumission.Pieces?.length || 0} pièce(s)</Badge>
-                        </TableCell>
-                        <TableCell>
-                          {/* Dropdown pour changer le statut */}
-                          {StatutBadge  && (
-                              <Badge className={`${StatutBadge.color} flex items-center`}>
-                                <span className="ml-1.5 text-xs">{StatutBadge.label}</span>
-                              </Badge>
+                <TableBody>
+                  {filteredSoumissions.map((soumission) => (
+                    <TableRow key={soumission.RefSoumission}>
+                      <TableCell className="font-medium">
+                        {formatDate(soumission.DateEnvoi)}
+                      </TableCell>
+                      <TableCell>
+                        <Badge variant="outline" className="text-blue-600 border-blue-600">
+                          {soumission.fournisseur_nom || 'N/A'}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <Badge>{soumission.Pieces?.length || 0} pièce(s)</Badge>
+                      </TableCell>
+                      
+                      {/* Badge statut */}
+                      <TableCell>
+                        {soumission.Statut === 'Envoyée' && (
+                          <Badge className="bg-blue-500 text-white">📤 Envoyée</Badge>
+                        )}
+                        {soumission.Statut === 'Prix reçu' && (
+                          <Badge className="bg-green-500 text-white">💰 Prix reçu</Badge>
+                        )}
+                        {soumission.Statut === 'Commandée' && (
+                          <Badge className="bg-purple-500 text-white">✅ Commandée</Badge>
+                        )}
+                        {soumission.Statut === 'Annulée' && (
+                          <Badge className="bg-red-500 text-white">❌ Annulée</Badge>
+                        )}
+                        {!soumission.Statut && (
+                          <Badge className="bg-blue-500 text-white">📤 Envoyée</Badge>
+                        )}
+                      </TableCell>
+                      
+                      <TableCell className="text-sm text-gray-500">
+                        {soumission.DateReponse ? formatDate(soumission.DateReponse) : '-'}
+                      </TableCell>
+                      <TableCell>{soumission.User || 'N/A'}</TableCell>
+                      
+                      {/* Actions */}
+                      <TableCell className="text-right">
+                        <div className="flex justify-end gap-2 flex-wrap">
+                          {/* Bouton Gérer (ouvre le dialog détaillé) */}
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setSelectedSoumission(soumission)}
+                          >
+                            <Edit className="w-4 h-4 mr-2" />
+                            Gérer
+                          </Button>
+                          
+                          {/* Boutons de changement de statut rapide */}
+                          {soumission.Statut === 'Envoyée' && (
+                            <>
+                              <Button
+                                size="sm"
+                                className="bg-green-600 hover:bg-green-700 text-white"
+                                onClick={async () => {
+                                  await handleStatutChange(soumission.RefSoumission, 'Prix reçu');
+                                }}
+                              >
+                                💰 Prix reçu
+                              </Button>
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                className="border-red-500 text-red-500 hover:bg-red-50"
+                                onClick={async () => {
+                                  if (confirm('Annuler cette soumission ?')) {
+                                    await handleStatutChange(soumission.RefSoumission, 'Annulée');
+                                  }
+                                }}
+                              >
+                                ❌ Annuler
+                              </Button>
+                            </>
                           )}
-                        </TableCell>
-                        <TableCell className="text-sm text-gray-500">
-                          {soumission.DateReponse ? formatDate(soumission.DateReponse) : '-'}
-                        </TableCell>
-                        <TableCell>{soumission.User || 'N/A'}</TableCell>
-                        <TableCell className="text-right">
-                          <div className="flex justify-end gap-2">
+                          
+                          {soumission.Statut === 'Prix reçu' && (
                             <Button
                               size="sm"
-                              variant="outline"
-                              onClick={() => setSelectedSoumission(soumission)}
+                              className="bg-purple-600 hover:bg-purple-700 text-white"
+                              onClick={async () => {
+                                await handleStatutChange(soumission.RefSoumission, 'Commandée');
+                              }}
                             >
-                              <Edit className="w-4 h-4 mr-2" />
-                              Gérer
+                              ✅ Commander
                             </Button>
-                            <Button
-                              size="sm"
-                              variant="ghost"
-                              onClick={() => handleDelete(soumission.RefSoumission)}
-                              className="text-red-600 hover:text-red-700"
-                            >
-                              <Trash2 className="w-4 h-4" />
-                            </Button>
-                          </div>
-                        </TableCell>
-                      </TableRow>
-                    ))}
-                  </TableBody>
+                          )}
+                          
+                          {/* Bouton Supprimer (toujours visible) */}
+                          <Button
+                            size="sm"
+                            variant="ghost"
+                            onClick={() => handleDelete(soumission.RefSoumission)}
+                            className="text-red-600 hover:text-red-700"
+                          >
+                            <Trash2 className="w-4 h-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  ))}
+                </TableBody>  
                 </Table>
               </div>
             )}

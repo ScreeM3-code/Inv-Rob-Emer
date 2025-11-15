@@ -75,90 +75,132 @@ function Commandes() {
     }
   };
 
-const handleUpdateOrder = async (updatedPiece, isNewOrder = false) => {
-  try {
-    log('🔄 Mise à jour commande:', updatedPiece);
-    
-    const cleanedOrder = {
-      ...updatedPiece,
-      RéfPièce: updatedPiece.RéfPièce,
-      NomPièce: updatedPiece.NomPièce || "",
-      DescriptionPièce: updatedPiece.DescriptionPièce || "",
-      NumPièce: updatedPiece.NumPièce || "",
-      RéfFournisseur: updatedPiece.RéfFournisseur || null,
-      RéfAutreFournisseur: updatedPiece.RéfAutreFournisseur || null,
-      NumPièceAutreFournisseur: updatedPiece.NumPièceAutreFournisseur || "",
-      RefFabricant: updatedPiece.RefFabricant || null,
-      Lieuentreposage: updatedPiece.Lieuentreposage || "",
-      QtéenInventaire: updatedPiece.QtéenInventaire ?? 0,
-      Qtéminimum: updatedPiece.Qtéminimum ?? 0,
-      Qtémax: updatedPiece.Qtémax ?? 100,
-      Prix_unitaire: updatedPiece.Prix_unitaire ?? 0,
-      Soumission_LD: updatedPiece.Soumission_LD || "",
-      Qtécommandée: updatedPiece.Qtécommandée ?? 0,
-      Qtéreçue: updatedPiece.Qtéreçue ?? 0,
-      Datecommande: updatedPiece.Datecommande || "",
-      Qtéarecevoir: updatedPiece.Qtéarecevoir ?? 0,
-      Cmd_info: updatedPiece.Cmd_info || "",
-      Qtéàcommander: updatedPiece.Qtéàcommander ?? 0,
-    };
-    
-    delete cleanedOrder.NomFabricant;
-    delete cleanedOrder.fournisseur_principal;
-    delete cleanedOrder.autre_fournisseur;
-
-  log('📤 Envoi au backend:', cleanedOrder);
-
-    // 1. Mettre à jour la pièce
-  const updatedData = await fetchJson(`${API}/pieces/${updatedPiece.RéfPièce}`, {
-    method: 'PUT',
-    headers: { 'Content-Type': 'application/json' },
-    body: JSON.stringify(cleanedOrder)
-  });
-  log('✅ Réponse backend (update):', updatedData);
-    
-    // 2. Si c'est une NOUVELLE commande (pas juste une édition), ajouter l'historique
-    if (isNewOrder) {
-      const userData = await fetchJson(`${API}/current-user`);
-      const userName = userData.user || "Système";
+  const handleUpdateOrder = async (updatedPiece, isNewOrder = false) => {
+    try {
+      log('🔄 Mise à jour commande:', updatedPiece);
       
-      const historiqueEntry = {
-        Opération: "Commande",
-        DateCMD: new Date().toISOString(),
-        DateRecu: null,
+      const cleanedOrder = {
+        ...updatedPiece,
         RéfPièce: updatedPiece.RéfPièce,
-        nompiece: updatedPiece.NomPièce,
-        numpiece: updatedPiece.NumPièce,
-        qtécommande: String(updatedPiece.Qtécommandée || 0),
-        QtéSortie: "0",
-        description: updatedPiece.DescriptionPièce || "",
-        User: userName,
-        Delais: null
+        NomPièce: updatedPiece.NomPièce || "",
+        DescriptionPièce: updatedPiece.DescriptionPièce || "",
+        NumPièce: updatedPiece.NumPièce || "",
+        RéfFournisseur: updatedPiece.RéfFournisseur || null,
+        RéfAutreFournisseur: updatedPiece.RéfAutreFournisseur || null,
+        NumPièceAutreFournisseur: updatedPiece.NumPièceAutreFournisseur || "",
+        RefFabricant: updatedPiece.RefFabricant || null,
+        Lieuentreposage: updatedPiece.Lieuentreposage || "",
+        QtéenInventaire: updatedPiece.QtéenInventaire ?? 0,
+        Qtéminimum: updatedPiece.Qtéminimum ?? 0,
+        Qtémax: updatedPiece.Qtémax ?? 100,
+        Prix_unitaire: updatedPiece.Prix_unitaire ?? 0,
+        Soumission_LD: updatedPiece.Soumission_LD || "",
+        Qtécommandée: updatedPiece.Qtécommandée ?? 0,
+        Qtéreçue: updatedPiece.Qtéreçue ?? 0,
+        Datecommande: updatedPiece.Datecommande || "",
+        Qtéarecevoir: updatedPiece.Qtéarecevoir ?? 0,
+        Cmd_info: updatedPiece.Cmd_info || "",
+        Qtéàcommander: updatedPiece.Qtéàcommander ?? 0,
       };
       
-      log('📝 Ajout historique:', historiqueEntry);
-      
-      const histData = await fetchJson(`${API}/historique`, {
-        method: 'POST',
+      delete cleanedOrder.NomFabricant;
+      delete cleanedOrder.fournisseur_principal;
+      delete cleanedOrder.autre_fournisseur;
+
+      log('📤 Envoi au backend:', cleanedOrder);
+
+      // 1. Mettre à jour la pièce
+      const updatedData = await fetchJson(`${API}/pieces/${updatedPiece.RéfPièce}`, {
+        method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(historiqueEntry)
+        body: JSON.stringify(cleanedOrder)
       });
-      log('✅ Réponse backend (historique):', histData);
+      log('✅ Réponse backend (update):', updatedData);
       
-      alert('✅ Commande passée avec succès !');
-    } else {
-      alert('✅ Pièce modifiée avec succès !');
+      // 2. Si c'est une NOUVELLE commande, mettre à jour la soumission
+      if (isNewOrder) {
+        const userData = await fetchJson(`${API}/current-user`);
+        const userName = userData.user || "Système";
+        
+        // Ajouter à l'historique de mouvements (existant)
+        const historiqueEntry = {
+          Opération: "Commande",
+          DateCMD: new Date().toISOString(),
+          DateRecu: null,
+          RéfPièce: updatedPiece.RéfPièce,
+          nompiece: updatedPiece.NomPièce,
+          numpiece: updatedPiece.NumPièce,
+          qtécommande: String(updatedPiece.Qtécommandée || 0),
+          QtéSortie: "0",
+          description: updatedPiece.DescriptionPièce || "",
+          User: userName,
+          Delais: null
+        };
+        
+        log('📝 Ajout historique mouvement:', historiqueEntry);
+        await fetchJson(`${API}/historique`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(historiqueEntry)
+        });
+
+        // ← NOUVEAU : Mettre à jour la soumission associée
+        try {
+          // Trouver la dernière soumission pour cette pièce
+          const soumission = await fetchJson(`${API}/soumissions/piece/${updatedPiece.RéfPièce}/derniere`);
+          
+          if (soumission) {
+            log('🔍 Soumission trouvée:', soumission);
+            
+            // Mettre à jour le statut de la soumission
+            await fetchJson(
+              `${API}/soumissions/${soumission.RefSoumission}/statut-complet?statut=Commandée`,
+              {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  note: updatedPiece.Cmd_info || `Commandée le ${new Date().toLocaleDateString('fr-CA')}`,
+                  date_rappel: null
+                })
+              }
+            );
+            
+            // Enregistrer le prix commandé
+            await fetchJson(`${API}/soumissions/${soumission.RefSoumission}/prix`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                RefSoumission: soumission.RefSoumission,
+                RéfPièce: updatedPiece.RéfPièce,
+                PrixUnitaire: parseFloat(updatedPiece.Prix_unitaire || 0),
+                DelaiLivraison: updatedPiece.delai_livraison || '',
+                Commentaire: `Commande passée - Qté: ${updatedPiece.Qtécommandée}`
+              })
+            });
+            
+            log('✅ Soumission mise à jour en "Commandée"');
+          } else {
+            log('⚠️ Aucune soumission trouvée pour cette pièce');
+          }
+        } catch (soumErr) {
+          console.error('⚠️ Erreur mise à jour soumission (non bloquant):', soumErr);
+          // On ne bloque pas la commande si la mise à jour de la soumission échoue
+        }
+        
+        alert('✅ Commande passée avec succès !');
+      } else {
+        alert('✅ Pièce modifiée avec succès !');
+      }
+      
+      setEditingOrder(null);
+      setGoOrder(null);
+      await loadData(currentPage);
+      
+    } catch (error) {
+      log("❌ Erreur lors de la mise à jour:", error);
+      alert("❌ Erreur: " + error.message);
     }
-    
-    setEditingOrder(null);
-    setGoOrder(null);
-    await loadData(currentPage);
-    
-  } catch (error) {
-    log("❌ Erreur lors de la mise à jour:", error);
-    alert("❌ Erreur: " + error.message);
-  }
-};
+  };
 
    return (
     <div className="min-h-screen flex flex-col">

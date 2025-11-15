@@ -10,6 +10,8 @@ il a un fuck dans mes fournisseur et fournisseur autres les nom fite pas avec le
 
 historique rechercher pas # de pieces fournisseur
 
+fournisseur ajouté champs produit et marque
+
 
 -- Ajoute juste 2 colonnes à la table existante
 ALTER TABLE "Soumissions" 

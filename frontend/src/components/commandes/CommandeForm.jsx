@@ -11,7 +11,8 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
     Prix_unitaire: piece?.Prix_unitaire || 0,
     Datecommande: new Date().toISOString().split('T')[0],
     Cmd_info: "",
-    soumission_LD: ""
+    soumission_LD: "",
+    delai_livraison: "" // ← NOUVEAU
   });
 
     // Debounce pour les champs texte
@@ -52,6 +53,7 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
       Qtécommandée: formData.Qtécommander,
       Qtéarecevoir: formData.Qtécommander,
       Qtéreçue: 0,
+      delai_livraison: formData.delai_livraison // ← PASSE LE DÉLAI
     });
 
     onSave({
@@ -60,6 +62,7 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
       Qtécommandée: formData.Qtécommander,
       Qtéarecevoir: formData.Qtécommander,
       Qtéreçue: 0,
+      delai_livraison: formData.delai_livraison
     });
   };
 
@@ -108,6 +111,14 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
                 type="date"
                   defaultValue={memoizedValues.Datecommande}
                   onChange={(e) => debouncedSetFormData('Datecommande', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Délai de livraison</Label>
+              <Input
+                defaultValue={memoizedValues.delai_livraison}
+                onChange={(e) => debouncedSetFormData('delai_livraison', e.target.value)}
+                placeholder="Ex: 2-3 semaines"
               />
             </div>
             <div>

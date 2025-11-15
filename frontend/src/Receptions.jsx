@@ -5,9 +5,11 @@ import { Badge } from './components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './components/ui/dialog';
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
-import { ClipboardCheck, Package, Truck, AlertCircle, CheckCircle } from 'lucide-react';
+import { ClipboardCheck, Package, Truck, AlertCircle, CheckCircle, FileText } from 'lucide-react';
 import { fetchJson, log } from './lib/utils';
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
+import { useNavigate } from 'react-router-dom';
+import SoumissionsHistoryDialog from '@/components/soumissions/SoumissionsHistoryDialog';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -15,7 +17,9 @@ const API = `${BACKEND_URL}/api`;
 function Receptions() {
   const [receptions, setReceptions] = useState([]);
   const [loading, setLoading] = useState(true);
+  const navigate = useNavigate();
   const [selectedPiece, setSelectedPiece] = useState(null);
+  const [viewingSoumissionsFor, setViewingSoumissionsFor] = useState(null);
   const [partialQuantity, setPartialQuantity] = useState('');
   const [isPartialDialogOpen, setIsPartialDialogOpen] = useState(false);
 
@@ -129,17 +133,13 @@ function Receptions() {
                       <div className="flex-1">
                         <div className="flex items-center space-x-4 mb-4">
                           <div>
-                            <h2 className="font-semibold text-lg">{piece.NomPièce}</h2>
-                            <p className="text-sm text-gray-600">N° {piece.NumPièce}</p>
+                            <h2 className="font-semibold text-lg">{piece.NomPièce}  {getStockBadge(statutStock)} </h2>
+                             <p className="text-sm text-gray-600">N° {piece.NumPièce}</p>
                             {piece.DescriptionPièce && (
                               <p className="text-sm text-gray-500 mt-1">{piece.DescriptionPièce}</p>
                             )}
                           </div>
-                          <div>
-                            {getStockBadge(statutStock)}
-                          </div>
                         </div>
-
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 text-sm">
                           <div>
                             <span className="text-gray-500">Commandée:</span>
@@ -180,7 +180,6 @@ function Receptions() {
                           </div>
                         )}
                       </div>
-
                       <div className="flex flex-col space-y-2 ml-4">
                         <Button
                           onClick={() => handleReceiveTotal(piece.RéfPièce)}
@@ -198,6 +197,16 @@ function Receptions() {
                         >
                           <Truck className="h-4 w-4 mr-2" />
                           Réception partielle
+                        </Button>
+
+                        {/* ← NOUVEAU BOUTON */}
+                        <Button
+                          variant="outline"
+                          onClick={() => setViewingSoumissionsFor(piece)}
+                          className="border-blue-600 text-blue-600 hover:bg-blue-50"
+                        >
+                          <FileText className="h-4 w-4 mr-2" />
+                          Soumissions
                         </Button>
                       </div>
                     </div>
@@ -249,6 +258,12 @@ function Receptions() {
             </DialogFooter>
           </DialogContent>
         </Dialog>
+        {viewingSoumissionsFor && (
+          <SoumissionsHistoryDialog
+            piece={viewingSoumissionsFor}
+            onClose={() => setViewingSoumissionsFor(null)}
+          />
+        )}
       </div>
     </div>
   );

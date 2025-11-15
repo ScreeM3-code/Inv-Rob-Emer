@@ -5,8 +5,10 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Edit3, FileText, PackagePlus, Users, CheckCircle, XCircle, History, MailPlus } from "lucide-react";
 import { fetchJson } from '../../lib/utils';
+import SoumissionsHistoryDialog from '../soumissions/SoumissionsHistoryDialog';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL + '/api';
+
 
 export default function CommandeCard({ 
   order, 
@@ -18,7 +20,7 @@ export default function CommandeCard({
   onRefresh
 }) {
   const [soumDem, setSoumDem] = useState(order.SoumDem === true || order.SoumDem === "true");
-
+  const [showSoumissionsHistory, setShowSoumissionsHistory] = useState(false);
   useEffect(() => {
     setSoumDem(order.SoumDem === true || order.SoumDem === "true");
   }, [order.SoumDem]);
@@ -161,6 +163,17 @@ export default function CommandeCard({
             >
               <History className="h-4 w-4 " />
             </Button>
+            {/* Historique Soumissions */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => setShowSoumissionsHistory(true)}
+              title="Voir les soumissions pour cette pièce"
+              className="border-green-600 text-green-600 hover:bg-green-50"
+            >
+              <FileText className="h-4 w-4 mr-1" />
+              Soumissions
+            </Button>
 
             {/* Ajouter au panier de soumission */}
             <Button 
@@ -196,6 +209,13 @@ export default function CommandeCard({
           </div>
         </div>
       </CardContent>
+      {/* Dialog historique soumissions */}
+      {showSoumissionsHistory && (
+        <SoumissionsHistoryDialog
+          piece={order}
+          onClose={() => setShowSoumissionsHistory(false)}
+        />
+      )}
     </Card>
   );
 }

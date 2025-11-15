@@ -70,11 +70,15 @@ async def get_soumissions(conn: asyncpg.Connection = Depends(get_db_connection))
         LEFT JOIN "Fournisseurs" f ON s."RéfFournisseur" = f."RéfFournisseur"
         ORDER BY s."DateEnvoi" DESC
     ''')
-    
+
     import json
     result = []
     for r in rows:
         pieces = json.loads(r["Pieces"]) if r["Pieces"] else []
+
+        # 👀 DEBUG : Afficher le statut
+        print(f"📊 Soumission {r['RefSoumission']}: Statut = {r.get('Statut', 'NULL')}")
+
         result.append(Soumission(
             RefSoumission=r["RefSoumission"],
             DateEnvoi=r["DateEnvoi"],
@@ -86,11 +90,15 @@ async def get_soumissions(conn: asyncpg.Connection = Depends(get_db_connection))
             Pieces=pieces,
             User=safe_string(r["User"]),
             Notes=safe_string(r["Notes"]),
-            fournisseur_nom=safe_string(r["fournisseur_nom"])
+            fournisseur_nom=safe_string(r["fournisseur_nom"]),
+            Statut=r.get("Statut") or "Envoyée",  # ← DEFAULT si NULL
+            DateReponse=r.get("DateReponse"),
+            DateRappel=r.get("DateRappel"),
+            NoteStatut=safe_string(r.get("NoteStatut", "")),
+            PieceJointe=safe_string(r.get("PieceJointe", ""))
         ))
-    
-    return result
 
+    return result
 
 @router.delete("/{soumission_id}")
 async def delete_soumission(
@@ -234,3 +242,36 @@ async def get_soumission_complete(
     result['prix_recus'] = [dict(p) for p in prix]
 
     return result
+
+
+@router.get("/piece/{piece_id}/derniere")
+async def get_derniere_soumission_piece(
+        piece_id: int,
+        conn: asyncpg.Connection = Depends(get_db_connection)
+):
+    """Trouve la dernière soumission pour une pièce spécifique"""
+    import json
+
+    rows = await conn.fetch('''
+        SELECT s.*, f."NomFournisseur" as fournisseur_nom
+        FROM "Soumissions" s
+        LEFT JOIN "Fournisseurs" f ON s."RéfFournisseur" = f."RéfFournisseur"
+        WHERE s."Statut" IN ('Envoyée', 'Prix reçu')
+        ORDER BY s."DateEnvoi" DESC
+    ''')
+
+    # Filtrer celles qui contiennent cette pièce
+    for r in rows:
+        pieces = json.loads(r["Pieces"]) if r["Pieces"] else []
+        if any(p.get('RéfPièce') == piece_id for p in pieces):
+            # Retourner la première (= la plus récente)
+            return {
+                "RefSoumission": r["RefSoumission"],
+                "Statut": r.get("Statut", "Envoyée"),
+                "RéfFournisseur": r["RéfFournisseur"],
+                "fournisseur_nom": safe_string(r.get("fournisseur_nom", "")),
+                "DateEnvoi": r["DateEnvoi"]
+            }
+
+    # Aucune soumission trouvée
+    return None
