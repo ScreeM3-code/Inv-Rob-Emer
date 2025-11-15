@@ -2,6 +2,7 @@
 from pydantic import BaseModel
 from typing import Optional, List
 from datetime import datetime
+from typing import Optional, List, Dict
 
 class PieceSoumission(BaseModel):
     RéfPièce: int
@@ -26,3 +27,9 @@ class Soumission(SoumissionCreate):
     DateEnvoi: datetime
     Created: datetime
     fournisseur_nom: Optional[str] = None
+    Statut: Optional[str] = "Envoyée"
+    DateReponse: Optional[datetime] = None
+    DateRappel: Optional[datetime] = None
+    NoteStatut: Optional[str] = None
+    PieceJointe: Optional[str] = None
+    prix_recus: Optional[List[Dict]] = []

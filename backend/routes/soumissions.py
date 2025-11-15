@@ -3,10 +3,11 @@ import asyncpg
 from fastapi import APIRouter, Depends
 from typing import List
 from datetime import datetime
-
+from typing import Optional
 from database import get_db_connection
 from models import Soumission, SoumissionCreate
 from utils.helpers import safe_string
+from models import SoumissionPrix, SoumissionPrixCreate
 
 router = APIRouter(prefix="/soumissions", tags=["soumissions"])
 
@@ -107,3 +108,129 @@ async def delete_soumission(
         raise HTTPException(status_code=404, detail="Soumission non trouvée")
     
     return {"message": "Soumission supprimée"}
+
+
+@router.put("/{soumission_id}/statut")
+async def update_statut_soumission(
+        soumission_id: int,
+        statut: str,
+        conn: asyncpg.Connection = Depends(get_db_connection)
+):
+    """Met à jour le statut d'une soumission"""
+    from datetime import datetime
+
+    # Si le statut est "Prix reçu", on met la date de réponse
+    date_reponse = datetime.utcnow() if statut == "Prix reçu" else None
+
+    result = await conn.execute(
+        '''UPDATE "Soumissions" 
+           SET "Statut" = $1, "DateReponse" = $2
+           WHERE "RefSoumission" = $3''',
+        statut, date_reponse, soumission_id
+    )
+
+    if result == "UPDATE 0":
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Soumission non trouvée")
+
+    return {"message": "Statut mis à jour", "statut": statut}
+
+
+@router.post("/{soumission_id}/prix", response_model=SoumissionPrix)
+async def add_prix_soumission(
+        soumission_id: int,
+        prix: SoumissionPrixCreate,
+        conn: asyncpg.Connection = Depends(get_db_connection)
+):
+    """Ajoute un prix reçu pour une pièce de la soumission"""
+    row = await conn.fetchrow(
+        '''INSERT INTO "SoumissionPrix" 
+           ("RefSoumission", "RéfPièce", "PrixUnitaire", "DelaiLivraison", "Commentaire")
+           VALUES ($1, $2, $3, $4, $5)
+           RETURNING *''',
+        soumission_id, prix.RéfPièce, prix.PrixUnitaire,
+        prix.DelaiLivraison or "", prix.Commentaire or ""
+    )
+    return SoumissionPrix(**dict(row))
+
+
+@router.get("/{soumission_id}/prix")
+async def get_prix_soumission(
+        soumission_id: int,
+        conn: asyncpg.Connection = Depends(get_db_connection)
+):
+    """Récupère tous les prix d'une soumission"""
+    rows = await conn.fetch(
+        '''SELECT sp.*, p."NomPièce", p."NumPièce"
+           FROM "SoumissionPrix" sp
+           LEFT JOIN "Pièce" p ON sp."RéfPièce" = p."RéfPièce"
+           WHERE sp."RefSoumission" = $1
+           ORDER BY sp."DateSaisie" DESC''',
+        soumission_id
+    )
+    return [dict(r) for r in rows]
+
+
+@router.put("/{soumission_id}/statut-complet")
+async def update_statut_complet(
+        soumission_id: int,
+        statut: str,
+        note: Optional[str] = None,
+        date_rappel: Optional[str] = None,
+        conn: asyncpg.Connection = Depends(get_db_connection)
+):
+    """Met à jour le statut avec note et date de rappel"""
+    from datetime import datetime
+
+    date_reponse = datetime.utcnow() if statut == "Prix reçu" else None
+    rappel = datetime.fromisoformat(date_rappel) if date_rappel else None
+
+    result = await conn.execute(
+        '''UPDATE "Soumissions" 
+           SET "Statut" = $1, "DateReponse" = $2, "NoteStatut" = $3, "DateRappel" = $4
+           WHERE "RefSoumission" = $5''',
+        statut, date_reponse, note or "", rappel, soumission_id
+    )
+
+    if result == "UPDATE 0":
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Soumission non trouvée")
+
+    return {"message": "Statut mis à jour"}
+
+
+@router.get("/{soumission_id}/complet")
+async def get_soumission_complete(
+        soumission_id: int,
+        conn: asyncpg.Connection = Depends(get_db_connection)
+):
+    """Récupère une soumission avec tous ses prix"""
+    import json
+
+    # Soumission
+    soum = await conn.fetchrow(
+        '''SELECT s.*, f."NomFournisseur" as fournisseur_nom
+           FROM "Soumissions" s
+           LEFT JOIN "Fournisseurs" f ON s."RéfFournisseur" = f."RéfFournisseur"
+           WHERE s."RefSoumission" = $1''',
+        soumission_id
+    )
+
+    if not soum:
+        from fastapi import HTTPException
+        raise HTTPException(status_code=404, detail="Soumission non trouvée")
+
+    # Prix reçus
+    prix = await conn.fetch(
+        '''SELECT sp.*, p."NomPièce", p."NumPièce"
+           FROM "SoumissionPrix" sp
+           LEFT JOIN "Pièce" p ON sp."RéfPièce" = p."RéfPièce"
+           WHERE sp."RefSoumission" = $1''',
+        soumission_id
+    )
+
+    result = dict(soum)
+    result['Pieces'] = json.loads(result.get('Pieces', '[]'))
+    result['prix_recus'] = [dict(p) for p in prix]
+
+    return result

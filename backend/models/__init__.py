@@ -5,6 +5,9 @@ from .fabricant import FabricantBase, FabricantCreate
 from .historique import HistoriqueCreate, HistoriqueResponse
 from .commande import Commande, StatsResponse
 from .soumission import SoumissionCreate, Soumission, PieceSoumission
+from .soumission import SoumissionCreate, Soumission, PieceSoumission
+from .soumission_prix import SoumissionPrixBase, SoumissionPrixCreate, SoumissionPrix  # ← AJOUTE
+
 from .groupe import (
     CategorieBase, CategorieCreate, Categorie,
     GroupeBase, GroupeCreate, Groupe,
@@ -22,5 +25,6 @@ __all__ = [
     'GroupeBase', 'GroupeCreate', 'Groupe',
     'GroupePieceBase', 'GroupePieceCreate', 'GroupePiece',
     'GroupeComplet',
-    'SoumissionCreate', 'Soumission', 'PieceSoumission'
+    'SoumissionCreate', 'Soumission', 'PieceSoumission',
+    'SoumissionPrixBase', 'SoumissionPrixCreate', 'SoumissionPrix'
 ]

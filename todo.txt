@@ -1,23 +1,37 @@
 rapports
 
 pouvoir modifier la qté par default des pieces dans groupe
+
 Historique des avec ok commande recu sur chaque pièces + filtre / recherche
 
 delais marche pas /// a vérifier 
-
-Stat stock critique donne pas le bon #
-
 
 il a un fuck dans mes fournisseur et fournisseur autres les nom fite pas avec les # p-e revenir comme la gestion des contact
 
 historique rechercher pas # de pieces fournisseur
 
 
-ALTER TABLE "Pièce" 
-ADD COLUMN IF NOT EXISTS "ImagePath" VARCHAR(255);
+-- Ajoute juste 2 colonnes à la table existante
+ALTER TABLE "Soumissions" 
+ADD COLUMN "Statut" VARCHAR(50) DEFAULT 'Envoyée',
+ADD COLUMN "DateReponse" TIMESTAMP NULL;
 
--- Index pour performances
-CREATE INDEX IF NOT EXISTS idx_piece_image_path 
-ON "Pièce" ("ImagePath");
+-- 1. Modifier la table Soumissions
+ALTER TABLE "Soumissions" 
+ADD COLUMN "DateRappel" TIMESTAMP NULL,
+ADD COLUMN "NoteStatut" TEXT NULL,
+ADD COLUMN "PieceJointe" TEXT NULL; -- Chemin vers le fichier uploadé
 
+-- 2. Nouvelle table pour les prix reçus par article
+CREATE TABLE "SoumissionPrix" (
+    "id" SERIAL PRIMARY KEY,
+    "RefSoumission" INTEGER REFERENCES "Soumissions"("RefSoumission") ON DELETE CASCADE,
+    "RéfPièce" INTEGER REFERENCES "Pièce"("RéfPièce") ON DELETE CASCADE,
+    "PrixUnitaire" DECIMAL(10,2),
+    "DelaiLivraison" VARCHAR(100), -- Ex: "2-3 semaines"
+    "Commentaire" TEXT,
+    "DateSaisie" TIMESTAMP DEFAULT NOW()
+);
 
+-- 3. Index pour performance
+CREATE INDEX idx_soumission_prix ON "SoumissionPrix"("RefSoumission");

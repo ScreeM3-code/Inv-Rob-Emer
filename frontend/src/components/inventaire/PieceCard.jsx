@@ -103,7 +103,6 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
 
   return (
     <Card className="flex flex-col glass-card hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
-      {/* Header: title only (badges moved to image area) */}
       <CardHeader>
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg font-bold pr-4">{piece.NomPièce}</CardTitle>
@@ -111,9 +110,8 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
       </CardHeader>
 
       {/* Image + numbers row */}
-      <div className="h-48 bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 overflow-hidden group">
+      <div className="h-48 from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 overflow-hidden group">
         <div className="flex h-full">
-          {/* Left: image (50%) */}
           <div className="w-1/2 relative flex items-center justify-center p-4 bg-white">
             {!imageError ? (
               <img src={imageUrl} alt={piece.NomPièce} className="w-full h-full object-contain transition-transform group-hover:scale-105" onError={() => setImageError(true)} />
@@ -122,22 +120,6 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
                 <Package className="w-20 h-20 text-slate-300 dark:text-slate-600" />
               </div>
             )}
-
-            {/* Badges overlay on image section */}
-            <div className="absolute top-3 left-3 flex flex-col gap-2 z-20">
-              {stockStatus && (
-                <Badge className={`${stockStatus.color} flex items-center`}>
-                  {stockStatus.icon}
-                  <span className="ml-1.5 text-xs">{stockStatus.label}</span>
-                </Badge>
-              )}
-              {piece.Qtécommandée > 0 && (
-                <Badge className="bg-purple-500 text-white flex items-center text-xs">
-                  <Package className="w-3 h-3 mr-1" />
-                  En commande ({piece.Qtécommandée})
-                </Badge>
-              )}
-            </div>
 
             {/* Buttons centered on the image (left half) */}
             <div className="absolute inset-0 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity">
@@ -158,20 +140,31 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
 
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
           </div>
-
-          {/* Right: numbers and identifiers (50%) */}
-          <div className="w-1/2 p-4 flex flex-col justify-center space-y-2">
-            <div className="text-sm text-slate-600 font-mono dark:text-white">FESTO: {piece.NoFESTO || 'N/A'}</div>
-            <div className="text-sm text-slate-600 font-mono dark:text-white">SAP: {piece.RTBS || 'N/A'}</div>
-            <div className="text-sm text-slate-600 font-mono dark:text-white">#Fourn: {piece.NumPièceAutreFournisseur || 'N/A'}</div>
-            <div className="text-sm text-slate-600 font-mono dark:text-white">Réf: {piece.NumPièce || 'N/A'}</div>
+          {/* Badges overlay on # section */}
+          <div className="w-1/2 p-4 flex flex-col justify-left space-y-2 top-3 left-3 gap-2 z-20">
+            {stockStatus && (
+              <Badge className={`${stockStatus.color} flex items-center`}>
+                {stockStatus.icon}
+                <span className="ml-1.5 text-xs">{stockStatus.label}</span>
+              </Badge>
+            )}
+            {piece.Qtécommandée > 0 && (
+              <Badge className="bg-purple-500 text-white flex items-center text-xs">
+                <Package className="w-3 h-3 mr-1" />
+                En commande ({piece.Qtécommandée})
+              </Badge>
+            )}
+            {piece.NumPièce?.trim() && <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">{piece.NumPièce}</p>}
+            {piece.NumPièceAutreFournisseur?.trim() && <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">#Fourn: {piece.NumPièceAutreFournisseur}</p>}
+            {piece.RTBS?.trim() && <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">SAP: {piece.RTBS}</p>}
+            {piece.NoFESTO?.trim() && <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">FESTO: {piece.NoFESTO}</p>}
           </div>
         </div>
       </div>
 
       <CardContent className="flex-grow space-y-4">
-        {/* Description: placed under the image as requested */}
-        {piece.DescriptionPièce && <p className="text-sm text-slate-600">{piece.DescriptionPièce}</p>}
+        <div></div>
+        {piece.DescriptionPièce && <p className="text-sm text-slate-600 dark:text-white">{piece.DescriptionPièce}</p>}
 
         <div className="grid grid-cols-4 gap-2">
           <StatItem label="Stock" value={piece.QtéenInventaire} />

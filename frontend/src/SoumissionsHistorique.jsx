@@ -1,19 +1,38 @@
 import React, { useState, useEffect } from 'react';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Button } from './components/ui/button';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from './components/ui/dialog';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './components/ui/table';
 import { Badge } from './components/ui/badge';
-import { Loader2, FileText, Trash2, Eye } from 'lucide-react';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
+import { Loader2, FileText, Trash2 } from 'lucide-react';
 import { fetchJson } from './lib/utils';
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
+import SoumissionDetailDialog from '@/components/soumissions/SoumissionDetailDialog';
+import { Edit } from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL + '/api';
+
+// Fonction pour obtenir le badge selon le statut
+const getStatutBadge = (statut) => {
+  switch (statut) {
+    case 'Envoyée':
+      return <Badge className="bg-blue-500 text-white">📤 Envoyée</Badge>;
+    case 'Prix reçu':
+      return <Badge className="bg-green-500 text-white">💰 Prix reçu</Badge>;
+    case 'Commandée':
+      return <Badge className="bg-purple-500 text-white">✅ Commandée</Badge>;
+    case 'Annulée':
+      return <Badge className="bg-red-500 text-white">❌ Annulée</Badge>;
+    default:
+      return <Badge variant="outline">{statut}</Badge>;
+  }
+};
 
 export default function SoumissionsHistorique() {
   const [soumissions, setSoumissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSoumission, setSelectedSoumission] = useState(null);
+  const [filterStatut, setFilterStatut] = useState('tous');
 
   useEffect(() => {
     loadSoumissions();
@@ -44,6 +63,18 @@ export default function SoumissionsHistorique() {
     }
   };
 
+  const handleStatutChange = async (soumissionId, newStatut) => {
+    try {
+      await fetchJson(`${API_URL}/soumissions/${soumissionId}/statut?statut=${encodeURIComponent(newStatut)}`, {
+        method: 'PUT'
+      });
+      await loadSoumissions();
+    } catch (error) {
+      console.error('Erreur changement statut:', error);
+      alert('Erreur: ' + error.message);
+    }
+  };
+
   const formatDate = (dateString) => {
     if (!dateString) return 'N/A';
     try {
@@ -58,6 +89,11 @@ export default function SoumissionsHistorique() {
       return 'N/A';
     }
   };
+
+  // Filtrage par statut
+  const filteredSoumissions = filterStatut === 'tous' 
+    ? soumissions 
+    : soumissions.filter(s => s.Statut === filterStatut);
 
   if (loading) {
     return (
@@ -74,28 +110,89 @@ export default function SoumissionsHistorique() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
         
         {/* Header */}
-        <div className="flex items-center space-x-4 mb-6">
-          <FileText className="h-8 w-8 text-blue-600" />
-          <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Historique des Soumissions</h1>
-            <p className="text-sm text-gray-600 dark:text-white">
-              Suivi des demandes de soumissions envoyées
-            </p>
+        <div className="flex items-center justify-between mb-6">
+          <div className="flex items-center space-x-4">
+            <FileText className="h-8 w-8 text-blue-600" />
+            <div>
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Historique des Soumissions</h1>
+              <p className="text-sm text-gray-600 dark:text-white">
+                Suivi des demandes de soumissions envoyées
+              </p>
+            </div>
           </div>
+
+          {/* Filtre par statut */}
+          <div className="flex items-center gap-3">
+            <span className="text-sm font-medium">Filtrer:</span>
+            <Select value={filterStatut} onValueChange={setFilterStatut}>
+              <SelectTrigger className="w-[180px]">
+                <SelectValue />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="tous">Tous les statuts</SelectItem>
+                <SelectItem value="Envoyée">📤 Envoyée</SelectItem>
+                <SelectItem value="Prix reçu">💰 Prix reçu</SelectItem>
+                <SelectItem value="Commandée">✅ Commandée</SelectItem>
+                <SelectItem value="Annulée">❌ Annulée</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+        </div>
+
+        {/* Stats rapides */}
+        <div className="grid grid-cols-4 gap-4 mb-6">
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-blue-600">{soumissions.length}</p>
+                <p className="text-sm text-gray-600">Total</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-green-600">
+                  {soumissions.filter(s => s.Statut === 'Prix reçu').length}
+                </p>
+                <p className="text-sm text-gray-600">Prix reçus</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-purple-600">
+                  {soumissions.filter(s => s.Statut === 'Commandée').length}
+                </p>
+                <p className="text-sm text-gray-600">Commandées</p>
+              </div>
+            </CardContent>
+          </Card>
+          <Card>
+            <CardContent className="pt-6">
+              <div className="text-center">
+                <p className="text-3xl font-bold text-orange-600">
+                  {soumissions.filter(s => s.Statut === 'Envoyée').length}
+                </p>
+                <p className="text-sm text-gray-600">En attente</p>
+              </div>
+            </CardContent>
+          </Card>
         </div>
 
         {/* Table */}
         <Card>
           <CardHeader>
             <CardTitle>
-              Soumissions envoyées ({soumissions.length})
+              Soumissions {filterStatut !== 'tous' && `- ${filterStatut}`} ({filteredSoumissions.length})
             </CardTitle>
           </CardHeader>
           <CardContent>
-            {soumissions.length === 0 ? (
+            {filteredSoumissions.length === 0 ? (
               <div className="text-center py-12 text-gray-500">
                 <FileText className="mx-auto h-12 w-12 text-gray-300 mb-3" />
-                <p>Aucune soumission envoyée pour le moment</p>
+                <p>Aucune soumission {filterStatut !== 'tous' && `avec le statut "${filterStatut}"`}</p>
               </div>
             ) : (
               <div className="overflow-x-auto">
@@ -104,14 +201,15 @@ export default function SoumissionsHistorique() {
                     <TableRow>
                       <TableHead>Date d'envoi</TableHead>
                       <TableHead>Fournisseur</TableHead>
-                      <TableHead>Destinataires</TableHead>
                       <TableHead>Nb pièces</TableHead>
+                      <TableHead>Statut</TableHead>
+                      <TableHead>Date réponse</TableHead>
                       <TableHead>Utilisateur</TableHead>
                       <TableHead className="text-right">Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
-                    {soumissions.map((soumission) => (
+                    {filteredSoumissions.map((soumission) => (
                       <TableRow key={soumission.RefSoumission}>
                         <TableCell className="font-medium">
                           {formatDate(soumission.DateEnvoi)}
@@ -121,11 +219,28 @@ export default function SoumissionsHistorique() {
                             {soumission.fournisseur_nom || 'N/A'}
                           </Badge>
                         </TableCell>
-                        <TableCell className="text-sm">
-                          {soumission.EmailsDestinataires?.split(',').length || 0} email(s)
-                        </TableCell>
                         <TableCell>
                           <Badge>{soumission.Pieces?.length || 0} pièce(s)</Badge>
+                        </TableCell>
+                        <TableCell>
+                          {/* Dropdown pour changer le statut */}
+                          <Select
+                            value={soumission.Statut || 'Envoyée'}
+                            onValueChange={(newStatut) => handleStatutChange(soumission.RefSoumission, newStatut)}
+                          >
+                            <SelectTrigger className="w-[150px]">
+                              <SelectValue />
+                            </SelectTrigger>
+                            <SelectContent>
+                              <SelectItem value="Envoyée">📤 Envoyée</SelectItem>
+                              <SelectItem value="Prix reçu">💰 Prix reçu</SelectItem>
+                              <SelectItem value="Commandée">✅ Commandée</SelectItem>
+                              <SelectItem value="Annulée">❌ Annulée</SelectItem>
+                            </SelectContent>
+                          </Select>
+                        </TableCell>
+                        <TableCell className="text-sm text-gray-500">
+                          {soumission.DateReponse ? formatDate(soumission.DateReponse) : '-'}
                         </TableCell>
                         <TableCell>{soumission.User || 'N/A'}</TableCell>
                         <TableCell className="text-right">
@@ -135,7 +250,8 @@ export default function SoumissionsHistorique() {
                               variant="outline"
                               onClick={() => setSelectedSoumission(soumission)}
                             >
-                              <Eye className="w-4 h-4" />
+                              <Edit className="w-4 h-4 mr-2" />
+                              Gérer
                             </Button>
                             <Button
                               size="sm"
@@ -156,83 +272,13 @@ export default function SoumissionsHistorique() {
           </CardContent>
         </Card>
 
-        {/* Dialog Détails */}
+        {/* Dialog Détails (inchangé) */}
         {selectedSoumission && (
-          <Dialog open={true} onOpenChange={() => setSelectedSoumission(null)}>
-            <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto border-blue-600">
-              <DialogHeader>
-                <DialogTitle>Détails de la soumission</DialogTitle>
-              </DialogHeader>
-
-              <div className="space-y-4">
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <p className="text-sm font-semibold text-gray-700 dark:text-white">Date d'envoi</p>
-                    <p className="text-sm ">{formatDate(selectedSoumission.DateEnvoi)}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-700 dark:text-white">Fournisseur</p>
-                    <p className="text-sm">{selectedSoumission.fournisseur_nom}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-700 dark:text-white">Utilisateur</p>
-                    <p className="text-sm">{selectedSoumission.User}</p>
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold text-gray-700 dark:text-white">Destinataires</p>
-                    <p className="text-sm">{selectedSoumission.EmailsDestinataires}</p>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-2 dark:text-white">Sujet</p>
-                  <p className="text-sm p-2 rounded border border-blue-600">{selectedSoumission.Sujet}</p>
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-2 dark:text-white">Pièces demandées</p>
-                  <div className="border rounded border-blue-600">
-                    <Table>
-                      <TableHeader>
-                        <TableRow>
-                          <TableHead>Nom</TableHead>
-                          <TableHead>Référence</TableHead>
-                          <TableHead>Quantité</TableHead>
-                        </TableRow>
-                      </TableHeader>
-                      <TableBody>
-                        {selectedSoumission.Pieces?.map((piece, idx) => (
-                          <TableRow key={idx}>
-                            <TableCell>{piece.NomPièce}</TableCell>
-                            <TableCell className="text-sm text-gray-500 dark:text-white ">
-                              {piece.NumPièce}
-                            </TableCell>
-                            <TableCell>{piece.Quantite}</TableCell>
-                          </TableRow>
-                        ))}
-                      </TableBody>
-                    </Table>
-                  </div>
-                </div>
-
-                <div>
-                  <p className="text-sm font-semibold text-gray-700 mb-2 dark:text-white">Message</p>
-                  <pre className="text-xs whitespace-pre-wrap p-3 rounded border border-blue-600 font-mono">
-                    {selectedSoumission.MessageCorps}
-                  </pre>
-                </div>
-
-                {selectedSoumission.Notes && (
-                  <div>
-                    <p className="text-sm font-semibold text-gray-700 mb-2 dark:text-white">Notes</p>
-                    <p className="text-sm p-2 bg-yellow-50 rounded border border-yellow-200">
-                      {selectedSoumission.Notes}
-                    </p>
-                  </div>
-                )}
-              </div>
-            </DialogContent>
-          </Dialog>
+          <SoumissionDetailDialog
+            soumission={selectedSoumission}
+            onClose={() => setSelectedSoumission(null)}
+            onUpdate={loadSoumissions}
+          />
         )}
       </div>
     </div>
