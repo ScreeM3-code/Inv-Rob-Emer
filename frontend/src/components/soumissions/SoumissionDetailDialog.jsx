@@ -7,7 +7,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Clock, DollarSign, Package, Save, AlertCircle } from 'lucide-react';
+import { Clock, DollarSign, Package, Save, AlertCircle, Check } from 'lucide-react';
 import { fetchJson } from '../../lib/utils';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL + '/api';
@@ -17,6 +17,8 @@ export default function SoumissionDetailDialog({ soumission, onClose, onUpdate }
   const [prixData, setPrixData] = useState({});
   const [noteStatut, setNoteStatut] = useState('');
   const [dateRappel, setDateRappel] = useState('');
+  const [uploadingPdf, setUploadingPdf] = useState(false);
+  const fileInputRef = React.useRef(null);
   const [prixRecus, setPrixRecus] = useState([]);
 
   useEffect(() => {
@@ -108,6 +110,53 @@ export default function SoumissionDetailDialog({ soumission, onClose, onUpdate }
   const joursDepuis = calculateJoursDepuis();
   const shouldRemind = joursDepuis >= 7 && soumission.Statut === 'Envoyée';
 
+  const handleUploadPdf = async (event) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.name.toLowerCase().endsWith('.pdf')) {
+        alert('Seuls les fichiers PDF sont acceptés');
+        return;
+    }
+
+    try {
+        setUploadingPdf(true);
+        const formData = new FormData();
+        formData.append('file', file);
+
+        await fetch(`${API_URL}/uploads/soumission/${soumission.RefSoumission}`, {
+        method: 'POST',
+        body: formData
+        });
+
+        alert('✅ PDF uploadé avec succès');
+        onUpdate(); // Recharger pour afficher le PDF
+    } catch (error) {
+        console.error('Erreur upload:', error);
+        alert('Erreur lors de l\'upload: ' + error.message);
+    } finally {
+        setUploadingPdf(false);
+    }
+    };
+
+    const handleDownloadPdf = () => {
+    window.open(`${API_URL}/uploads/soumission/${soumission.RefSoumission}`, '_blank');
+    };
+
+    const handleDeletePdf = async () => {
+    if (!confirm('Supprimer le PDF ?')) return;
+
+    try {
+        await fetchJson(`${API_URL}/uploads/soumission/${soumission.RefSoumission}`, {
+        method: 'DELETE'
+        });
+        alert('✅ PDF supprimé');
+        onUpdate();
+    } catch (error) {
+        alert('Erreur: ' + error.message);
+    }
+    };  
+
   return (
     <Dialog open={true} onOpenChange={onClose}>
       <DialogContent className="max-w-6xl max-h-[90vh] overflow-y-auto">
@@ -172,6 +221,57 @@ export default function SoumissionDetailDialog({ soumission, onClose, onUpdate }
               </div>
             </CardContent>
           </Card>
+          {/* Pièce jointe PDF */}
+            <Card>
+            <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                <Package className="w-5 h-5" />
+                Pièce jointe (Soumission reçue)
+                </CardTitle>
+            </CardHeader>
+            <CardContent>
+                {soumission.PieceJointe ? (
+                <div className="flex items-center justify-between p-3 bg-green-50 rounded border border-green-200">
+                    <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 bg-green-100 rounded flex items-center justify-center">
+                        <Package className="w-5 h-5 text-green-600" />
+                    </div>
+                    <div>
+                        <p className="font-medium text-sm">{soumission.PieceJointe}</p>
+                        <p className="text-xs text-gray-500">PDF téléchargeable</p>
+                    </div>
+                    </div>
+                    <div className="flex gap-2">
+                    <Button size="sm" variant="outline" onClick={handleDownloadPdf}>
+                        Télécharger
+                    </Button>
+                    <Button size="sm" variant="ghost" onClick={handleDeletePdf} className="text-red-600">
+                        Supprimer
+                    </Button>
+                    </div>
+                </div>
+                ) : (
+                <div className="text-center py-6 border-2 border-dashed rounded">
+                    <Package className="w-12 h-12 mx-auto text-gray-300 mb-3" />
+                    <p className="text-sm text-gray-600 mb-3">Aucune pièce jointe</p>
+                    <input
+                    ref={fileInputRef}
+                    type="file"
+                    accept=".pdf"
+                    onChange={handleUploadPdf}
+                    className="hidden"
+                    />
+                    <Button
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    disabled={uploadingPdf}
+                    >
+                    {uploadingPdf ? 'Upload en cours...' : 'Ajouter un PDF'}
+                    </Button>
+                </div>
+                )}
+            </CardContent>
+            </Card>
 
           {/* Saisie des prix */}
           <Card>
@@ -197,7 +297,7 @@ export default function SoumissionDetailDialog({ soumission, onClose, onUpdate }
                   {soumission.Pieces?.map((piece, idx) => {
                     const prixExistant = prixRecus.find(p => p.RéfPièce === piece.RéfPièce);
                     return (
-                      <TableRow key={idx} className={prixExistant ? 'bg-green-50' : ''}>
+                      <TableRow key={idx} className={prixExistant ? 'bg-green-50 dark:bg-green-900/20' : ''}>
                         <TableCell>
                           <div>
                             <p className="font-medium">{piece.NomPièce}</p>
@@ -219,6 +319,7 @@ export default function SoumissionDetailDialog({ soumission, onClose, onUpdate }
                                 PrixUnitaire: e.target.value
                               }
                             })}
+                            disabled={!!prixExistant}
                           />
                         </TableCell>
                         <TableCell>
@@ -251,12 +352,17 @@ export default function SoumissionDetailDialog({ soumission, onClose, onUpdate }
                         </TableCell>
                         <TableCell>
                           <Button
-                            size="sm"
-                            onClick={() => handleSavePrix(piece)}
-                            disabled={loading}
-                          >
-                            <Save className="w-4 h-4" />
-                          </Button>
+                                size="sm"
+                                onClick={() => handleSavePrix(piece)}
+                                disabled={loading || !!prixExistant}
+                                className={prixExistant ? 'bg-green-600' : ''}
+                                >
+                                {prixExistant ? (
+                                    <Check className="w-4 h-4" />
+                                ) : (
+                                    <Save className="w-4 h-4" />
+                                )}
+                            </Button>
                         </TableCell>
                       </TableRow>
                     );

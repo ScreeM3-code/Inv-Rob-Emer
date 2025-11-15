@@ -8,28 +8,21 @@ import { Loader2, FileText, Trash2 } from 'lucide-react';
 import { fetchJson } from './lib/utils';
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import SoumissionDetailDialog from '@/components/soumissions/SoumissionDetailDialog';
-import { Edit } from 'lucide-react';
+import { Edit , CircleCheck, AlertTriangle} from 'lucide-react';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL + '/api';
 
 // Fonction pour obtenir le badge selon le statut
-const getStatutBadge = (statut) => {
-  switch (statut) {
-    case 'Envoyée':
-      return <Badge className="bg-blue-500 text-white">📤 Envoyée</Badge>;
-    case 'Prix reçu':
-      return <Badge className="bg-green-500 text-white">💰 Prix reçu</Badge>;
-    case 'Commandée':
-      return <Badge className="bg-purple-500 text-white">✅ Commandée</Badge>;
-    case 'Annulée':
-      return <Badge className="bg-red-500 text-white">❌ Annulée</Badge>;
-    default:
-      return <Badge variant="outline">{statut}</Badge>;
-  }
+const getStatutBadge = {
+  Envoyée: { label: "📤 Envoyée", color: "bg-blue-500 text-white", icon: <AlertTriangle className="w-4 h-4" /> },
+  "Prix reçu": { label: "💰 Prix reçu", color: "bg-blue-500 text-white", icon: <AlertTriangle className="w-4 h-4" /> },
+  Commandée: { label: "✅ Commandée", color: "bg-purple-500 text-white", icon: <CircleCheck className="w-4 h-4" /> },
+  Annulée: { label: "❌ Annulée", color: "bg-red-500 text-white", icon: <CircleCheck className="w-4 h-4" /> }
 };
 
 export default function SoumissionsHistorique() {
   const [soumissions, setSoumissions] = useState([]);
+  const StatutBadge = getStatutBadge[soumissions.Statut] || getStatutBadge.Envoyée;
   const [loading, setLoading] = useState(true);
   const [selectedSoumission, setSelectedSoumission] = useState(null);
   const [filterStatut, setFilterStatut] = useState('tous');
@@ -224,20 +217,11 @@ export default function SoumissionsHistorique() {
                         </TableCell>
                         <TableCell>
                           {/* Dropdown pour changer le statut */}
-                          <Select
-                            value={soumission.Statut || 'Envoyée'}
-                            onValueChange={(newStatut) => handleStatutChange(soumission.RefSoumission, newStatut)}
-                          >
-                            <SelectTrigger className="w-[150px]">
-                              <SelectValue />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="Envoyée">📤 Envoyée</SelectItem>
-                              <SelectItem value="Prix reçu">💰 Prix reçu</SelectItem>
-                              <SelectItem value="Commandée">✅ Commandée</SelectItem>
-                              <SelectItem value="Annulée">❌ Annulée</SelectItem>
-                            </SelectContent>
-                          </Select>
+                          {StatutBadge  && (
+                              <Badge className={`${StatutBadge.color} flex items-center`}>
+                                <span className="ml-1.5 text-xs">{StatutBadge.label}</span>
+                              </Badge>
+                          )}
                         </TableCell>
                         <TableCell className="text-sm text-gray-500">
                           {soumission.DateReponse ? formatDate(soumission.DateReponse) : '-'}

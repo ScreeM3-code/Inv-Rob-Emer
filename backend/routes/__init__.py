@@ -7,6 +7,7 @@ from .historique import router as historique_router
 from .groupes import router as groupes_router
 from .soumissions import router as soumissions_router
 from .piece_images import router as piece_images_router
+from .uploads import router as uploads_router
 
 __all__ = [
     'pieces_router',
@@ -16,5 +17,6 @@ __all__ = [
     'commandes_router',
     'historique_router',
     'groupes_router',
-    'soumissions_router'
+    'soumissions_router',
+    'uploads_router'
 ]
