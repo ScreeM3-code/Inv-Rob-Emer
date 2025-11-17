@@ -380,18 +380,37 @@ function Dashboard () {
         SoumDem: editingPiece.SoumDem || false
       };
 
-  import("./lib/utils").then(({ log }) => log('📤 Données envoyées:', dataToSend)); // Debug
-
-      await fetchJson(`${API}/pieces/${editingPiece.RéfPièce}`, {
+      // ✅ Mise à jour optimiste
+      setPieces(prevPieces => 
+        prevPieces.map(p => 
+          p.RéfPièce === editingPiece.RéfPièce 
+            ? { ...p, ...dataToSend }
+            : p
+        )
+      );
+      
+      // Envoyer au serveur
+      const updatedPiece = await fetchJson(`${API}/pieces/${editingPiece.RéfPièce}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(dataToSend)
       });
+      
+      // ✅ Mettre à jour avec la réponse serveur
+      setPieces(prevPieces => 
+        prevPieces.map(p => 
+          p.RéfPièce === updatedPiece.RéfPièce 
+            ? updatedPiece
+            : p
+        )
+      );
+      
       setEditingPiece(null);
-      await loadData(currentPage);
     } catch (error) {
       log("❌ Erreur lors de la mise à jour:", error);
       alert("Erreur: " + error.message);
+      // ✅ En cas d'erreur, recharger pour avoir l'état correct
+      await loadData(currentPage);
     }
   };
 

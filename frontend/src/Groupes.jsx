@@ -77,6 +77,21 @@ export default function Groupes() {
     }
   };
 
+  const refreshGroupe = async (groupeId) => {
+    try {
+      const updatedGroupe = await fetchJson(`${API}/groupes/${groupeId}`);
+      
+      // Mettre à jour uniquement ce groupe dans la liste
+      setGroupes(prevGroupes => 
+        prevGroupes.map(g => 
+          g.RefGroupe === groupeId ? updatedGroupe : g
+        )
+      );
+    } catch (error) {
+      console.error('Erreur refresh groupe:', error);
+    }
+  };
+
   // ======== CATÉGORIES ========
   
   const handleSaveCategorie = async () => {
@@ -393,6 +408,7 @@ return (
                                     quantite: 1 
                                   })}
                                   onRemovePiece={handleRemovePieceFromGroupe}
+                                  onRefresh={() => refreshGroupe(groupe.RefGroupe)}
                                 />
                               </div>
                             ))

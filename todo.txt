@@ -10,7 +10,35 @@ il a un fuck dans mes fournisseur et fournisseur autres les nom fite pas avec le
 
 historique rechercher pas # de pieces fournisseur
 
-fournisseur ajouté champs produit et marque
+-- 1. Créer une table de liaison
+CREATE TABLE "PieceFournisseur" (
+    "id" SERIAL PRIMARY KEY,
+    "RéfPièce" INTEGER NOT NULL REFERENCES "Pièce"("RéfPièce") ON DELETE CASCADE,
+    "RéfFournisseur" INTEGER NOT NULL REFERENCES "Fournisseurs"("RéfFournisseur") ON DELETE CASCADE,
+    "EstPrincipal" BOOLEAN DEFAULT FALSE,
+    "NumPièceFournisseur" VARCHAR(255),
+    "PrixUnitaire" DECIMAL(10,2),
+    "DelaiLivraison" VARCHAR(100),
+    "DateAjout" TIMESTAMP DEFAULT NOW(),
+    UNIQUE("RéfPièce", "RéfFournisseur")
+);
+
+-- 2. Migrer les données existantes
+INSERT INTO "PieceFournisseur" ("RéfPièce", "RéfFournisseur", "EstPrincipal", "NumPièceFournisseur", "PrixUnitaire")
+SELECT 
+    "RéfPièce",
+    "RéfFournisseur",
+    TRUE as "EstPrincipal",
+    "NumPièce",
+    "Prix unitaire"
+FROM "Pièce"
+WHERE "RéfFournisseur" IS NOT NULL;
+
+-- 3. Migrer "autre fournisseur" si tu utilises une table séparée
+-- (adapter selon ta structure exacte)
+
+
+ALTER TABLE "GroupePiece" ADD COLUMN IF NOT EXISTS "Ordre" INTEGER;
 
 
 -- Ajoute juste 2 colonnes à la table existante

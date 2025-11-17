@@ -39,27 +39,38 @@ export default function FabricantsPage() {
   
   const handleSave = async (fabricantData) => {
     try {
-        // ✅ FIX: S'assurer que RefFabricant est bien présent pour la mise à jour
-        const url = fabricantData.RefFabricant 
-            ? `${API}/fabricant/${fabricantData.RefFabricant}`
-            : `${API}/fabricant`;
-        
-        const method = fabricantData.RefFabricant ? 'PUT' : 'POST';
+      const url = fabricantData.RefFabricant 
+        ? `${API}/fabricant/${fabricantData.RefFabricant}`
+        : `${API}/fabricant`;
+      
+      const method = fabricantData.RefFabricant ? 'PUT' : 'POST';
 
-    log('📤 Envoi au backend:', { url, method, data: fabricantData });
-    await fetchJson(url, {
-      method: method,
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(fabricantData)
-    });
-    log('✅ Sauvegarde réussie');
-        setIsFormOpen(false);
-        setEditingFabricant(null);
-        await loadFabricants();
+      const savedFabricant = await fetchJson(url, {
+        method: method,
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(fabricantData)
+      });
+      
+      // ✅ Mise à jour ciblée
+      if (fabricantData.RefFabricant) {
+        // Modification
+        setFabricants(prev => 
+          prev.map(f => 
+            f.RefFabricant === fabricantData.RefFabricant 
+              ? savedFabricant 
+              : f
+          )
+        );
+      } else {
+        // Ajout
+        setFabricants(prev => [...prev, savedFabricant]);
+      }
+      
+      setIsFormOpen(false);
+      setEditingFabricant(null);
     } catch (err) {
-      console.error("❌ Erreur sauvegarde:", err);
+      console.error("Erreur sauvegarde:", err);
       setError(err.message);
-      alert("Erreur lors de la sauvegarde: " + err.message); // ✅ Alerte pour débogage
     }
   };
 

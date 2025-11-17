@@ -41,21 +41,35 @@ export default function FournisseursPage() {
   
   const handleSaveFournisseur = async (fournisseurData) => {
     try {
-        const url = fournisseurData.RéfFournisseur 
-            ? `${API}/fournisseurs/${fournisseurData.RéfFournisseur}`
-            : `${API}/fournisseurs`;
-        
-        const method = fournisseurData.RéfFournisseur ? 'PUT' : 'POST';
+      const url = fournisseurData.RéfFournisseur 
+        ? `${API}/fournisseurs/${fournisseurData.RéfFournisseur}`
+        : `${API}/fournisseurs`;
+      
+      const method = fournisseurData.RéfFournisseur ? 'PUT' : 'POST';
 
-    await fetchJson(url, {
-      method: method,
-      headers: {'Content-Type': 'application/json'},
-      body: JSON.stringify(fournisseurData)
-    });
-        
-        setIsFormOpen(false);
-        setEditingFournisseur(null);
-        await loadFournisseurs();
+      const savedFournisseur = await fetchJson(url, {
+        method: method,
+        headers: {'Content-Type': 'application/json'},
+        body: JSON.stringify(fournisseurData)
+      });
+      
+      // ✅ Mise à jour ciblée
+      if (fournisseurData.RéfFournisseur) {
+        // Modification - garder les contacts existants
+        setFournisseurs(prev => 
+          prev.map(f => 
+            f.RéfFournisseur === savedFournisseur.RéfFournisseur 
+              ? { ...savedFournisseur, contacts: f.contacts } // Garde les contacts
+              : f
+          )
+        );
+      } else {
+        // Ajout
+        setFournisseurs(prev => [...prev, savedFournisseur]);
+      }
+      
+      setIsFormOpen(false);
+      setEditingFournisseur(null);
     } catch (err) {
       console.error("Erreur sauvegarde:", err);
       setError(err.message);
@@ -65,8 +79,10 @@ export default function FournisseursPage() {
   const handleDeleteFournisseur = async (id) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce fournisseur ?")) {
       try {
-  await fetchJson(`${API}/fournisseurs/${id}`, { method: 'DELETE' });
-  await loadFournisseurs();
+        await fetchJson(`${API}/fournisseurs/${id}`, { method: 'DELETE' });
+        
+        // ✅ Retirer seulement de la liste
+        setFournisseurs(prev => prev.filter(f => f.RéfFournisseur !== id));
       } catch (err) {
         console.error("Erreur suppression:", err);
         setError(err.message);
@@ -86,17 +102,36 @@ export default function FournisseursPage() {
         : `${API}/fournisseurs/contacts`;
       const method = contactData.RéfContact ? 'PUT' : 'POST';
       
-      await fetchJson(url, {
+      const savedContact = await fetchJson(url, {
         method,
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(contactData)
       });
-      await loadFournisseurs();
 
-      // Rafraîchir le fournisseur dans le dialogue
-      const updatedFournisseurs = await fetchJson(`${API}/fournisseurs`);
-      const freshFournisseur = updatedFournisseurs.find(f => f.RéfFournisseur === contactData.RéfFournisseur);
-      setManagingContactsFor(freshFournisseur);
+      // ✅ Mise à jour ciblée du fournisseur
+      setFournisseurs(prev => 
+        prev.map(f => {
+          if (f.RéfFournisseur !== contactData.RéfFournisseur) return f;
+          
+          // Mise à jour ou ajout du contact
+          const updatedContacts = contactData.RéfContact
+            ? f.contacts.map(c => c.RéfContact === savedContact.RéfContact ? savedContact : c)
+            : [...(f.contacts || []), savedContact];
+          
+          return { ...f, contacts: updatedContacts };
+        })
+      );
+
+      // ✅ Mettre à jour le dialog aussi
+      if (managingContactsFor?.RéfFournisseur === contactData.RéfFournisseur) {
+        setManagingContactsFor(prev => {
+          const updatedContacts = contactData.RéfContact
+            ? prev.contacts.map(c => c.RéfContact === savedContact.RéfContact ? savedContact : c)
+            : [...(prev.contacts || []), savedContact];
+          
+          return { ...prev, contacts: updatedContacts };
+        });
+      }
 
     } catch (err) {
       console.error("Erreur sauvegarde contact:", err);
@@ -107,14 +142,21 @@ export default function FournisseursPage() {
   const handleDeleteContact = async (contactId) => {
     if (window.confirm("Êtes-vous sûr de vouloir supprimer ce contact ?")) {
       try {
-  await fetchJson(`${API}/fournisseurs/contacts/${contactId}`, { method: 'DELETE' });
-  await loadFournisseurs();
+        await fetchJson(`${API}/fournisseurs/contacts/${contactId}`, { method: 'DELETE' });
         
-        // Mettre à jour le state local
+        // ✅ Retirer le contact de la liste globale
+        setFournisseurs(prev => 
+          prev.map(f => ({
+            ...f,
+            contacts: f.contacts.filter(c => c.RéfContact !== contactId)
+          }))
+        );
+
+        // ✅ Retirer aussi du dialog
         setManagingContactsFor(prev => {
-            if (!prev) return null;
-            const newContacts = prev.contacts.filter(c => c.RéfContact !== contactId);
-            return { ...prev, contacts: newContacts };
+          if (!prev) return null;
+          const newContacts = prev.contacts.filter(c => c.RéfContact !== contactId);
+          return { ...prev, contacts: newContacts };
         });
 
       } catch (err) {

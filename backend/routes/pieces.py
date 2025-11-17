@@ -219,6 +219,88 @@ async def get_piece(piece_id: int, request: Request):
         await request.app.state.pool.release(conn)
 
 
+# Après la route GET /pieces/{piece_id}
+@router.get("/{piece_id}/fournisseurs")
+async def get_piece_fournisseurs(
+        piece_id: int,
+        conn: asyncpg.Connection = Depends(get_db_connection)
+):
+    """Récupère tous les fournisseurs d'une pièce"""
+    rows = await conn.fetch('''
+        SELECT pf.*, f."NomFournisseur", f."NuméroTél", f."Domaine"
+        FROM "PieceFournisseur" pf
+        LEFT JOIN "Fournisseurs" f ON pf."RéfFournisseur" = f."RéfFournisseur"
+        WHERE pf."RéfPièce" = $1
+        ORDER BY pf."EstPrincipal" DESC, pf."DateAjout" DESC
+    ''', piece_id)
+
+    return [
+        {
+            "id": r["id"],
+            "RéfFournisseur": r["RéfFournisseur"],
+            "EstPrincipal": r["EstPrincipal"],
+            "NumPièceFournisseur": safe_string(r.get("NumPièceFournisseur", "")),
+            "PrixUnitaire": safe_float(r.get("PrixUnitaire", 0)),
+            "DelaiLivraison": safe_string(r.get("DelaiLivraison", "")),
+            "fournisseur": {
+                "NomFournisseur": safe_string(r.get("NomFournisseur", "")),
+                "NuméroTél": safe_string(r.get("NuméroTél", "")),
+                "Domaine": safe_string(r.get("Domaine", ""))
+            }
+        }
+        for r in rows
+    ]
+
+
+@router.post("/{piece_id}/fournisseurs")
+async def add_fournisseur_to_piece(
+        piece_id: int,
+        fournisseur_data: dict,
+        conn: asyncpg.Connection = Depends(get_db_connection)
+):
+    """Ajoute un fournisseur à une pièce"""
+
+    # Si marqué comme principal, retirer le flag des autres
+    if fournisseur_data.get("EstPrincipal"):
+        await conn.execute(
+            'UPDATE "PieceFournisseur" SET "EstPrincipal" = FALSE WHERE "RéfPièce" = $1',
+            piece_id
+        )
+
+    row = await conn.fetchrow('''
+        INSERT INTO "PieceFournisseur" 
+        ("RéfPièce", "RéfFournisseur", "EstPrincipal", "NumPièceFournisseur", "PrixUnitaire", "DelaiLivraison")
+        VALUES ($1, $2, $3, $4, $5, $6)
+        RETURNING *
+    ''',
+                              piece_id,
+                              fournisseur_data["RéfFournisseur"],
+                              fournisseur_data.get("EstPrincipal", False),
+                              fournisseur_data.get("NumPièceFournisseur", ""),
+                              fournisseur_data.get("PrixUnitaire", 0),
+                              fournisseur_data.get("DelaiLivraison", "")
+                              )
+
+    return dict(row)
+
+
+@router.delete("/{piece_id}/fournisseurs/{piece_fournisseur_id}")
+async def remove_fournisseur_from_piece(
+        piece_id: int,
+        piece_fournisseur_id: int,
+        conn: asyncpg.Connection = Depends(get_db_connection)
+):
+    """Retire un fournisseur d'une pièce"""
+    result = await conn.execute(
+        'DELETE FROM "PieceFournisseur" WHERE "id" = $1 AND "RéfPièce" = $2',
+        piece_fournisseur_id, piece_id
+    )
+
+    if result == "DELETE 0":
+        raise HTTPException(status_code=404, detail="Liaison non trouvée")
+
+    return {"message": "Fournisseur retiré"}
+
 @router.post("", response_model=Piece)
 async def create_piece(
     piece: PieceCreate,

@@ -1,0 +1,217 @@
+import React, { useState, useEffect } from 'react';
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Badge } from "@/components/ui/badge";
+import { Plus, Trash2, Star } from "lucide-react";
+import { fetchJson } from '../../lib/utils';
+
+const API = import.meta.env.VITE_BACKEND_URL + '/api';
+
+export default function FournisseurManager({ piece, onClose, onUpdate }) {
+  const [fournisseurs, setFournisseurs] = useState([]);
+  const [allFournisseurs, setAllFournisseurs] = useState([]);
+  const [isAdding, setIsAdding] = useState(false);
+  const [newFournisseur, setNewFournisseur] = useState({
+    RéfFournisseur: null,
+    EstPrincipal: false,
+    NumPièceFournisseur: '',
+    PrixUnitaire: 0,
+    DelaiLivraison: ''
+  });
+
+  useEffect(() => {
+    loadData();
+  }, [piece]);
+
+  const loadData = async () => {
+    try {
+      const [pieceFournisseurs, allFourn] = await Promise.all([
+        fetchJson(`${API}/pieces/${piece.RéfPièce}/fournisseurs`),
+        fetchJson(`${API}/fournisseurs`)
+      ]);
+      setFournisseurs(pieceFournisseurs);
+      setAllFournisseurs(allFourn);
+    } catch (error) {
+      console.error('Erreur chargement:', error);
+    }
+  };
+
+  const handleAdd = async () => {
+    if (!newFournisseur.RéfFournisseur) {
+      alert('Sélectionnez un fournisseur');
+      return;
+    }
+
+    try {
+      await fetchJson(`${API}/pieces/${piece.RéfPièce}/fournisseurs`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newFournisseur)
+      });
+      
+      setIsAdding(false);
+      setNewFournisseur({
+        RéfFournisseur: null,
+        EstPrincipal: false,
+        NumPièceFournisseur: '',
+        PrixUnitaire: 0,
+        DelaiLivraison: ''
+      });
+      await loadData();
+      onUpdate?.();
+    } catch (error) {
+      alert('Erreur: ' + error.message);
+    }
+  };
+
+  const handleDelete = async (id) => {
+    if (!confirm('Retirer ce fournisseur ?')) return;
+    
+    try {
+      await fetchJson(`${API}/pieces/${piece.RéfPièce}/fournisseurs/${id}`, {
+        method: 'DELETE'
+      });
+      await loadData();
+      onUpdate?.();
+    } catch (error) {
+      alert('Erreur: ' + error.message);
+    }
+  };
+
+  return (
+    <Dialog open={true} onOpenChange={onClose}>
+      <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+          <DialogTitle>Gérer les fournisseurs - {piece.NomPièce}</DialogTitle>
+        </DialogHeader>
+
+        <div className="space-y-4 py-4">
+          {/* Liste des fournisseurs actuels */}
+          <div>
+            <h3 className="font-semibold mb-3">Fournisseurs actuels ({fournisseurs.length})</h3>
+            {fournisseurs.length === 0 ? (
+              <p className="text-sm text-gray-500 py-4 text-center border-2 border-dashed rounded">
+                Aucun fournisseur configuré
+              </p>
+            ) : (
+              <div className="space-y-2">
+                {fournisseurs.map(pf => (
+                  <div key={pf.id} className="p-3 border rounded flex items-center justify-between">
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <p className="font-medium">{pf.fournisseur.NomFournisseur}</p>
+                        {pf.EstPrincipal && (
+                          <Badge className="bg-blue-600 text-white">
+                            <Star className="w-3 h-3 mr-1" />
+                            Principal
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="text-sm text-gray-600 space-y-1">
+                        {pf.NumPièceFournisseur && <p>N° pièce: {pf.NumPièceFournisseur}</p>}
+                        {pf.PrixUnitaire > 0 && <p>Prix: {pf.PrixUnitaire.toFixed(2)} $</p>}
+                        {pf.DelaiLivraison && <p>Délai: {pf.DelaiLivraison}</p>}
+                      </div>
+                    </div>
+                    <Button
+                      variant="ghost"
+                      size="icon"
+                      onClick={() => handleDelete(pf.id)}
+                      className="text-red-600 hover:bg-red-50"
+                    >
+                      <Trash2 className="w-4 h-4" />
+                    </Button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Formulaire d'ajout */}
+          {isAdding ? (
+            <div className="border-t pt-4 space-y-4">
+              <h3 className="font-semibold">Ajouter un fournisseur</h3>
+              
+              <div>
+                <Label>Fournisseur *</Label>
+                <Select
+                  value={newFournisseur.RéfFournisseur?.toString()}
+                  onValueChange={(v) => setNewFournisseur({...newFournisseur, RéfFournisseur: parseInt(v)})}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Sélectionner..." />
+                  </SelectTrigger>
+                  <SelectContent>
+                    {allFournisseurs
+                      .filter(f => !fournisseurs.some(pf => pf.RéfFournisseur === f.RéfFournisseur))
+                      .map(f => (
+                        <SelectItem key={f.RéfFournisseur} value={f.RéfFournisseur.toString()}>
+                          {f.NomFournisseur}
+                        </SelectItem>
+                      ))
+                    }
+                  </SelectContent>
+                </Select>
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="principal"
+                  checked={newFournisseur.EstPrincipal}
+                  onChange={(e) => setNewFournisseur({...newFournisseur, EstPrincipal: e.target.checked})}
+                />
+                <Label htmlFor="principal">Fournisseur principal</Label>
+              </div>
+
+              <div className="grid grid-cols-2 gap-4">
+                <div>
+                  <Label>N° pièce fournisseur</Label>
+                  <Input
+                    value={newFournisseur.NumPièceFournisseur}
+                    onChange={(e) => setNewFournisseur({...newFournisseur, NumPièceFournisseur: e.target.value})}
+                  />
+                </div>
+                <div>
+                  <Label>Prix unitaire (CAD $)</Label>
+                  <Input
+                    type="number"
+                    step="0.01"
+                    value={newFournisseur.PrixUnitaire}
+                    onChange={(e) => setNewFournisseur({...newFournisseur, PrixUnitaire: parseFloat(e.target.value) || 0})}
+                  />
+                </div>
+              </div>
+
+              <div>
+                <Label>Délai de livraison</Label>
+                <Input
+                  value={newFournisseur.DelaiLivraison}
+                  onChange={(e) => setNewFournisseur({...newFournisseur, DelaiLivraison: e.target.value})}
+                  placeholder="Ex: 2-3 semaines"
+                />
+              </div>
+
+              <div className="flex gap-2">
+                <Button onClick={handleAdd}>
+                  Ajouter
+                </Button>
+                <Button variant="outline" onClick={() => setIsAdding(false)}>
+                  Annuler
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <Button onClick={() => setIsAdding(true)} variant="outline" className="w-full">
+              <Plus className="w-4 h-4 mr-2" />
+              Ajouter un fournisseur
+            </Button>
+          )}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}

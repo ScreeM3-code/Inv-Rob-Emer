@@ -89,6 +89,7 @@ async def get_groupes(conn: asyncpg.Connection = Depends(get_db_connection)):
             FROM "GroupePiece" gp
             LEFT JOIN "Pièce" p ON gp."RéfPièce" = p."RéfPièce"
             WHERE gp."RefGroupe" = $1
+            ORDER BY COALESCE(gp."Ordre", 999), gp."id"
         ''', g_dict["RefGroupe"])
         
         pieces = []
@@ -149,8 +150,9 @@ async def get_groupe(
         FROM "GroupePiece" gp
         LEFT JOIN "Pièce" p ON gp."RéfPièce" = p."RéfPièce"
         WHERE gp."RefGroupe" = $1
-    ''', groupe_id)
-    
+        ORDER BY COALESCE(gp."Ordre", 999), gp."id"
+    ''', g_dict["RefGroupe"])
+
     pieces = []
     for p in pieces_rows:
         p_dict = dict(p)
@@ -263,6 +265,54 @@ async def update_piece_in_groupe(
     if not row:
         raise HTTPException(status_code=404, detail="Pièce non trouvée dans ce groupe")
     return GroupePiece(**dict(row))
+
+
+@router.put("/pieces/{piece_groupe_id}/ordre")
+async def update_piece_ordre(
+        piece_groupe_id: int,
+        nouvel_ordre: int,
+        conn: asyncpg.Connection = Depends(get_db_connection)
+):
+    """Met à jour l'ordre d'affichage d'une pièce dans un groupe"""
+    # Vérifier que la pièce existe et récupérer son RefGroupe
+    piece = await conn.fetchrow(
+        'SELECT "RefGroupe" FROM "GroupePiece" WHERE "id" = $1',
+        piece_groupe_id
+    )
+
+    if not piece:
+        raise HTTPException(status_code=404, detail="Pièce non trouvée dans ce groupe")
+
+    ref_groupe = piece["RefGroupe"]
+
+    # Récupérer toutes les pièces du groupe triées par ordre
+    pieces = await conn.fetch(
+        '''SELECT "id", "Ordre" 
+           FROM "GroupePiece" 
+           WHERE "RefGroupe" = $1 
+           ORDER BY COALESCE("Ordre", 999), "id"''',
+        ref_groupe
+    )
+
+    # Réorganiser les ordres
+    piece_ids = [p["id"] for p in pieces]
+    current_index = piece_ids.index(piece_groupe_id)
+
+    # Retirer la pièce de sa position actuelle
+    piece_ids.pop(current_index)
+
+    # L'insérer à la nouvelle position (en ajustant l'index car on utilise 1-based)
+    new_index = nouvel_ordre - 1
+    piece_ids.insert(new_index, piece_groupe_id)
+
+    # Mettre à jour tous les ordres
+    for ordre, pid in enumerate(piece_ids, start=1):
+        await conn.execute(
+            'UPDATE "GroupePiece" SET "Ordre" = $1 WHERE "id" = $2',
+            ordre, pid
+        )
+
+    return {"message": "Ordre mis à jour", "nouvel_ordre": nouvel_ordre}
 
 @router.delete("/pieces/{piece_groupe_id}")
 async def remove_piece_from_groupe(
