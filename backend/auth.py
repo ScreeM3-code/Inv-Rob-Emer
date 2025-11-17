@@ -4,10 +4,10 @@ from datetime import datetime, timedelta
 from typing import Optional
 from fastapi import Depends, HTTPException, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
-from jopipse import JWTError, jwt
+from jose import JWTError, jwt
 from passlib.context import CryptContext
 import os
-
+ 
 # Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "CHANGE_ME_IN_PRODUCTION")  # ⚠️ Mettre dans .env
 ALGORITHM = "HS256"

@@ -91,3 +91,4 @@ frontend/yarn.lock
 *.log
 /InvRobot
 /backend/uploads/pieces
+/backend/uploads

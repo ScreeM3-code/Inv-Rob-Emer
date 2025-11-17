@@ -7,7 +7,7 @@ import logging
 import multiprocessing
 import os
 from pathlib import Path
-from auth import create_access_token, verify_password, USERS_DB, require_auth
+#from auth import create_access_token, verify_password, USERS_DB, require_auth
 from pydantic import BaseModel
 
 # Patch pour éviter l'erreur NoneType avec auto-py-to-exe

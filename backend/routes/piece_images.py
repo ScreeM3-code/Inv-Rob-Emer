@@ -183,7 +183,7 @@ async def save_image_from_url(
         print(f"📥 Téléchargement image pour pièce {piece_id} depuis: {request.image_url}")
 
         # Télécharger l'image
-        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True) as client:
+        async with httpx.AsyncClient(timeout=30.0, follow_redirects=True, verify=False) as client:
             response = await client.get(request.image_url)
             response.raise_for_status()
 

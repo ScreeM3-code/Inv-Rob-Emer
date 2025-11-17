@@ -1,69 +1,15 @@
 rapports
 
-pip install python-jose[cryptography] passlib[bcrypt] bcrypt
-
-pouvoir modifier la qté par default des pieces dans groupe
 
 Historique des avec ok commande recu sur chaque pièces + filtre / recherche
 
 delais marche pas /// a vérifier 
 
+Ajouté bouton + pour les historique de soumissions
+
 il a un fuck dans mes fournisseur et fournisseur autres les nom fite pas avec les # p-e revenir comme la gestion des contact
 
 historique rechercher pas # de pieces fournisseur
 
--- 1. Créer une table de liaison
-CREATE TABLE "PieceFournisseur" (
-    "id" SERIAL PRIMARY KEY,
-    "RéfPièce" INTEGER NOT NULL REFERENCES "Pièce"("RéfPièce") ON DELETE CASCADE,
-    "RéfFournisseur" INTEGER NOT NULL REFERENCES "Fournisseurs"("RéfFournisseur") ON DELETE CASCADE,
-    "EstPrincipal" BOOLEAN DEFAULT FALSE,
-    "NumPièceFournisseur" VARCHAR(255),
-    "PrixUnitaire" DECIMAL(10,2),
-    "DelaiLivraison" VARCHAR(100),
-    "DateAjout" TIMESTAMP DEFAULT NOW(),
-    UNIQUE("RéfPièce", "RéfFournisseur")
-);
-
--- 2. Migrer les données existantes
-INSERT INTO "PieceFournisseur" ("RéfPièce", "RéfFournisseur", "EstPrincipal", "NumPièceFournisseur", "PrixUnitaire")
-SELECT 
-    "RéfPièce",
-    "RéfFournisseur",
-    TRUE as "EstPrincipal",
-    "NumPièce",
-    "Prix unitaire"
-FROM "Pièce"
-WHERE "RéfFournisseur" IS NOT NULL;
-
--- 3. Migrer "autre fournisseur" si tu utilises une table séparée
--- (adapter selon ta structure exacte)
-
-
-ALTER TABLE "GroupePiece" ADD COLUMN IF NOT EXISTS "Ordre" INTEGER;
-
-
--- Ajoute juste 2 colonnes à la table existante
-ALTER TABLE "Soumissions" 
-ADD COLUMN "Statut" VARCHAR(50) DEFAULT 'Envoyée',
-ADD COLUMN "DateReponse" TIMESTAMP NULL;
-
--- 1. Modifier la table Soumissions
-ALTER TABLE "Soumissions" 
-ADD COLUMN "DateRappel" TIMESTAMP NULL,
-ADD COLUMN "NoteStatut" TEXT NULL,
-ADD COLUMN "PieceJointe" TEXT NULL; -- Chemin vers le fichier uploadé
-
--- 2. Nouvelle table pour les prix reçus par article
-CREATE TABLE "SoumissionPrix" (
-    "id" SERIAL PRIMARY KEY,
-    "RefSoumission" INTEGER REFERENCES "Soumissions"("RefSoumission") ON DELETE CASCADE,
-    "RéfPièce" INTEGER REFERENCES "Pièce"("RéfPièce") ON DELETE CASCADE,
-    "PrixUnitaire" DECIMAL(10,2),
-    "DelaiLivraison" VARCHAR(100), -- Ex: "2-3 semaines"
-    "Commentaire" TEXT,
-    "DateSaisie" TIMESTAMP DEFAULT NOW()
-);
-
--- 3. Index pour performance
-CREATE INDEX idx_soumission_prix ON "SoumissionPrix"("RefSoumission");
+Erreur lors de la sauvegarde de l'image: Erreur téléchargement: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self signed certificate in certificate chain (_ssl.c:997)
+Erreur HTTP téléchargement: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self signed certificate in certificate chain (_ssl.c:997)

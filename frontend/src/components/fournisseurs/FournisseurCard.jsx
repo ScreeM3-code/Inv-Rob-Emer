@@ -33,7 +33,7 @@ export default function FournisseurCard({ fournisseur, onEdit, onDelete, onManag
       <CardContent className="flex-grow space-y-4">
           <div className="space-y-2">
             <InfoItem icon={<Component className="w-4 h-4" />} text={`${fournisseur.Marque || 'Marque :'}`} />
-            <InfoItem icon={<ShoppingBasket className="w-4 h-4" />} text={`${fournisseur.Marque || 'Produit :'}`} />
+            <InfoItem icon={<ShoppingBasket className="w-4 h-4" />} text={`${fournisseur.Produit || 'Produit :'}`} />
         </div>
         <div className="space-y-2">
             <InfoItem icon={<User className="w-4 h-4" />} text={`${fournisseur.NomContact || 'Contact principal N/A'}`} />
@@ -43,7 +43,7 @@ export default function FournisseurCard({ fournisseur, onEdit, onDelete, onManag
         
         {contacts.length > 0 && (
           <div className="border-t pt-3 space-y-2">
-            <h4 className="text-sm font-semibold text-slate-800">Contacts ({contacts.length})</h4>
+            <h4 className="text-sm font-semibold text-slate-800 dark:text-white">Contacts</h4>
             {contacts.slice(0, 2).map((contact, index) => (
               <div key={index} className="text-sm">
                 <p className="font-medium truncate">{contact.Nom}</p>

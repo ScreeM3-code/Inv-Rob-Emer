@@ -3,7 +3,7 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List, Optional
 from datetime import datetime
-
+#from auth import create_access_token, verify_password, USERS_DB, require_auth
 from database import get_db_connection
 from models import Piece, PieceCreate, PieceUpdate, Fournisseur, Contact
 from utils.helpers import (
