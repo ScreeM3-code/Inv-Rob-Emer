@@ -1,5 +1,7 @@
 rapports
 
+pip install python-jose[cryptography] passlib[bcrypt] bcrypt
+
 pouvoir modifier la qté par default des pieces dans groupe
 
 Historique des avec ok commande recu sur chaque pièces + filtre / recherche
