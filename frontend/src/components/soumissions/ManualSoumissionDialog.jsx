@@ -209,52 +209,57 @@ export default function ManualSoumissionDialog({ onClose, onSuccess }) {
             <CardContent className="pt-6 space-y-4">
               <div className="flex items-center justify-between">
                 <Label className="text-base">Pièces demandées *</Label>
-                <Button size="sm" variant="outline" onClick={handleAddPiece}>
-                  <Plus className="w-4 h-4 mr-2" />
-                  Ajouter une pièce
-                </Button>
-              </div>
-                <div className="flex items-center justify-between">
-                  <Label className="text-base">Pièces demandées *</Label>
-                  <div className="flex items-center gap-2">
-                    <Input
-                      placeholder="Rechercher une pièce..."
-                      value={pieceSearch}
-                      onChange={(e) => setPieceSearch(e.target.value)}
-                      className="w-64"
-                    />
-                    <Button size="sm" variant="outline" onClick={handleAddPiece}>
-                      <Plus className="w-4 h-4 mr-2" />
-                      Ajouter une pièce
-                    </Button>
-                  </div>
+                <div className="flex items-center gap-2">
+                  <Input
+                    placeholder="Rechercher une pièce..."
+                    value={pieceSearch}
+                    onChange={(e) => setPieceSearch(e.target.value)}
+                    className="w-64"
+                  />
+                  <Button size="sm" variant="outline" onClick={handleAddPiece}>
+                    <Plus className="w-4 h-4 mr-2" />
+                    Ajouter une pièce
+                  </Button>
                 </div>
+              </div>
 
-                {/* Pièces filtrées (cartes) */}
-                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-                  {pieces
-                    .filter(p => !pieceSearch || (p.NomPièce || '').toLowerCase().includes(pieceSearch.toLowerCase()) || (p.NumPièce || '').toLowerCase().includes(pieceSearch.toLowerCase()))
-                    .slice(0, 40)
-                    .map(p => (
-                      <Card key={p.RéfPièce} className="p-2">
-                        <CardContent className="p-2">
-                          <div className="flex flex-col h-full">
+              {/* Pièces filtrées (cartes) */}
+              <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                {pieces
+                  .filter(p => !pieceSearch || (p.NomPièce || '').toLowerCase().includes(pieceSearch.toLowerCase()) || (p.NumPièce || '').toLowerCase().includes(pieceSearch.toLowerCase()))
+                  .slice(0, 40)
+                  .map(p => (
+                    <Card key={p.RéfPièce} className="p-2">
+                      <CardContent className="p-2">
+                        <div className="flex flex-col h-full">
+                          <div className="flex items-start gap-2">
+                            <div className="w-16 h-12 flex-shrink-0 rounded overflow-hidden bg-white border">
+                              <img src={`${API_URL}/pieces/${p.RéfPièce}/image`} alt={p.NomPièce || 'pièce'} className="w-full h-full object-contain" onError={(e)=>{e.currentTarget.style.display='none'}} />
+                            </div>
                             <div className="flex-1">
                               <div className="font-medium text-sm">{p.NomPièce}</div>
                               <div className="text-xs text-gray-500">N° {p.NumPièce}</div>
                               {p.DescriptionPièce && <div className="text-xs text-gray-500 mt-1 truncate">{p.DescriptionPièce}</div>}
                             </div>
-                            <div className="mt-2">
-                              <Button size="sm" onClick={() => addPieceToSelection(p)} className="w-full">
-                                <Plus className="w-4 h-4 mr-2" />
-                                Ajouter
-                              </Button>
-                            </div>
                           </div>
-                        </CardContent>
-                      </Card>
-                    ))}
-                </div>
+                          <div className="mt-2">
+                            <Button size="sm" onClick={() => addPieceToSelection(p)} className="w-full">
+                              <Plus className="w-4 h-4 mr-2" />
+                              Ajouter
+                            </Button>
+                          </div>
+                        </div>
+                      </CardContent>
+                    </Card>
+                  ))}
+              </div>
+
+              {formData.selectedPieces.length === 0 ? (
+                <p className="text-sm text-gray-500 text-center py-4 border-2 border-dashed rounded">
+                  Aucune pièce ajoutée
+                </p>
+              ) : (
+                <div className="space-y-3">
                   {formData.selectedPieces.map((sp, index) => (
                     <div key={index} className="flex items-center gap-3 p-3 border rounded">
                       <div className="flex-1">
