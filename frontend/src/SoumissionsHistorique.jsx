@@ -9,6 +9,7 @@ import { fetchJson } from './lib/utils';
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import SoumissionDetailDialog from '@/components/soumissions/SoumissionDetailDialog';
 import { Edit , CircleCheck, AlertTriangle} from 'lucide-react';
+import ManualSoumissionDialog from '@/components/soumissions/ManualSoumissionDialog';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL + '/api';
 
@@ -25,6 +26,7 @@ export default function SoumissionsHistorique() {
   const StatutBadge = getStatutBadge[soumissions.Statut] || getStatutBadge.Envoyée;
   const [loading, setLoading] = useState(true);
   const [selectedSoumission, setSelectedSoumission] = useState(null);
+  const [manualDialog, setManualDialog] = useState({ open: false });
   const [filterStatut, setFilterStatut] = useState('tous');
 
   useEffect(() => {
@@ -119,6 +121,35 @@ export default function SoumissionsHistorique() {
               <p className="text-sm text-gray-600 dark:text-white">
                 Suivi des demandes de soumissions envoyées
               </p>
+            </div>
+          </div>
+
+          <div className="flex items-center justify-between mb-6">
+            <div className="flex items-center space-x-4">
+              <FileText className="h-8 w-8 text-blue-600" />
+              <div>
+                <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Historique des Soumissions</h1>
+                <p className="text-sm text-gray-600 dark:text-white">
+                  Suivi des demandes de soumissions envoyées
+                </p>
+              </div>
+            </div>
+
+            {/* Boutons d'action */}
+            <div className="flex items-center gap-3">
+              <Button
+                onClick={() => setManualDialog({ open: true })}
+                className="bg-green-600 hover:bg-green-700"
+              >
+                <Plus className="w-4 h-4 mr-2" />
+                Ajouter manuellement
+              </Button>
+              
+              {/* Filtre par statut */}
+              <span className="text-sm font-medium">Filtrer:</span>
+              <Select value={filterStatut} onValueChange={setFilterStatut}>
+                {/* ... reste du select ... */}
+              </Select>
             </div>
           </div>
 
@@ -329,6 +360,15 @@ export default function SoumissionsHistorique() {
           />
         )}
       </div>
+      {manualDialog.open && (
+        <ManualSoumissionDialog
+          onClose={() => setManualDialog({ open: false })}
+          onSuccess={() => {
+            setManualDialog({ open: false });
+            loadSoumissions();
+          }}
+        />
+      )}
     </div>
   );
 }

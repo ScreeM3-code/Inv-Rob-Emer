@@ -37,6 +37,41 @@ from routes import (
     uploads_router
 )
 
+# backend/InvRobot.py - AJOUTE après les imports
+
+from fastapi import Request, HTTPException
+from config import is_user_authorized
+import os
+
+@app.middleware("http")
+async def auth_middleware(request: Request, call_next):
+    """Vérifie que l'utilisateur Windows est autorisé"""
+    
+    # Ignorer les fichiers statiques et assets
+    if not request.url.path.startswith("/api/"):
+        return await call_next(request)
+    
+    # Route publique (optionnel)
+    if request.url.path == "/api/current-user":
+        return await call_next(request)
+    
+    # Récupérer l'utilisateur Windows
+    username = os.getenv("USERNAME") or os.getenv("USER") or "unknown"
+    
+    # Vérifier si autorisé
+    user_info = is_user_authorized(username)
+    if not user_info:
+        raise HTTPException(
+            status_code=403, 
+            detail=f"Accès refusé. Utilisateur '{username}' non autorisé. Contactez l'administrateur."
+        )
+    
+    # Ajouter l'info utilisateur à la requête (accessible dans les routes)
+    request.state.user = user_info
+    
+    response = await call_next(request)
+    return response
+
 # Setup logging
 logging.basicConfig(
     level=logging.INFO,
@@ -64,11 +99,28 @@ app.add_middleware(
 )
 
 # Routes utilitaires
+# backend/InvRobot.py - REMPLACE la route existante
+
 @app.get("/api/current-user")
 def get_current_user():
-    """Retourne l'utilisateur Windows actuel"""
-    user = os.getenv("USERNAME") or os.getenv("USER") or "Invité"
-    return {"user": user}
+    """Retourne l'utilisateur Windows actuel + rôle"""
+    username = os.getenv("USERNAME") or os.getenv("USER") or "unknown"
+    user_info = is_user_authorized(username)
+    
+    if not user_info:
+        return {
+            "user": username,
+            "authorized": False,
+            "role": None,
+            "message": "Utilisateur non autorisé"
+        }
+    
+    return {
+        "user": username,
+        "authorized": True,
+        "role": user_info["role"],
+        "nom_complet": user_info["nom_complet"]
+    }
 
 # Inclusion des routers
 app.include_router(pieces_router, prefix="/api")
@@ -133,3 +185,21 @@ if __name__ == "__main__":
     else:
         logger.info("🚀 Mode production")
         uvicorn.run(app, host="0.0.0.0", port=8000, log_config=None, access_log=False)
+
+
+# backend/InvRobot.py - AJOUTE une fonction helper
+
+def require_admin(request: Request):
+    """Vérifie que l'utilisateur est admin"""
+    user = getattr(request.state, 'user', None)
+    if not user or user.get('role') != 'admin':
+        raise HTTPException(
+            status_code=403,
+            detail="Action réservée aux administrateurs"
+        )
+    return user
+
+#@app.delete("/api/pieces/{piece_id}")
+#async def delete_piece(piece_id: int, request: Request, conn: asyncpg.Connection = Depends(get_db_connection)):
+    # Vérifier que c'est un admin
+ #   require_admin(request)
