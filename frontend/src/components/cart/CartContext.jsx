@@ -1,4 +1,5 @@
 import React, { createContext, useState, useContext, useEffect } from 'react';
+import { toast } from '@/hooks/use-toast';
 
 const CartContext = createContext();
 
@@ -30,7 +31,7 @@ export const CartProvider = ({ children }) => {
     setCartItems(prevItems => {
       const isItemInCart = prevItems.find(item => item.RéfPièce === piece.RéfPièce);
       if (isItemInCart) {
-        alert(`${piece.NomPièce} est déjà dans le panier`);
+        toast({ title: 'Panier', description: `${piece.NomPièce} est déjà dans le panier` });
         return prevItems;
       }
       return [...prevItems, { 

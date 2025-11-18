@@ -10,6 +10,3 @@ Ajouté bouton + pour les historique de soumissions
 il a un fuck dans mes fournisseur et fournisseur autres les nom fite pas avec les # p-e revenir comme la gestion des contact
 
 historique rechercher pas # de pieces fournisseur
-
-Erreur lors de la sauvegarde de l'image: Erreur téléchargement: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self signed certificate in certificate chain (_ssl.c:997)
-Erreur HTTP téléchargement: [SSL: CERTIFICATE_VERIFY_FAILED] certificate verify failed: self signed certificate in certificate chain (_ssl.c:997)

@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { fetchJson, log } from './lib/utils';
 import HistoriqueDialog from "@/components/commandes/HistoriqueDialog";
+import { toast } from '@/hooks/use-toast';
 import PieceEditForm from "@/components/commandes/PieceEditForm";
 import CommandeForm from "@/components/commandes/CommandeForm";
 import CommandeCard from "@/components/commandes/CommandeCard";
@@ -187,9 +188,9 @@ function Commandes() {
           // On ne bloque pas la commande si la mise à jour de la soumission échoue
         }
         
-        alert('✅ Commande passée avec succès !');
+        toast({ title: 'Succès', description: 'Commande passée avec succès !' });
       } else {
-        alert('✅ Pièce modifiée avec succès !');
+        toast({ title: 'Succès', description: 'Pièce modifiée avec succès !' });
       }
       
       setEditingOrder(null);
@@ -198,7 +199,7 @@ function Commandes() {
       
     } catch (error) {
       log("❌ Erreur lors de la mise à jour:", error);
-      alert("❌ Erreur: " + error.message);
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     }
   };
 

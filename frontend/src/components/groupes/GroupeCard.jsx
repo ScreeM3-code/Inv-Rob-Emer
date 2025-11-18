@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Package, AlertTriangle, CheckCircle, Edit, Trash2, Minus, X, ChevronDown, ChevronRight, Save, ArrowUp, ArrowDown } from "lucide-react";
+import { toast } from '@/hooks/use-toast';
 
 const API = import.meta.env.VITE_BACKEND_URL + '/api';
 
@@ -50,7 +51,7 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
 
   const handleSortir = () => {
     if (!allQuantitiesValid) {
-      alert("Certaines quantités demandées dépassent le stock disponible!");
+      toast({ title: 'Quantités invalides', description: "Certaines quantités demandées dépassent le stock disponible!", variant: 'destructive' });
       return;
     }
 
@@ -68,7 +69,7 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
       });
 
     if (sorties.length === 0) {
-      alert("Aucune pièce à sortir!");
+      toast({ title: 'Aucune sortie', description: "Aucune pièce à sortir!" });
       return;
     }
 
@@ -94,7 +95,7 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
     try {
       const newQty = parseInt(tempQty, 10);
       if (isNaN(newQty) || newQty < 1) {
-        alert("Quantité invalide");
+        toast({ title: 'Quantité invalide', description: 'Quantité invalide', variant: 'destructive' });
         return;
       }
 
@@ -107,7 +108,7 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
       onRefresh?.(); // Recharger les données
     } catch (error) {
       console.error('Erreur mise à jour quantité:', error);
-      alert('Erreur: ' + error.message);
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     }
   };
 
@@ -126,7 +127,7 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
       onRefresh?.(); // Recharger pour voir le changement
     } catch (error) {
       console.error('Erreur déplacement:', error);
-      alert('Erreur: ' + error.message);
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     }
   };
 

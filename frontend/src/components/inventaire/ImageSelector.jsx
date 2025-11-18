@@ -3,6 +3,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "
 import { Button } from "@/components/ui/button";
 import { Loader2, Check, X, AlertCircle } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { toast } from '@/hooks/use-toast';
 
 const API = import.meta.env.VITE_BACKEND_URL + '/api';
 
@@ -59,11 +60,11 @@ export default function ImageSelector({ pieceId, pieceName, onClose, onImageSave
             } else {
             const error = await response.json();
             console.error('Erreur API:', error);
-            alert('Erreur lors de la sauvegarde de l\'image: ' + (error.detail || 'Erreur inconnue'));
+            toast({ title: 'Erreur', description: error.detail || 'Erreur lors de la sauvegarde de l\'image', variant: 'destructive' });
             }
         } catch (error) {
-            console.error('Erreur sauvegarde:', error);
-            alert('Erreur: ' + error.message);
+              console.error('Erreur sauvegarde:', error);
+              toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
         } finally {
             setSaving(false);
         }

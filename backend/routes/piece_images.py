@@ -18,7 +18,6 @@ router = APIRouter(prefix="/pieces", tags=["piece-images"])
 # Créer le dossier uploads si inexistant
 UPLOADS_DIR = BASE_DIR / "uploads" / "pieces"
 UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
-MAX_FILE_SIZE = 5 * 1024 * 1024  # 5 MB
 
 # Image placeholder par défaut
 PLACEHOLDER_PATH = BASE_DIR / "static" / "placeholder_piece.png"
@@ -240,15 +239,8 @@ async def upload_piece_image(
         piece_id: int,
         file: UploadFile = File(...),
         conn: asyncpg.Connection = Depends(get_db_connection)
-
-        content = await file.read()
-        if len(content) > MAX_FILE_SIZE:
-            raise HTTPException(status_code=413, detail="Image trop volumineuse (max 5MB)")
-        
-        # Vérifier extension
-        if not file.filename.lower().endswith(('.jpg', '.jpeg', '.png', '.webp', '.gif')):
-            raise HTTPException(status_code=400, detail="Format non supporté")
     ):
+
     """Upload manuel d'une image pour une pièce"""
 
     # Vérifier que la pièce existe
@@ -271,7 +263,7 @@ async def upload_piece_image(
     print(f"📤 Upload manuel: {filename}")
 
     # Sauvegarder le fichier
-    filepath = UPLOADS_DIR / filename
+    content = await file.read()
     async with aiofiles.open(filepath, 'wb') as f:
         await f.write(content)
 

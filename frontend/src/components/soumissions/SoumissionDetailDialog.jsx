@@ -9,6 +9,7 @@ import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Clock, DollarSign, Package, Save, AlertCircle, Check } from 'lucide-react';
 import { fetchJson } from '../../lib/utils';
+import { toast } from '@/hooks/use-toast';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL + '/api';
 
@@ -52,7 +53,7 @@ export default function SoumissionDetailDialog({ soumission, onClose, onUpdate }
   const handleSavePrix = async (piece) => {
     const prix = prixData[piece.RéfPièce];
     if (!prix || !prix.PrixUnitaire) {
-      alert('Veuillez entrer un prix');
+      toast({ title: 'Validation', description: 'Veuillez entrer un prix', variant: 'destructive' });
       return;
     }
 
@@ -71,7 +72,7 @@ export default function SoumissionDetailDialog({ soumission, onClose, onUpdate }
       });
       await loadPrixRecus();
     } catch (error) {
-      alert('Erreur: ' + error.message);
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -94,7 +95,7 @@ export default function SoumissionDetailDialog({ soumission, onClose, onUpdate }
       onUpdate();
       onClose();
     } catch (error) {
-      alert('Erreur: ' + error.message);
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -115,8 +116,8 @@ export default function SoumissionDetailDialog({ soumission, onClose, onUpdate }
     if (!file) return;
 
     if (!file.name.toLowerCase().endsWith('.pdf')) {
-        alert('Seuls les fichiers PDF sont acceptés');
-        return;
+      toast({ title: 'Format invalide', description: 'Seuls les fichiers PDF sont acceptés', variant: 'destructive' });
+      return;
     }
 
     try {
@@ -129,11 +130,11 @@ export default function SoumissionDetailDialog({ soumission, onClose, onUpdate }
         body: formData
         });
 
-        alert('✅ PDF uploadé avec succès');
+        toast({ title: 'Succès', description: 'PDF uploadé avec succès' });
         onUpdate(); // Recharger pour afficher le PDF
     } catch (error) {
         console.error('Erreur upload:', error);
-        alert('Erreur lors de l\'upload: ' + error.message);
+        toast({ title: 'Erreur upload', description: error.message, variant: 'destructive' });
     } finally {
         setUploadingPdf(false);
     }
@@ -150,10 +151,10 @@ export default function SoumissionDetailDialog({ soumission, onClose, onUpdate }
         await fetchJson(`${API_URL}/uploads/soumission/${soumission.RefSoumission}`, {
         method: 'DELETE'
         });
-        alert('✅ PDF supprimé');
+        toast({ title: 'Succès', description: 'PDF supprimé' });
         onUpdate();
     } catch (error) {
-        alert('Erreur: ' + error.message);
+        toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     }
     };  
 

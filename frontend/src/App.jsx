@@ -20,36 +20,38 @@ const API = `${BACKEND_URL}/api`;
 // Hook personnalisé pour lazy loading par scroll
 function useInfiniteScroll(items, itemsPerPage = 50) {
   const [displayCount, setDisplayCount] = useState(itemsPerPage);
-  const loaderRef = useRef(null);
+  // callback ref setter for the loader element (works well with IntersectionObserver)
+  const [loaderEl, setLoaderEl] = useState(null);
 
   useEffect(() => {
-    // Reset quand les items changent
+    // Reset display count when the total number of items changes
     setDisplayCount(itemsPerPage);
-  }, [items, itemsPerPage]);
+  }, [items.length, itemsPerPage]);
 
   useEffect(() => {
-    const handleScroll = () => {
-      if (!loaderRef.current) return;
-      
-      const { scrollTop, scrollHeight, clientHeight } = document.documentElement;
-      
-      // Si on est à 80% du scroll et il reste des items
-      if (scrollTop + clientHeight >= scrollHeight * 0.8) {
-        setDisplayCount(prev => {
-          const newCount = prev + itemsPerPage;
-          return Math.min(newCount, items.length);
-        });
-      }
-    };
+    if (!loaderEl) return;
+    if (displayCount >= items.length) return;
 
-    window.addEventListener('scroll', handleScroll, { passive: true });
-    return () => window.removeEventListener('scroll', handleScroll);
-  }, [items.length, itemsPerPage]);
+    const observer = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((entry) => {
+          if (entry.isIntersecting) {
+            setDisplayCount((prev) => Math.min(prev + itemsPerPage, items.length));
+          }
+        });
+      },
+      { root: null, rootMargin: '300px', threshold: 0.1 }
+    );
+
+    observer.observe(loaderEl);
+    return () => observer.disconnect();
+  }, [loaderEl, items.length, itemsPerPage, displayCount]);
 
   const displayedItems = items.slice(0, displayCount);
   const hasMore = displayCount < items.length;
 
-  return { displayedItems, loaderRef, hasMore };
+  // return the setter as the ref to attach to the loader element
+  return { displayedItems, loaderRef: setLoaderEl, hasMore };
 }
 
 function Dashboard () {
@@ -154,7 +156,7 @@ function Dashboard () {
       await loadData(currentPage, searchTerm);
     } catch (error) {
       console.error('❌ Erreur ajout au groupe:', error);
-      alert('Erreur : ' + (error.message || 'Cette pièce est peut-être déjà dans ce groupe'));
+      toast({ title: 'Erreur', description: error.message || 'Cette pièce est peut-être déjà dans ce groupe', variant: 'destructive' });
     }
   };
 
@@ -167,7 +169,7 @@ function Dashboard () {
       await loadData(currentPage, searchTerm);
     } catch (error) {
       console.error('❌ Erreur retrait du groupe:', error);
-      alert('Erreur : ' + error.message);
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     }
   };
 
@@ -206,17 +208,17 @@ function Dashboard () {
     const parsedAmount = parseInt(amountArg, 10);
     const amount = isNaN(parsedAmount) ? 0 : parsedAmount;
     if (amount <= 0) {
-      alert('Entrez une quantité valide (> 0) pour la sortie rapide.');
+      toast({ title: 'Attention', description: 'Entrez une quantité valide (> 0) pour la sortie rapide.' });
       return;
     }
 
     if (piece.QtéenInventaire <= 0) {
-      alert("Le stock est déjà à zéro.");
+      toast({ title: 'Attention', description: 'Le stock est déjà à zéro.' });
       return;
     }
 
     if (amount > piece.QtéenInventaire) {
-      alert("La quantité demandée dépasse le stock disponible.");
+      toast({ title: 'Attention', description: 'La quantité demandée dépasse le stock disponible.' });
       return;
     }
 
@@ -272,9 +274,7 @@ function Dashboard () {
           prev.map((p) => (p.RéfPièce === piece.RéfPièce ? originalPiece : p))
         );
       }
-      alert(
-        "L'opération a échoué. Veuillez vérifier la console et vous assurer que le backend est démarré."
-      );
+      toast({ title: 'Erreur', description: "L'opération a échoué. Veuillez vérifier la console et vous assurer que le backend est démarré.", variant: 'destructive' });
     }
   };
 
@@ -284,7 +284,7 @@ function Dashboard () {
     try {
       // Validation basique
       if (!newPiece.NomPièce?.trim()) {
-        alert("Le nom de la pièce est obligatoire");
+        toast({ title: 'Attention', description: 'Le nom de la pièce est obligatoire' });
         return;
       }
 
@@ -346,14 +346,14 @@ function Dashboard () {
     } catch (error) {
       console.error("❌ Erreur lors de l'ajout:", error);
       console.error("❌ Réponse serveur:", error.response?.data);
-      alert("Erreur lors de l'ajout: " + (error.response?.data?.detail || error.message));
+      toast({ title: 'Erreur', description: (error.response?.data?.detail || error.message), variant: 'destructive' });
     }
   };
 
   // Correction de la fonction handleUpdatePiece pour compatibilité et robustesse
   const handleUpdatePiece = async () => {
     if (!editingPiece || !editingPiece.RéfPièce) {
-      alert("Impossible de déterminer la pièce à mettre à jour.");
+      toast({ title: 'Erreur', description: 'Impossible de déterminer la pièce à mettre à jour.', variant: 'destructive' });
       return;
     }
     
@@ -408,7 +408,7 @@ function Dashboard () {
       setEditingPiece(null);
     } catch (error) {
       log("❌ Erreur lors de la mise à jour:", error);
-      alert("Erreur: " + error.message);
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
       // ✅ En cas d'erreur, recharger pour avoir l'état correct
       await loadData(currentPage);
     }
@@ -422,7 +422,7 @@ function Dashboard () {
         loadData(currentPage);
       } catch (error) {
         log("❌ Erreur lors de la suppression:", error);
-        alert("Erreur lors de la suppression: " + error.message);
+        toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
       }
     }
   };
@@ -611,7 +611,10 @@ function Dashboard () {
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
             {displayedItems.map((piece) => {
               const fournisseur = fournisseurs.find(f => f.RéfFournisseur === piece.RéfFournisseur);
-              const autreFournisseur = fournisseurs.find(f => f.RéfFournisseur === piece.RéfAutreFournisseur);
+              // Prefer the `autre_fournisseur` object when provided by the backend
+              // because it comes from a separate table. Otherwise try to resolve
+              // by id against the `fournisseurs` list (if the id matches).
+              const autreFournisseur = piece.autre_fournisseur || fournisseurs.find(f => f.RéfFournisseur === piece.RéfAutreFournisseur) || null;
               const fabricant = fabricants.find(f => f.RefFabricant === piece.RefFabricant);
               return (
                 <PieceCard

@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { toast } from '@/hooks/use-toast';
 import { Card, CardContent, CardHeader, CardTitle } from './components/ui/card';
 import { Button } from './components/ui/button';
 import { Input } from './components/ui/input';
@@ -52,7 +53,7 @@ Cordialement,
 
   const handleSendEmail = () => {
     if (!emailData.destinataire || !emailData.message) {
-      alert('Veuillez remplir tous les champs obligatoires');
+      toast({ title: 'Champs manquants', description: 'Veuillez remplir tous les champs obligatoires', variant: 'destructive' });
       return;
     }
 

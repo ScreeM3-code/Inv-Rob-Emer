@@ -10,6 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { X, Trash2, Edit, Send } from 'lucide-react';
 import { useQuery } from '@tanstack/react-query';
 import { fetchJson } from '../../lib/utils';
+import { toast } from '@/hooks/use-toast';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL + '/api';
 
@@ -108,13 +109,13 @@ export default function CartPanel({ children }) {
     
     const supplier = fournisseurs.find(f => f.RéfFournisseur === supplierId);
     if (!supplier) {
-      alert("Fournisseur introuvable.");
+      toast({ title: 'Erreur', description: "Fournisseur introuvable.", variant: 'destructive' });
       return;
     }
     
     const contactEmails = supplier.contacts?.map(c => c.Email).filter(Boolean).join(',') || '';
     if (!contactEmails) {
-      alert("Aucun email de contact trouvé pour ce fournisseur.");
+      toast({ title: 'Erreur', description: "Aucun email de contact trouvé pour ce fournisseur.", variant: 'destructive' });
       return;
     }
 
@@ -141,7 +142,7 @@ export default function CartPanel({ children }) {
     const finalEmails = selectedSupplier?.contacts?.map(c => c.Email).filter(Boolean).join(',') || '';
     
     if (!finalEmails) {
-      alert("Aucun email pour le fournisseur sélectionné.");
+      toast({ title: 'Erreur', description: "Aucun email pour le fournisseur sélectionné.", variant: 'destructive' });
       return;
     }
 

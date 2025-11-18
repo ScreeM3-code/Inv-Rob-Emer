@@ -42,6 +42,9 @@ export default function PieceEditDialog({
     RéfAutreFournisseur: piece.RéfAutreFournisseur?.toString() || "none",
     RefFabricant: piece.RefFabricant?.toString() || "none",
     Lieuentreposage: piece.Lieuentreposage || "",
+    NumPièce: piece.NumPièce || "",
+    NoFESTO: piece.NoFESTO || "",
+    RTBS: piece.RTBS || ""
   }), [piece]);
 
   return (

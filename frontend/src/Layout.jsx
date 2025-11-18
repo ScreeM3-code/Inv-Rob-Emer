@@ -8,20 +8,7 @@ import { Badge } from '@/components/ui/badge';
 
 export default function Layout() {
   const location = useLocation();
-  const [currentUser, setCurrentUser] = useState(null);
 
-    useEffect(() => {
-      // Récupérer l'utilisateur au chargement
-      fetch(`${import.meta.env.VITE_BACKEND_URL}/api/current-user`)
-        .then(res => res.json())
-        .then(data => {
-          if (!data.authorized) {
-            alert(`❌ Accès refusé pour l'utilisateur "${data.user}". Contactez l'admin.`);
-          }
-          setCurrentUser(data);
-        })
-        .catch(err => console.error('Erreur auth:', err));
-    }, []);
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -34,16 +21,6 @@ export default function Layout() {
               {/* Logo */}
               <div className="flex items-center space-x-4">
                 <Package className="h-8 w-8 text-rio-red" />
-                  {/* AJOUTE ICI : Info utilisateur */}
-                  {currentUser && currentUser.authorized && (
-                    <div className="flex items-center gap-2 px-3 py-2 bg-white/50 dark:bg-slate-800/50 rounded-lg">
-                      <User className="h-4 w-4 text-blue-600" />
-                      <span className="text-sm font-medium">{currentUser.nom_complet}</span>
-                      {currentUser.role === 'admin' && (
-                        <Badge className="bg-red-500 text-white text-xs">Admin</Badge>
-                      )}
-                    </div>
-                  )}
                 <div>
                   <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Inventaire Robots</h1>
                   <p className="text-sm text-gray-600 dark:text-white">Maintenance</p>

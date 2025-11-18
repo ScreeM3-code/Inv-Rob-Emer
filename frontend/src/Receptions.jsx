@@ -7,6 +7,7 @@ import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
 import { ClipboardCheck, Package, Truck, AlertCircle, CheckCircle, FileText } from 'lucide-react';
 import { fetchJson, log } from './lib/utils';
+import { toast } from '@/hooks/use-toast';
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { useNavigate } from 'react-router-dom';
 import SoumissionsHistoryDialog from '@/components/soumissions/SoumissionsHistoryDialog';
@@ -46,7 +47,7 @@ function Receptions() {
       await loadReceptions();
     } catch (error) {
       log("Erreur réception totale:", error);
-      alert("Erreur lors de la réception totale: " + error.message);
+      toast({ title: 'Erreur réception', description: error.message, variant: 'destructive' });
     }
   };
 
@@ -61,7 +62,7 @@ function Receptions() {
       await loadReceptions();
     } catch (error) {
       log("Erreur réception partielle:", error);
-      alert("Erreur lors de la réception partielle: " + error.message);
+      toast({ title: 'Erreur réception', description: error.message, variant: 'destructive' });
     }
   };
 
@@ -126,17 +127,28 @@ function Receptions() {
           ) : (
             receptions.map((piece) => {
               const statutStock = getStockStatus(piece.QtéenInventaire, piece.Qtéminimum);
+              const imageUrl = `${API}/pieces/${piece.RéfPièce}/image`;
+              const autreFourn = piece.autre_fournisseur || piece.RéfAutreFournisseur || null;
               return (
                 <Card key={piece.RéfPièce} className="hover:shadow-md transition-shadow">
                   <CardContent className="p-6">
                     <div className="flex items-start justify-between">
                       <div className="flex-1">
-                        <div className="flex items-center space-x-4 mb-4">
-                          <div>
-                            <h2 className="font-semibold text-lg">{piece.NomPièce}  {getStockBadge(statutStock)} </h2>
-                             <p className="text-sm text-gray-600">N° {piece.NumPièce}</p>
+                        <div className="flex items-start space-x-4 mb-4">
+                          <div className="w-40 h-40 flex-shrink-0 rounded overflow-hidden bg-white border">
+                            <img src={imageUrl} alt={piece.NomPièce} className="w-full h-full object-contain" onError={(e)=>{e.currentTarget.style.display='none'}} />
+                          </div>
+
+                          <div className="flex-1">
+                            <div className="flex items-start justify-between">
+                              <h2 className="font-semibold text-lg">{piece.NomPièce}</h2>
+                              <div className="ml-4">{getStockBadge(statutStock)}</div>
+                            </div>
+
+                            <div className="text-sm text-gray-600 mt-1">N° {piece.NumPièce}</div>
+
                             {piece.DescriptionPièce && (
-                              <p className="text-sm text-gray-500 mt-1">{piece.DescriptionPièce}</p>
+                              <p className="text-sm text-gray-500 mt-3">{piece.DescriptionPièce}</p>
                             )}
                           </div>
                         </div>

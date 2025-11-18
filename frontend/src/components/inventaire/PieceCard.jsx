@@ -1,5 +1,6 @@
 
 import React, { useState } from "react";
+import { toast } from "@/hooks/use-toast";
 import { Card, CardContent, CardFooter, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -62,7 +63,7 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
       }
     } catch (error) {
       console.error('Erreur upload:', error);
-      alert('Erreur lors de l\'upload de l\'image');
+      toast({ title: 'Erreur upload', description: 'Erreur lors de l\'upload de l\'image', variant: 'destructive' });
     }
   };
 

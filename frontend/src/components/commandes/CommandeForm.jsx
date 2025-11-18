@@ -3,6 +3,7 @@ import { log } from '../../lib/utils';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { toast } from '@/hooks/use-toast';
 import { Label } from "@/components/ui/label";
 
 export default function CommandeForm({ piece, onSave, onCancel }) {
@@ -43,7 +44,7 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
 
   const handleSubmit = () => {
     if (!formData.Qtécommander || formData.Qtécommander <= 0) {
-      alert("La quantité doit être supérieure à 0");
+      toast({ title: 'Validation', description: 'La quantité doit être supérieure à 0', variant: 'destructive' });
       return;
     }
 

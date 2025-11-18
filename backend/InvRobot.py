@@ -21,7 +21,9 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse
-
+from fastapi import Request, HTTPException
+#from config import is_user_authorized
+import os
 # Imports locaux
 from config import CORS_ORIGINS, BUILD_DIR
 from database import lifespan
@@ -37,40 +39,7 @@ from routes import (
     uploads_router
 )
 
-# backend/InvRobot.py - AJOUTE après les imports
 
-from fastapi import Request, HTTPException
-from config import is_user_authorized
-import os
-
-@app.middleware("http")
-async def auth_middleware(request: Request, call_next):
-    """Vérifie que l'utilisateur Windows est autorisé"""
-    
-    # Ignorer les fichiers statiques et assets
-    if not request.url.path.startswith("/api/"):
-        return await call_next(request)
-    
-    # Route publique (optionnel)
-    if request.url.path == "/api/current-user":
-        return await call_next(request)
-    
-    # Récupérer l'utilisateur Windows
-    username = os.getenv("USERNAME") or os.getenv("USER") or "unknown"
-    
-    # Vérifier si autorisé
-    user_info = is_user_authorized(username)
-    if not user_info:
-        raise HTTPException(
-            status_code=403, 
-            detail=f"Accès refusé. Utilisateur '{username}' non autorisé. Contactez l'administrateur."
-        )
-    
-    # Ajouter l'info utilisateur à la requête (accessible dans les routes)
-    request.state.user = user_info
-    
-    response = await call_next(request)
-    return response
 
 # Setup logging
 logging.basicConfig(
@@ -98,28 +67,16 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Routes utilitaires
-# backend/InvRobot.py - REMPLACE la route existante
+
 
 @app.get("/api/current-user")
 def get_current_user():
     """Retourne l'utilisateur Windows actuel + rôle"""
     username = os.getenv("USERNAME") or os.getenv("USER") or "unknown"
-    user_info = is_user_authorized(username)
-    
-    if not user_info:
-        return {
-            "user": username,
-            "authorized": False,
-            "role": None,
-            "message": "Utilisateur non autorisé"
-        }
-    
+
     return {
         "user": username,
-        "authorized": True,
-        "role": user_info["role"],
-        "nom_complet": user_info["nom_complet"]
+
     }
 
 # Inclusion des routers

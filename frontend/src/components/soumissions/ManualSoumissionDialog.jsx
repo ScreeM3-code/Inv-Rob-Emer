@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Card, CardContent } from "@/components/ui/card";
 import { Plus, X, Upload, Loader2 } from "lucide-react";
 import { fetchJson } from '../../lib/utils';
+import { toast } from '@/hooks/use-toast';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL + '/api';
 
@@ -25,6 +26,7 @@ export default function ManualSoumissionDialog({ onClose, onSuccess }) {
     Notes: '',
     selectedPieces: [] // [{RéfPièce, Quantite}]
   });
+    const [pieceSearch, setPieceSearch] = useState('');
 
   useEffect(() => {
     loadData();
@@ -57,6 +59,17 @@ export default function ManualSoumissionDialog({ onClose, onSuccess }) {
     });
   };
 
+
+    const addPieceToSelection = (piece) => {
+      if (formData.selectedPieces.find(p => p.RéfPièce === piece.RéfPièce)) {
+        toast({ title: 'Info', description: 'Pièce déjà ajoutée', variant: 'default' });
+        return;
+      }
+      setFormData(prev => ({
+        ...prev,
+        selectedPieces: [...prev.selectedPieces, { RéfPièce: piece.RéfPièce, Quantite: 1 }]
+      }));
+    };
   const handlePieceChange = (index, field, value) => {
     const updated = [...formData.selectedPieces];
     updated[index][field] = field === 'Quantite' ? parseInt(value) || 1 : parseInt(value);
@@ -66,19 +79,19 @@ export default function ManualSoumissionDialog({ onClose, onSuccess }) {
   const handleSubmit = async () => {
     // Validation
     if (!formData.RéfFournisseur) {
-      alert('Sélectionnez un fournisseur');
+      toast({ title: 'Validation', description: 'Sélectionnez un fournisseur', variant: 'destructive' });
       return;
     }
     if (!formData.EmailsDestinataires) {
-      alert('Entrez au moins un email');
+      toast({ title: 'Validation', description: 'Entrez au moins un email', variant: 'destructive' });
       return;
     }
     if (formData.selectedPieces.length === 0) {
-      alert('Ajoutez au moins une pièce');
+      toast({ title: 'Validation', description: 'Ajoutez au moins une pièce', variant: 'destructive' });
       return;
     }
     if (formData.selectedPieces.some(p => !p.RéfPièce)) {
-      alert('Toutes les pièces doivent être sélectionnées');
+      toast({ title: 'Validation', description: 'Toutes les pièces doivent être sélectionnées', variant: 'destructive' });
       return;
     }
 
@@ -128,11 +141,11 @@ export default function ManualSoumissionDialog({ onClose, onSuccess }) {
         });
       }
 
-      alert('✅ Soumission ajoutée avec succès');
+      toast({ title: 'Succès', description: 'Soumission ajoutée avec succès' });
       onSuccess();
     } catch (error) {
       console.error('Erreur création:', error);
-      alert('Erreur: ' + error.message);
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     } finally {
       setLoading(false);
     }
@@ -201,13 +214,47 @@ export default function ManualSoumissionDialog({ onClose, onSuccess }) {
                   Ajouter une pièce
                 </Button>
               </div>
+                <div className="flex items-center justify-between">
+                  <Label className="text-base">Pièces demandées *</Label>
+                  <div className="flex items-center gap-2">
+                    <Input
+                      placeholder="Rechercher une pièce..."
+                      value={pieceSearch}
+                      onChange={(e) => setPieceSearch(e.target.value)}
+                      className="w-64"
+                    />
+                    <Button size="sm" variant="outline" onClick={handleAddPiece}>
+                      <Plus className="w-4 h-4 mr-2" />
+                      Ajouter une pièce
+                    </Button>
+                  </div>
+                </div>
 
-              {formData.selectedPieces.length === 0 ? (
-                <p className="text-sm text-gray-500 text-center py-4 border-2 border-dashed rounded">
-                  Aucune pièce ajoutée
-                </p>
-              ) : (
-                <div className="space-y-3">
+                {/* Pièces filtrées (cartes) */}
+                <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+                  {pieces
+                    .filter(p => !pieceSearch || (p.NomPièce || '').toLowerCase().includes(pieceSearch.toLowerCase()) || (p.NumPièce || '').toLowerCase().includes(pieceSearch.toLowerCase()))
+                    .slice(0, 40)
+                    .map(p => (
+                      <Card key={p.RéfPièce} className="p-2">
+                        <CardContent className="p-2">
+                          <div className="flex flex-col h-full">
+                            <div className="flex-1">
+                              <div className="font-medium text-sm">{p.NomPièce}</div>
+                              <div className="text-xs text-gray-500">N° {p.NumPièce}</div>
+                              {p.DescriptionPièce && <div className="text-xs text-gray-500 mt-1 truncate">{p.DescriptionPièce}</div>}
+                            </div>
+                            <div className="mt-2">
+                              <Button size="sm" onClick={() => addPieceToSelection(p)} className="w-full">
+                                <Plus className="w-4 h-4 mr-2" />
+                                Ajouter
+                              </Button>
+                            </div>
+                          </div>
+                        </CardContent>
+                      </Card>
+                    ))}
+                </div>
                   {formData.selectedPieces.map((sp, index) => (
                     <div key={index} className="flex items-center gap-3 p-3 border rounded">
                       <div className="flex-1">

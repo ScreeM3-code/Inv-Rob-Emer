@@ -13,6 +13,7 @@ import {
   ChevronDown, ChevronRight, Loader2 
 } from 'lucide-react';
 import { fetchJson } from './lib/utils';
+import { toast } from '@/hooks/use-toast';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || 'http://localhost:8000';
 const API = `${BACKEND_URL}/api`;
@@ -115,7 +116,7 @@ export default function Groupes() {
       await loadData();
     } catch (error) {
       console.error('Erreur sauvegarde catégorie:', error);
-      alert('Erreur: ' + error.message);
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     }
   };
 
@@ -155,7 +156,7 @@ export default function Groupes() {
       await loadData();
     } catch (error) {
       console.error('Erreur sauvegarde groupe:', error);
-      alert('Erreur: ' + error.message);
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     }
   };
 
@@ -201,7 +202,7 @@ export default function Groupes() {
       await loadData();
     } catch (error) {
       console.error('Erreur ajout pièce:', error);
-      alert('Erreur: ' + error.message);
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     }
   };
 
@@ -241,11 +242,11 @@ export default function Groupes() {
         });
       }
 
-      alert('✅ Sortie effectuée avec succès!');
+      toast({ title: 'Sortie', description: 'Sortie effectuée avec succès !' });
       await loadData();
     } catch (error) {
       console.error('Erreur sortie pièces:', error);
-      alert('Erreur: ' + error.message);
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     }
   };
 
