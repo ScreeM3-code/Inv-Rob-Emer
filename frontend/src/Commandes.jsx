@@ -178,10 +178,108 @@ function Commandes() {
                 Commentaire: `Commande passée - Qté: ${updatedPiece.Qtécommandée}`
               })
             });
+           
+            // Si un PDF a été fourni depuis le formulaire de commande, l'uploader vers la soumission
+            if (updatedPiece.pdfFile) {
+              try {
+                const formDataPdf = new FormData();
+                formDataPdf.append('file', updatedPiece.pdfFile);
+
+                await fetch(`${API}/uploads/soumission/${soumission.RefSoumission}`, {
+                  method: 'POST',
+                  body: formDataPdf
+                });
+                log('📎 PDF uploadé vers la soumission');
+              } catch (upErr) {
+                console.error('⚠️ Erreur upload PDF soumission (non bloquant):', upErr);
+              }
+            }
             
             log('✅ Soumission mise à jour en "Commandée"');
           } else {
-            log('⚠️ Aucune soumission trouvée pour cette pièce');
+            log('⚠️ Aucune soumission trouvée pour cette pièce — création automatique en cours');
+            try {
+              // Construire les données de la pièce pour la nouvelle soumission
+              const piecesForSoumission = [{
+                RéfPièce: updatedPiece.RéfPièce,
+                NomPièce: updatedPiece.NomPièce || '',
+                NumPièce: updatedPiece.NumPièce || '',
+                NumPièceAutreFournisseur: updatedPiece.NumPièceAutreFournisseur || '',
+                DescriptionPièce: updatedPiece.DescriptionPièce || '',
+                Quantite: updatedPiece.Qtécommandée || updatedPiece.Qtéàcommander || 0,
+                Prix_unitaire: updatedPiece.Prix_unitaire || 0
+              }];
+
+              const newSoumission = await fetchJson(`${API}/soumissions`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  RéfFournisseur: updatedPiece.RéfFournisseur || updatedPiece.RéfAutreFournisseur || null,
+                  EmailsDestinataires: '',
+                  Sujet: 'Commande automatique',
+                  MessageCorps: updatedPiece.Cmd_info || 'Créée automatiquement lors de la commande',
+                  Pieces: piecesForSoumission,
+                  User: userName,
+                  Notes: 'Créée automatiquement lors de la commande'
+                })
+              });
+
+              if (newSoumission && newSoumission.RefSoumission) {
+                log('✅ Soumission créée automatiquement:', newSoumission);
+
+                // Marquer la soumission comme Commandée
+                try {
+                  await fetchJson(
+                    `${API}/soumissions/${newSoumission.RefSoumission}/statut-complet?statut=Commandée`,
+                    {
+                      method: 'PUT',
+                      headers: { 'Content-Type': 'application/json' },
+                      body: JSON.stringify({
+                        note: updatedPiece.Cmd_info || `Commandée le ${new Date().toLocaleDateString('fr-CA')}`,
+                        date_rappel: null
+                      })
+                    }
+                  );
+
+                  // Enregistrer le prix commandé
+                  await fetchJson(`${API}/soumissions/${newSoumission.RefSoumission}/prix`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      RefSoumission: newSoumission.RefSoumission,
+                      RéfPièce: updatedPiece.RéfPièce,
+                      PrixUnitaire: parseFloat(updatedPiece.Prix_unitaire || 0),
+                      DelaiLivraison: updatedPiece.delai_livraison || '',
+                      Commentaire: `Commande passée - Qté: ${updatedPiece.Qtécommandée}`
+                    })
+                  });
+
+                  // Uploader PDF si fourni
+                  if (updatedPiece.pdfFile) {
+                    try {
+                      const formDataPdf = new FormData();
+                      formDataPdf.append('file', updatedPiece.pdfFile);
+
+                      await fetch(`${API}/uploads/soumission/${newSoumission.RefSoumission}`, {
+                        method: 'POST',
+                        body: formDataPdf
+                      });
+                      log('📎 PDF uploadé vers la nouvelle soumission');
+                    } catch (upErr) {
+                      console.error('⚠️ Erreur upload PDF nouvelle soumission (non bloquant):', upErr);
+                    }
+                  }
+
+                  log('✅ Soumission créée et mise à jour en "Commandée"');
+                } catch (innerErr) {
+                  console.error('⚠️ Erreur lors de la mise à jour de la nouvelle soumission (non bloquant):', innerErr);
+                }
+              } else {
+                log('⚠️ Échec création soumission automatique');
+              }
+            } catch (createErr) {
+              console.error('⚠️ Erreur création soumission automatique (non bloquant):', createErr);
+            }
           }
         } catch (soumErr) {
           console.error('⚠️ Erreur mise à jour soumission (non bloquant):', soumErr);

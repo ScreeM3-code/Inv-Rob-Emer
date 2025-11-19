@@ -61,14 +61,15 @@ export default function ManualSoumissionDialog({ onClose, onSuccess }) {
 
 
     const addPieceToSelection = (piece) => {
-      if (formData.selectedPieces.find(p => p.RéfPièce === piece.RéfPièce)) {
-        toast({ title: 'Info', description: 'Pièce déjà ajoutée', variant: 'default' });
-        return;
-      }
-      setFormData(prev => ({
-        ...prev,
-        selectedPieces: [...prev.selectedPieces, { RéfPièce: piece.RéfPièce, Quantite: 1 }]
-      }));
+        if (formData.selectedPieces.find(p => p.RéfPièce === piece.RéfPièce)) {
+          toast({ title: 'Info', description: 'Pièce déjà ajoutée', variant: 'default' });
+          return;
+        }
+        setFormData(prev => ({
+          ...prev,
+          selectedPieces: [...prev.selectedPieces, { RéfPièce: piece.RéfPièce, Quantite: 1 }]
+        }));
+        toast({ title: 'Pièce ajoutée', description: `${piece.NomPièce || 'Pièce'} ajoutée à la sélection`, variant: 'default' });
     };
   const handlePieceChange = (index, field, value) => {
     const updated = [...formData.selectedPieces];
@@ -152,6 +153,7 @@ export default function ManualSoumissionDialog({ onClose, onSuccess }) {
   };
 
   const selectedFournisseur = fournisseurs.find(f => f.RéfFournisseur === formData.RéfFournisseur);
+  const pieceQuery = (pieceSearch || '').toLowerCase();
 
   return (
     <Dialog open={true} onOpenChange={onClose}>
@@ -226,7 +228,15 @@ export default function ManualSoumissionDialog({ onClose, onSuccess }) {
               {/* Pièces filtrées (cartes) */}
               <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
                 {pieces
-                  .filter(p => !pieceSearch || (p.NomPièce || '').toLowerCase().includes(pieceSearch.toLowerCase()) || (p.NumPièce || '').toLowerCase().includes(pieceSearch.toLowerCase()))
+                  .filter(p => {
+                    if (!pieceSearch) return true;
+                    return (
+                      (p.NomPièce || '').toLowerCase().includes(pieceQuery) ||
+                      (p.NumPièce || '').toLowerCase().includes(pieceQuery) ||
+                      (p.NumPièceAutreFournisseur || '').toLowerCase().includes(pieceQuery) ||
+                      (p.DescriptionPièce || '').toLowerCase().includes(pieceQuery)
+                    );
+                  })
                   .slice(0, 40)
                   .map(p => (
                     <Card key={p.RéfPièce} className="p-2">

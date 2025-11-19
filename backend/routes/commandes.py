@@ -128,7 +128,7 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
             LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
             LEFT JOIN "Autre Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfAutreFournisseur"
             LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
-            WHERE p."Qtécommandée" <= 0
+            WHERE COALESCE(p."Qtécommandée", 0) <= 0
              AND p."QtéenInventaire" < p."Qtéminimum"
              AND p."Qtéminimum" > 0
         ''')
@@ -162,7 +162,7 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
                 Datecommande=piece_dict.get("Datecommande"),
                 NomPièce=safe_string(piece_dict.get("NomPièce", "")),
                 NumPièce=safe_string(piece_dict.get("NumPièce", "")),
-                RTBS=safe_string(piece_dict.get("RTBS", "")),
+                RTBS=safe_float(piece_dict.get("RTBS", None)),
                 NumPièceAutreFournisseur=safe_string(piece_dict.get("NumPièceAutreFournisseur", "")),
                 DescriptionPièce=safe_string(piece_dict.get("DescriptionPièce", "")),
                 RéfFournisseur=piece_dict.get("RéfFournisseur"),

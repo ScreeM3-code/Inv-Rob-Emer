@@ -22,7 +22,7 @@ class PieceBase(BaseModel):
     Prix_unitaire: Optional[float] = 0.0
     Soumission_LD: Optional[str] = ""
     SoumDem: Optional[bool] = False
-    RTBS: Optional[str] = ""
+    RTBS: Optional[float] = None
     NoFESTO: Optional[str] = ""
     Discontinué: Optional[str] = ""
 
@@ -38,10 +38,13 @@ class PieceCreate(BaseModel):
     QtéenInventaire: Optional[int] = 0
     Qtéminimum: Optional[int] = 0
     Qtémax: Optional[int] = 100
+    Qtécommandée: Optional[int] = 0
     statut_stock: Optional[str] = None
     Prix_unitaire: Optional[float] = 0.0
     Soumission_LD: Optional[str] = ""
     SoumDem: Optional[bool] = False
+    RTBS: Optional[float] = None
+    NoFESTO: Optional[str] = ""
 
 class PieceUpdate(BaseModel):
     NomPièce: Optional[str] = None
@@ -55,13 +58,14 @@ class PieceUpdate(BaseModel):
     QtéenInventaire: Optional[int] = None
     Qtéminimum: Optional[int] = None
     Qtémax: Optional[int] = None
-    Qtécommandée: Optional[int] = None
+    Qtécommandée: Optional[int] = 0
     Qtéarecevoir: Optional[int] = None
     statut_stock: Optional[str] = None
     Prix_unitaire: Optional[float] = None
     Soumission_LD: Optional[str] = None
     SoumDem: Optional[bool] = False
-
+    RTBS: Optional[float] = None
+    NoFESTO: Optional[str] = ""
 class Piece(PieceBase):
     Created: Optional[datetime] = None
     Modified: Optional[datetime] = None

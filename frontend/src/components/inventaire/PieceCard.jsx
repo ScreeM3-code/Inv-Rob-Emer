@@ -157,7 +157,7 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
             )}
             {piece.NumPièce?.trim() && <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">{piece.NumPièce}</p>}
             {piece.NumPièceAutreFournisseur?.trim() && <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">#Fourn: {piece.NumPièceAutreFournisseur}</p>}
-            {piece.RTBS?.trim() && <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">SAP: {piece.RTBS}</p>}
+            {piece.RTBS && <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">SAP: {piece.RTBS}</p>}
             {piece.NoFESTO?.trim() && <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">FESTO: {piece.NoFESTO}</p>}
           </div>
         </div>

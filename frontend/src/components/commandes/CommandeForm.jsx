@@ -16,6 +16,8 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
     delai_livraison: "" // ← NOUVEAU
   });
 
+  const [pdfFile, setPdfFile] = React.useState(null);
+
     // Debounce pour les champs texte
     const debouncedSetFormData = React.useCallback(
       (fn => {
@@ -63,7 +65,8 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
       Qtécommandée: formData.Qtécommander,
       Qtéarecevoir: formData.Qtécommander,
       Qtéreçue: 0,
-      delai_livraison: formData.delai_livraison
+      delai_livraison: formData.delai_livraison,
+      pdfFile
     });
   };
 
@@ -103,6 +106,17 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
                   onChange={(e) => debouncedSetFormData('Prix_unitaire', parseFloat(e.target.value) || 0)}
               />
             </div>
+          </div>
+          <div>
+            <Label>Bon de commande / PDF (optionnel)</Label>
+            <Input
+              type="file"
+              accept=".pdf"
+              onChange={(e) => setPdfFile(e.target.files?.[0] || null)}
+            />
+            {pdfFile && (
+              <p className="text-sm text-green-600 mt-1">✓ {pdfFile.name}</p>
+            )}
           </div>
 
           <div className="grid grid-cols-2 gap-4">

@@ -206,9 +206,19 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
                     {/* Colonne gauche : infos pièce */}
                     <div className="flex-1">
                       <div className="flex items-center gap-2 mb-1">
+                        {piece && (
+                          <img
+                            src={`${API}/pieces/${piece.RéfPièce}/image`}
+                            alt={piece.NomPièce}
+                            className="w-12 h-12 object-cover rounded"
+                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                          />
+                        )}
+
                         <h4 className="font-semibold text-sm">
                           {piece?.NomPièce || 'Pièce inconnue'}
                         </h4>
+
                         {status.available ? (
                           <CheckCircle className="w-4 h-4 text-green-600" />
                         ) : (

@@ -7,7 +7,6 @@ import logging
 import multiprocessing
 import os
 from pathlib import Path
-#from auth import create_access_token, verify_password, USERS_DB, require_auth
 from pydantic import BaseModel
 
 # Patch pour éviter l'erreur NoneType avec auto-py-to-exe
@@ -22,7 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi import Request, HTTPException
-#from config import is_user_authorized
+
 import os
 # Imports locaux
 from config import CORS_ORIGINS, BUILD_DIR
@@ -38,6 +37,7 @@ from routes import (
     soumissions_router,
     uploads_router
 )
+#from auth import router as auth_router
 
 
 
@@ -81,6 +81,7 @@ def get_current_user():
 
 # Inclusion des routers
 app.include_router(pieces_router, prefix="/api")
+#app.include_router(auth_router, prefix="/api")
 app.include_router(fournisseurs_router, prefix="/api")
 app.include_router(fabricants_router, prefix="/api")
 app.include_router(commandes_router, prefix="/api")

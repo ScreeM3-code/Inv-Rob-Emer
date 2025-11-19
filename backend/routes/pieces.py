@@ -18,8 +18,8 @@ router = APIRouter(prefix="/pieces", tags=["pieces"])
 async def get_pieces(
         conn: asyncpg.Connection = Depends(get_db_connection),
         search: Optional[str] = None,
-        statut: Optional[str] = None,  # ← NOUVEAU
-        stock: Optional[str] = None  # ← NOUVEAU
+        statut: Optional[str] = None,
+        stock: Optional[str] = None
 ):
     """Récupère toutes les pièces avec filtrage optionnel"""
     try:
@@ -121,7 +121,7 @@ async def get_pieces(
                 statut_stock=statut_stock,
                 Created=piece_dict.get("Created"),
                 Modified=piece_dict.get("Modified"),
-                RTBS=safe_string(piece_dict.get("RTBS")),
+                RTBS=safe_float(piece_dict.get("RTBS")),
                 NoFESTO=safe_string(piece_dict.get("NoFESTO"))
             )
             result.append(piece_response)
@@ -310,10 +310,10 @@ async def create_piece(
     query = '''
         INSERT INTO "Pièce" (
             "NomPièce", "DescriptionPièce", "NumPièce", "RéfFournisseur",
-            "RéfAutreFournisseur", "NumPièceAutreFournisseur", "RefFabricant", 
-            "Lieuentreposage", "QtéenInventaire", "Qtéminimum", "Qtémax", 
-            "Prix unitaire", "Soumission LD", "SoumDem", "Created", "Modified"
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+            "RéfAutreFournisseur", "NumPièceAutreFournisseur", "RefFabricant",
+            "Lieuentreposage", "QtéenInventaire", "Qtéminimum", "Qtémax",
+            "Prix unitaire", "Soumission LD", "SoumDem", "Created", "Modified", "NoFESTO", "RTBS"
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
         RETURNING *
     '''
 
@@ -335,7 +335,9 @@ async def create_piece(
         piece.Soumission_LD or "",
         piece.SoumDem or False,
         now,
-        now
+        now,
+        piece.NoFESTO or "",
+        piece.RTBS if piece.RTBS is not None else None
     )
 
     piece_dict = dict(row)
@@ -366,7 +368,9 @@ async def create_piece(
             safe_int(piece_dict.get("Qtéminimum", 0))
         ),
         Created=piece_dict.get("Created"),
-        Modified=piece_dict.get("Modified")
+        Modified=piece_dict.get("Modified"),
+        RTBS=safe_float(piece_dict.get("RTBS")),
+        NoFESTO=safe_string(piece_dict.get("NoFESTO"))
     )
 
 
@@ -482,7 +486,9 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
         RefFabricant=piece_dict.get("RefFabricant"),
         statut_stock=statut_stock,
         Created=piece_dict.get("Created"),
-        Modified=piece_dict.get("Modified")
+        Modified=piece_dict.get("Modified"),
+        RTBS=safe_float(piece_dict.get("RTBS")),
+        NoFESTO=safe_string(piece_dict.get("NoFESTO"))
     )
 
 

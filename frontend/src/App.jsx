@@ -306,7 +306,9 @@ function Dashboard () {
         Qtémax: isNaN(npQMax) ? 100 : npQMax,
         Prix_unitaire: parseFloat(newPiece.Prix_unitaire) || 0,
         Soumission_LD: newPiece.Soumission_LD?.trim() || "",
-        SoumDem: newPiece.SoumDem || false
+        SoumDem: newPiece.SoumDem || false,
+        NoFESTO: newPiece.NoFESTO?.trim() || "",
+        RTBS: (newPiece.RTBS === "" || newPiece.RTBS == null) ? null : parseFloat(newPiece.RTBS),
       };
 
   import("./lib/utils").then(({ log }) => log('➕ Création de pièce:', cleanedPiece)); // Debug
@@ -337,7 +339,9 @@ function Dashboard () {
         Qtémax: 100,
         Prix_unitaire: 0,
         Soumission_LD: "",
-        SoumDem: false
+        SoumDem: false,
+        NoFESTO: "",
+        RTBS: null
       });
 
       // Recharger les données
@@ -377,7 +381,9 @@ function Dashboard () {
         Qtémax: isNaN(qMax) ? 100 : qMax,
         Prix_unitaire: isNaN(prixVal) ? 0 : prixVal,
         Soumission_LD: editingPiece.Soumission_LD || "",
-        SoumDem: editingPiece.SoumDem || false
+        SoumDem: editingPiece.SoumDem || false,
+        NoFESTO: editingPiece.NoFESTO?.trim() || "",
+        RTBS: (editingPiece.RTBS === "" || editingPiece.RTBS == null) ? null : parseFloat(editingPiece.RTBS)
       };
 
       // ✅ Mise à jour optimiste
