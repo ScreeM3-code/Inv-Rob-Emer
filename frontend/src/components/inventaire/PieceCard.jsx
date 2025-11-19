@@ -32,14 +32,25 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
   const imageUrl = `${API}/pieces/${piece.RéfPièce}/image`;
   const fileInputRef = React.useRef(null);
 
-  const StatItem = ({ label, value, isPrice = false }) => (
-    <div className="text-center bg-slate-50 p-3 rounded-lg">
-      <p className="text-xs text-slate-500 font-medium uppercase">{label}</p>
-      <p className="font-bold text-lg text-slate-900">
-        {isPrice && '$'}{value}
-      </p>
-    </div>
-  );
+  const StatItem = ({ label, value, isPrice = false }) => {
+    const isEmpty = value === null || value === undefined || value === '';
+    let formatted = '';
+    if (!isEmpty) {
+      if (isPrice) {
+        const n = Number(value);
+        formatted = isNaN(n) ? '' : n.toFixed(2);
+      } else {
+        formatted = value;
+      }
+    }
+
+    return (
+      <div className="text-center bg-slate-50 p-3 rounded-lg">
+        <p className="text-xs text-slate-500 font-medium uppercase">{label}</p>
+        <p className="font-bold text-lg text-slate-900">{isPrice && '$'}{formatted}</p>
+      </div>
+    );
+  };
 
   const handleImageUpload = async (event) => {
     const file = event.target.files?.[0];
@@ -157,7 +168,10 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
             )}
             {piece.NumPièce?.trim() && <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">{piece.NumPièce}</p>}
             {piece.NumPièceAutreFournisseur?.trim() && <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">#Fourn: {piece.NumPièceAutreFournisseur}</p>}
-            {piece.RTBS && <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">SAP: {piece.RTBS}</p>}
+            {(() => {
+              const rtbsVal = piece.RTBS?.toString?.().trim?.();
+              return rtbsVal && rtbsVal !== '0' ? <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">SAP: {rtbsVal}</p> : null;
+            })()}
             {piece.NoFESTO?.trim() && <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">FESTO: {piece.NoFESTO}</p>}
           </div>
         </div>
@@ -171,7 +185,7 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
           <StatItem label="Stock" value={piece.QtéenInventaire} />
           <StatItem label="Min." value={piece.Qtéminimum} />
           <StatItem label="Max." value={piece.Qtémax} />
-          <StatItem label="Prix" value={piece.Prix_unitaire?.toFixed(2) || '0.00'} isPrice />
+          <StatItem label="Prix" value={piece.Prix_unitaire} isPrice />
         </div>
 
         <div className="space-y-2 text-sm border-t pt-4">

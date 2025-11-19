@@ -207,7 +207,9 @@ async def get_piece(piece_id: int, request: Request):
             statut_stock=statut_stock,
             Created=piece_dict.get("Created"),
             Modified=piece_dict.get("Modified"),
-            Discontinué=safe_string(piece_dict.get("Discontinué", ""))
+            Discontinué=safe_string(piece_dict.get("Discontinué", "")),
+            RTBS = safe_float(piece_dict.get("RTBS")),
+            NoFESTO = safe_string(piece_dict.get("NoFESTO"))
 
         )
     except HTTPException:
