@@ -65,12 +65,12 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
 
   return (
     <Dialog open={true} onOpenChange={onCancel}>
-      <DialogContent className="max-w-2xl max-h-[90vh] border-blue-600">
+      <DialogContent className="max-w-2xl max-h-[90vh] border-blue-600 overflow-y-auto">
         <DialogHeader>
           <DialogTitle>Modifier la pièce</DialogTitle>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4 min-w-200 overflow-y-auto">
+        <div className="grid gap-4 py-4 min-w-200">
           {/* Informations de base */}
           <div>
             <Label>Nom de la pièce *</Label>
