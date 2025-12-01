@@ -1,7 +1,7 @@
 import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { Building2, User, Phone, Mail, MapPin, Edit, Trash2, Users, ShoppingBasket, Component } from "lucide-react";
+import { Building2, User, Phone, Mail, MapPin, Edit, Trash2, Users, ShoppingBasket, Component, Webhook  } from "lucide-react";
 
 export default function FournisseurCard({ fournisseur, onEdit, onDelete, onManageContacts }) {
   const InfoItem = ({ icon, text }) => (
@@ -32,8 +32,9 @@ export default function FournisseurCard({ fournisseur, onEdit, onDelete, onManag
       </CardHeader>
       <CardContent className="flex-grow space-y-4">
           <div className="space-y-2">
-            <InfoItem icon={<Component className="w-4 h-4" />} text={`${fournisseur.Marque || 'Marque :'}`} />
-            <InfoItem icon={<ShoppingBasket className="w-4 h-4" />} text={`${fournisseur.Produit || 'Produit :'}`} />
+            <InfoItem icon={<Component className="w-4 h-4" />}  text={`Marque: ${fournisseur.Marque || ''}`} />
+            <InfoItem icon={<ShoppingBasket className="w-4 h-4" />} text={`Produit: ${fournisseur.Produit || ''}`} />
+            <InfoItem icon={<Webhook  className="w-4 h-4" />} text={`Sap: ${fournisseur.NumSap || ''}`} />
         </div>
         <div className="space-y-2">
             <InfoItem icon={<User className="w-4 h-4" />} text={`${fournisseur.NomContact || 'Contact principal N/A'}`} />

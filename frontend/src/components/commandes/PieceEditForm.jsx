@@ -58,6 +58,7 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
       RéfFournisseur: formData.RéfFournisseur || null,
       RéfAutreFournisseur: formData.RéfAutreFournisseur || null,
       RefFabricant: formData.RefFabricant || null,
+      RTBS: formData.RTBS || null,
     };
 
     onSave(cleanedData);

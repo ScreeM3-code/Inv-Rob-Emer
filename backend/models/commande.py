@@ -28,7 +28,7 @@ class Commande(BaseModel):
     NomFabricant: Optional[str] = ""
     Soumission_LD: Optional[str] = ""
     SoumDem: Optional[bool] = False
-    RTBS: Optional[float] = None
+    RTBS: Optional[int] = None
     NoFESTO: Optional[str] = ""
 
 class StatsResponse(BaseModel):

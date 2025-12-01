@@ -121,7 +121,7 @@ async def get_pieces(
                 statut_stock=statut_stock,
                 Created=piece_dict.get("Created"),
                 Modified=piece_dict.get("Modified"),
-                RTBS=safe_float(piece_dict.get("RTBS")),
+                RTBS=piece_dict.get("RTBS"),
                 NoFESTO=safe_string(piece_dict.get("NoFESTO"))
             )
             result.append(piece_response)
@@ -208,8 +208,8 @@ async def get_piece(piece_id: int, request: Request):
             Created=piece_dict.get("Created"),
             Modified=piece_dict.get("Modified"),
             Discontinué=safe_string(piece_dict.get("Discontinué", "")),
-            RTBS = safe_float(piece_dict.get("RTBS")),
-            NoFESTO = safe_string(piece_dict.get("NoFESTO"))
+            RTBS=piece_dict.get("RTBS"),
+            NoFESTO=safe_string(piece_dict.get("NoFESTO"))
 
         )
     except HTTPException:
@@ -339,7 +339,7 @@ async def create_piece(
         now,
         now,
         piece.NoFESTO or "",
-        piece.RTBS if piece.RTBS is not None else None
+        piece.RTBS
     )
 
     piece_dict = dict(row)
@@ -371,7 +371,7 @@ async def create_piece(
         ),
         Created=piece_dict.get("Created"),
         Modified=piece_dict.get("Modified"),
-        RTBS=safe_float(piece_dict.get("RTBS")),
+        RTBS=piece_dict.get("RTBS"),
         NoFESTO=safe_string(piece_dict.get("NoFESTO"))
     )
 
@@ -489,7 +489,7 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
         statut_stock=statut_stock,
         Created=piece_dict.get("Created"),
         Modified=piece_dict.get("Modified"),
-        RTBS=safe_float(piece_dict.get("RTBS")),
+        RTBS=piece_dict.get("RTBS"),
         NoFESTO=safe_string(piece_dict.get("NoFESTO"))
     )
 

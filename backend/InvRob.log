@@ -1,33 +1,32 @@
-2025-11-19 13:36:44,854 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
-2025-11-19 13:36:44,854 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2025-11-19 13:36:44,921 - uvicorn.error - INFO - Started server process [26224]
-2025-11-19 13:36:44,921 - uvicorn.error - INFO - Waiting for application startup.
-2025-11-19 13:36:45,075 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2025-11-19 13:36:45,080 - Inventaire-Robot - INFO - \u2705 943 Pièce trouvés
-2025-11-19 13:36:45,083 - uvicorn.error - INFO - Application startup complete.
-2025-11-19 13:36:45,084 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-2025-11-19 14:00:25,656 - uvicorn.error - WARNING - Invalid HTTP request received.
-2025-11-19 14:00:25,657 - uvicorn.error - WARNING - Invalid HTTP request received.
-2025-11-19 14:17:25,314 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Groupe+EP+engrenage+provincial+1383582+DSBC-63-100-PPVA-N3&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 14:17:25,894 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=FESTO+DSBC-63-100-PPVA-N3&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 14:17:26,267 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Groupe+EP+engrenage+provincial+1383582+DSBC-63-100-PPVA-N3&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 14:17:26,675 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=FESTO+DSBC-63-100-PPVA-N3&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 14:17:44,275 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Groupe+EP+engrenage+provincial+1383582+DSBC-63-100-PPVA-N3&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 14:17:44,919 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=FESTO+DSBC-63-100-PPVA-N3&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 14:17:45,275 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Groupe+EP+engrenage+provincial+1383582+DSBC-63-100-PPVA-N3&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 14:17:45,656 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=FESTO+DSBC-63-100-PPVA-N3&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 14:17:48,768 - httpx - INFO - HTTP Request: GET https://media-pim.rubix.com/medias/product_image_2d_for_external_use/75/49/1600001404975/D15000100123979-300Wx300H.jpg?v=240413232231+0200 "HTTP/1.1 200 OK"
-2025-11-19 14:18:04,895 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Herzog+Automation+Corporation+417001+%28Y112436%29&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 14:18:05,379 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Herzog+Automation+Corporation+417001+%28Y112436%29&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 14:31:48,448 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Herzog+Automation+Corporation+SCE272A018V-26VDC&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 14:31:48,820 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Herzog+Automation+Corporation+SCE272A018V-26VDC&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 14:33:10,077 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Groupe+LD+CS25&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 14:33:10,461 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Groupe+LD+CS25&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 15:21:28,316 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=RCA5D2&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 15:21:28,699 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=RCA5D2&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 15:21:49,285 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=RCA5D2&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 15:21:49,677 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=RCA5D2&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 15:21:50,999 - httpx - INFO - HTTP Request: GET https://www.baghouseamerica.com/wp-content/uploads/2022/01/RCA5D2-3-1-300x300.jpg "HTTP/1.1 200 OK"
-2025-11-19 15:22:13,314 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=RCA5D2&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 15:22:13,859 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=RCA5D2&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-19 15:22:16,261 - httpx - INFO - HTTP Request: GET https://www.baghouseamerica.com/wp-content/uploads/2022/01/RCA5D2-3-1-300x300.jpg "HTTP/1.1 200 OK"
+2025-11-28 15:55:37,840 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
+2025-11-28 15:55:37,840 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2025-11-28 15:55:37,946 - uvicorn.error - INFO - Started server process [29212]
+2025-11-28 15:55:37,946 - uvicorn.error - INFO - Waiting for application startup.
+2025-11-28 15:55:38,207 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2025-11-28 15:55:38,222 - Inventaire-Robot - INFO - \u2705 941 Pièce trouvés
+2025-11-28 15:55:38,226 - uvicorn.error - INFO - Application startup complete.
+2025-11-28 15:55:38,227 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-11-28 15:55:43,307 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=DAEMAR+INC.+TW-1020-M&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-28 15:55:43,726 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=DAEMAR+INC.+TW-1020-M&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-28 15:56:16,068 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Timken+AS22T-200++-++AS220200&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-28 15:56:16,568 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Timken+338729-7&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-28 15:56:16,929 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Timken+AS22T-200++-++AS220200&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-28 15:56:17,268 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Timken+338729-7&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-28 15:56:23,611 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Timken+AS22T-200++-++AS220200&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-28 15:56:23,946 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Timken+338729-7&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-28 15:56:24,285 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Timken+AS22T-200++-++AS220200&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-28 15:56:24,635 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Timken+338729-7&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-28 15:56:50,158 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=PDFC11015&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-28 15:56:50,637 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=8-1835-323239-4&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-28 15:56:50,998 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=PDFC11015&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-28 15:56:51,349 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=8-1835-323239-4&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-29 15:50:26,183 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=PDFC11015&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-29 15:50:26,685 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=8-1835-323239-4&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-29 15:50:27,105 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=PDFC11015&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-29 15:50:27,451 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=8-1835-323239-4&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-29 15:51:04,568 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=PDFC11015&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-29 15:51:04,927 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=8-1835-323239-4&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-29 15:51:05,279 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=PDFC11015&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-29 15:51:05,746 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=8-1835-323239-4&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2025-11-30 12:21:32,735 - uvicorn.error - WARNING - Invalid HTTP request received.
+2025-11-30 12:21:32,736 - uvicorn.error - WARNING - Invalid HTTP request received.

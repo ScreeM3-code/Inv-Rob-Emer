@@ -22,7 +22,7 @@ class PieceBase(BaseModel):
     Prix_unitaire: Optional[float] = 0.0
     Soumission_LD: Optional[str] = ""
     SoumDem: Optional[bool] = False
-    RTBS: Optional[float] = None
+    RTBS: Optional[int] = None
     NoFESTO: Optional[str] = ""
     Discontinué: Optional[str] = ""
 
@@ -43,7 +43,7 @@ class PieceCreate(BaseModel):
     Prix_unitaire: Optional[float] = 0.0
     Soumission_LD: Optional[str] = ""
     SoumDem: Optional[bool] = False
-    RTBS: Optional[float] = None
+    RTBS: Optional[int] = None
     NoFESTO: Optional[str] = ""
 
 class PieceUpdate(BaseModel):
@@ -64,7 +64,7 @@ class PieceUpdate(BaseModel):
     Prix_unitaire: Optional[float] = None
     Soumission_LD: Optional[str] = None
     SoumDem: Optional[bool] = False
-    RTBS: Optional[float] = None
+    RTBS: Optional[int] = None
     NoFESTO: Optional[str] = ""
 class Piece(PieceBase):
     Created: Optional[datetime] = None

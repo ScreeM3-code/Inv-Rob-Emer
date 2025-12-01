@@ -85,9 +85,9 @@ async def get_image_candidates(
     # Vérifier si image existe déjà
     piece = await conn.fetchrow(
         '''SELECT "ImagePath", "NumPièceAutreFournisseur", "NoFESTO", 
-                  s."NomFournisseur"
+                  s."NomFabricant", "NumPièce"
            FROM "Pièce" p
-           LEFT JOIN "Fournisseurs" s ON p."RéfFournisseur" = s."RéfFournisseur"
+           LEFT JOIN "Fabricant" s ON p."RefFabricant" = s."RefFabricant"
            WHERE p."RéfPièce" = $1''',
         piece_id
     )
@@ -111,8 +111,8 @@ async def get_image_candidates(
     # Priorité 1: NumPièceAutreFournisseur + Fournisseur
     if piece["NumPièceAutreFournisseur"]:
         search_term = piece["NumPièceAutreFournisseur"]
-        if piece["NomFournisseur"]:
-            search_term = f"{piece['NomFournisseur']} {search_term}"
+        if piece["NomFabricant"]:
+            search_term = f"{piece['NomFabricant']} {search_term}"
 
         results = await search_images_google(search_term, num_results=5)
         if results:
@@ -133,13 +133,27 @@ async def get_image_candidates(
                 "candidates": results
             }
 
+    # Priorité 3: NumPièce
+    if piece["NumPièce"]:
+        search_term = piece["NumPièce"]
+        if piece["NomFabricant"]:
+            search_term = f"{piece['NomFabricant']} {search_term}"
+
+        results = await search_images_google(search_term, num_results=5)
+        if results:
+            return {
+                "has_image": False,
+                "search_term": search_term,
+                "candidates": results
+            }
+
     # Aucun résultat trouvé (quota dépassé ou pas de numéro)
     fallback_urls = []
 
     if piece["NumPièceAutreFournisseur"]:
         term = piece["NumPièceAutreFournisseur"]
-        if piece["NomFournisseur"]:
-            term = f"{piece['NomFournisseur']} {term}"
+        if piece["NomFabricant"]:
+            term = f"{piece['NomFabricant']} {term}"
         fallback_urls.append({
             "label": f"Ouvrir Google Images",
             "url": f"https://www.google.com/search?q={term.replace(' ', '+')}&tbm=isch"
