@@ -1,32 +1,13 @@
-2025-11-28 15:55:37,840 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
-2025-11-28 15:55:37,840 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2025-11-28 15:55:37,946 - uvicorn.error - INFO - Started server process [29212]
-2025-11-28 15:55:37,946 - uvicorn.error - INFO - Waiting for application startup.
-2025-11-28 15:55:38,207 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2025-11-28 15:55:38,222 - Inventaire-Robot - INFO - \u2705 941 Pièce trouvés
-2025-11-28 15:55:38,226 - uvicorn.error - INFO - Application startup complete.
-2025-11-28 15:55:38,227 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-2025-11-28 15:55:43,307 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=DAEMAR+INC.+TW-1020-M&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-28 15:55:43,726 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=DAEMAR+INC.+TW-1020-M&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-28 15:56:16,068 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Timken+AS22T-200++-++AS220200&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-28 15:56:16,568 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Timken+338729-7&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-28 15:56:16,929 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Timken+AS22T-200++-++AS220200&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-28 15:56:17,268 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Timken+338729-7&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-28 15:56:23,611 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Timken+AS22T-200++-++AS220200&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-28 15:56:23,946 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Timken+338729-7&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-28 15:56:24,285 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Timken+AS22T-200++-++AS220200&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-28 15:56:24,635 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=Timken+338729-7&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-28 15:56:50,158 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=PDFC11015&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-28 15:56:50,637 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=8-1835-323239-4&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-28 15:56:50,998 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=PDFC11015&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-28 15:56:51,349 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=8-1835-323239-4&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-29 15:50:26,183 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=PDFC11015&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-29 15:50:26,685 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=8-1835-323239-4&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-29 15:50:27,105 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=PDFC11015&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-29 15:50:27,451 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=8-1835-323239-4&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-29 15:51:04,568 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=PDFC11015&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-29 15:51:04,927 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=8-1835-323239-4&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-29 15:51:05,279 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=PDFC11015&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-29 15:51:05,746 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=8-1835-323239-4&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2025-11-30 12:21:32,735 - uvicorn.error - WARNING - Invalid HTTP request received.
-2025-11-30 12:21:32,736 - uvicorn.error - WARNING - Invalid HTTP request received.
+2025-12-05 11:40:30,541 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
+2025-12-05 11:40:30,541 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2025-12-05 11:40:30,699 - uvicorn.error - INFO - Started server process [4100]
+2025-12-05 11:40:30,699 - uvicorn.error - INFO - Waiting for application startup.
+2025-12-05 11:40:30,829 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2025-12-05 11:40:30,834 - Inventaire-Robot - INFO - \u2705 941 Pièce trouvés
+2025-12-05 11:40:30,835 - uvicorn.error - INFO - Application startup complete.
+2025-12-05 11:40:30,835 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2025-12-05 14:07:58,765 - uvicorn.error - INFO - Shutting down
+2025-12-05 14:07:58,869 - uvicorn.error - INFO - Waiting for application shutdown.
+2025-12-05 14:07:58,869 - Inventaire-Robot - INFO - Pool PostgreSQL fermé.
+2025-12-05 14:07:58,869 - uvicorn.error - INFO - Application shutdown complete.
+2025-12-05 14:07:58,869 - uvicorn.error - INFO - Finished server process [4100]
