@@ -92,3 +92,4 @@ frontend/yarn.lock
 /InvRobot
 /backend/uploads/pieces
 /backend/uploads
+/backend/lambda_package

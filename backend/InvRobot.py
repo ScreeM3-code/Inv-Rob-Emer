@@ -8,6 +8,7 @@ import multiprocessing
 import os
 from pathlib import Path
 from pydantic import BaseModel
+from mangum import Mangum
 
 # Patch pour éviter l'erreur NoneType avec auto-py-to-exe
 if sys.stdout is None:
@@ -25,7 +26,6 @@ from fastapi import Request, HTTPException
 import os
 # Imports locaux
 from config import CORS_ORIGINS, BUILD_DIR
-from database import lifespan
 from routes import (
     pieces_router,
     piece_images_router,
@@ -54,8 +54,7 @@ logger = logging.getLogger("Inventaire-Robot")
 # Création de l'application FastAPI
 app = FastAPI(
     title="Inventaires Robot",
-    version="2.0.0",
-    lifespan=lifespan
+    version="2.0.0"
 )
 
 # Middleware CORS
@@ -129,6 +128,9 @@ if BUILD_DIR.exists():
     logger.info("✅ Frontend SPA configuré")
 else:
     logger.warning("⚠️ Dossier 'build' introuvable. Lancez 'yarn build' d'abord.")
+
+# HANDLER POUR LAMBDA (très important !)
+lambda_handler = Mangum(app, lifespan="off")
 
 
 if __name__ == "__main__":
