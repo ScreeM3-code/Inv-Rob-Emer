@@ -93,3 +93,4 @@ frontend/yarn.lock
 /backend/uploads/pieces
 /backend/uploads
 /backend/lambda_package
+frontend/.env.production
