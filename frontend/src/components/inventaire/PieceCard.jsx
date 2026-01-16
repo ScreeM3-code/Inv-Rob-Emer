@@ -185,28 +185,67 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
           <StatItem label="Prix" value={piece.Prix_unitaire} isPrice />
         </div>
 
-        <div className="space-y-2 text-sm border-t pt-4">
-          <div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-blue-500" /> <strong>Fournisseur:</strong> {fournisseur?.NomFournisseur || 'N/A'}</div>
-          <div className="flex items-center gap-2"><Building2 className="w-4 h-4 text-gray-400" /> <strong>Autre Fourn.:</strong> {autreFournisseur?.NomFournisseur || 'N/A'}</div>
-          <div className="flex items-center gap-2"><Factory className="w-4 h-4 text-blue-500" /> <strong>Fabricant:</strong> {fabricant?.NomFabricant || 'N/A'}</div>
-          <div className="flex items-center gap-2"><Warehouse className="w-4 h-4 text-blue-500" /> <strong>Lieu:</strong> {piece.Lieuentreposage || 'N/A'}</div>
+        {/* Section fournisseurs - MASQUÉE SUR MOBILE */}
+        <div className="hidden md:block space-y-2 text-sm border-t pt-4">
+          <div className="flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-blue-500" /> 
+            <strong>Fournisseur:</strong> {fournisseur?.NomFournisseur || 'N/A'}
+          </div>
+          <div className="flex items-center gap-2">
+            <Building2 className="w-4 h-4 text-gray-400" /> 
+            <strong>Autre Fourn.:</strong> {autreFournisseur?.NomFournisseur || 'N/A'}
+          </div>
+          <div className="flex items-center gap-2">
+            <Factory className="w-4 w-4 text-blue-500" /> 
+            <strong>Fabricant:</strong> {fabricant?.NomFabricant || 'N/A'}
+          </div>
+          <div className="flex items-center gap-2">
+            <Warehouse className="w-4 h-4 text-blue-500" /> 
+            <strong>Lieu:</strong> {piece.Lieuentreposage || 'N/A'}
+          </div>
         </div>
       </CardContent>
 
-      <CardFooter className="border-t p-3 flex justify-between items-center">
-        <div className="flex items-center gap-2">
-          <Button variant="outline" size="icon" onClick={() => onQuickRemove(qrQty)} className="border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600" title={`Sortir ${qrQty} pièce(s) du stock`}>
-            <Minus className="w-5 h-5" />
+      <CardFooter className="border-t p-2 md:p-3 flex justify-between items-center">
+        <div className="flex items-center gap-1 md:gap-2">
+          <Button 
+            variant="outline" 
+            size="icon" 
+            onClick={() => onQuickRemove(qrQty)} 
+            className="border-red-500 text-red-500 hover:bg-red-50 hover:text-red-600 h-8 w-8 md:h-10 md:w-10" 
+            title={`Sortir ${qrQty} pièce(s) du stock`}
+          >
+            <Minus className="w-4 h-4 md:w-5 md:h-5" />
           </Button>
-          <Input type="number" min="1" max={piece.QtéenInventaire} value={qrQty} onChange={(e) => { const v = parseInt(e.target.value || '1', 10); const n = isNaN(v) ? 1 : v; setQrQty(Math.max(1, Math.min(n, piece.QtéenInventaire || 1))); }} className="w-20 h-8" />
+          <Input 
+            type="number" 
+            min="1" 
+            max={piece.QtéenInventaire} 
+            value={qrQty} 
+            onChange={(e) => { 
+              const v = parseInt(e.target.value || '1', 10); 
+              const n = isNaN(v) ? 1 : v; 
+              setQrQty(Math.max(1, Math.min(n, piece.QtéenInventaire || 1))); 
+            }} 
+            className="w-14 h-8 md:w-20 md:h-8 text-sm" 
+          />
         </div>
 
-        <div className="flex items-center gap-2">
+        <div className="flex items-center gap-1 md:gap-2">
           <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
             <PopoverTrigger asChild>
-              <Button variant="outline" size="sm" className="border-blue-500 text-blue-500 hover:bg-blue-50 relative">
-                <Layers className="w-4 h-4 mr-2" /> Groupes
-                {pieceGroupes?.length > 0 && (<Badge className="ml-2 bg-blue-500 text-white h-5 min-w-5 flex items-center justify-center">{pieceGroupes.length}</Badge>)}
+              <Button 
+                variant="outline" 
+                size="sm" 
+                className="border-blue-500 text-blue-500 hover:bg-blue-50 relative h-8 px-2 md:px-3 text-xs md:text-sm"
+              >
+                <Layers className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+                <span className="hidden md:inline">Groupes</span>
+                {pieceGroupes?.length > 0 && (
+                  <Badge className="ml-1 md:ml-2 bg-blue-500 text-white h-4 min-w-4 flex items-center justify-center text-xs">
+                    {pieceGroupes.length}
+                  </Badge>
+                )}
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-96 max-h-[500px] overflow-y-auto" align="end">
@@ -247,8 +286,23 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
             </PopoverContent>
           </Popover>
 
-          <Button variant="ghost" size="icon" onClick={onDelete}><Trash2 className="w-4 h-4 text-red-500" /></Button>
-          <Button variant="outline" size="sm" onClick={onEdit}><Edit className="w-4 h-4 mr-2" /></Button>
+          <Button 
+            variant="ghost" 
+            size="icon" 
+            onClick={onDelete}
+            className="h-8 w-8 md:h-10 md:w-10"
+          >
+            <Trash2 className="w-3 h-3 md:w-4 md:h-4 text-red-500" />
+          </Button>
+          <Button 
+            variant="outline" 
+            size="sm" 
+            onClick={onEdit}
+            className="h-8 px-2 md:px-3 text-xs md:text-sm"
+          >
+            <Edit className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
+            <span className="hidden md:inline">Modifier</span>
+          </Button>
         </div>
       </CardFooter>
       {/* Dialog sélection d'image */}

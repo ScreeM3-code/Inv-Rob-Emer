@@ -275,21 +275,22 @@ return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
       
       {/* Header */}
-      <div className="flex justify-between items-center mb-6">
-        <div className="flex items-center space-x-4">
-          <FolderTree className="h-8 w-8 text-blue-600 dark:text-blue-400" />
+      <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-3 md:gap-0">
+        <div className="flex items-center space-x-3 md:space-x-4">
+          <FolderTree className="h-6 w-6 md:h-8 md:w-8 text-blue-600 dark:text-blue-400" />
           <div>
-            <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Groupes de Pièces</h1>
-            <p className="text-sm text-gray-600 dark:text-gray-400">Organisez vos pièces par entretiens et opérations</p>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">Groupes de Pièces</h1>
+            <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">Organisez vos pièces par entretiens</p>
           </div>
         </div>
         
         <Button 
           onClick={() => setCategorieDialog({ open: true, data: { NomCategorie: '', Description: '' } })}
-          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700"
+          className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 w-full md:w-auto h-9 md:h-10 text-sm"
         >
-          <Plus className="h-4 w-4 mr-2" />
-          Nouvelle Catégorie
+          <Plus className="h-3 w-3 md:h-4 md:w-4 mr-2" />
+          <span className="hidden sm:inline">Nouvelle Catégorie</span>
+          <span className="sm:hidden">Catégorie</span>
         </Button>
       </div>
 
@@ -305,7 +306,7 @@ return (
                 <p>Aucune catégorie. Créez-en une pour commencer.</p>
               </div>
             ) : (
-              <div className="space-y-4">
+              <div className="space-y-3 md:space-y-4">
                 {categories.map(categorie => {
                   const isExpanded = expandedCategories.has(categorie.RefCategorie);
                   const categorieGroupes = groupes.filter(g => g.RefCategorie === categorie.RefCategorie);
@@ -314,35 +315,39 @@ return (
                     <div key={categorie.RefCategorie} className="border-2 rounded-lg overflow-hidden shadow-sm">
                       {/* En-tête catégorie */}
                       <div 
-                        className="flex items-center justify-between p-4 from-slate-50 to-blue-50 cursor-pointer hover:from-slate-100 hover:to-blue-100 transition-colors"
+                        className="flex items-center justify-between p-3 md:p-4 from-slate-50 to-blue-50 cursor-pointer hover:from-slate-100 hover:to-blue-100 transition-colors"
                         onClick={() => toggleCategory(categorie.RefCategorie)}
                       >
-                        <div className="flex items-center space-x-3 flex-1">
+                        <div className="flex items-center space-x-2 md:space-x-3 flex-1 min-w-0">
                           <button 
-                            className="p-1 rounded transition-colors"
+                            className="p-1 rounded transition-colors flex-shrink-0"
                             onClick={(e) => {
                               e.stopPropagation();
                               toggleCategory(categorie.RefCategorie);
                             }}
                           >
                             {isExpanded ? 
-                              <ChevronDown className="h-5 w-5 text-blue-600" /> : 
-                              <ChevronRight className="h-5 w-5 text-slate-400" />
+                              <ChevronDown className="h-4 w-4 md:h-5 md:w-5 text-blue-600" /> : 
+                              <ChevronRight className="h-4 w-4 md:h-5 md:w-5 text-slate-400" />
                             }
                           </button>
-                          <Layers className="h-6 w-6 text-blue-600" />
-                          <div>
-                            <h3 className="font-bold text-lg text-slate-900 dark:text-white">{categorie.NomCategorie}</h3>
+                          <Layers className="h-5 w-5 md:h-6 md:w-6 text-blue-600 flex-shrink-0" />
+                          <div className="min-w-0 flex-1">
+                            <h3 className="font-bold text-base md:text-lg text-slate-900 dark:text-white truncate">
+                              {categorie.NomCategorie}
+                            </h3>
                             {categorie.Description && (
-                              <p className="text-sm text-slate-600 dark:text-white">{categorie.Description}</p>
+                              <p className="text-xs md:text-sm text-slate-600 dark:text-white truncate">
+                                {categorie.Description}
+                              </p>
                             )}
                           </div>
-                          <Badge variant="outline" className="bg-white text-black">
-                            {categorieGroupes.length} groupe{categorieGroupes.length !== 1 ? 's' : ''}
+                          <Badge variant="outline" className="bg-white text-black text-xs flex-shrink-0">
+                            {categorieGroupes.length}
                           </Badge>
                         </div>
                         
-                        <div className="flex space-x-2" onClick={(e) => e.stopPropagation()}>
+                        <div className="flex space-x-1 md:space-x-2 ml-2" onClick={(e) => e.stopPropagation()}>
                           <Button
                             size="sm"
                             variant="outline"
@@ -350,36 +355,37 @@ return (
                               open: true, 
                               data: { RefCategorie: categorie.RefCategorie, NomGroupe: '', Description: '' }
                             })}
-                            className="bg-white hover:bg-blue-50 text-black"
+                            className="bg-white hover:bg-blue-50 text-black h-8 px-2 md:px-3 text-xs"
                           >
-                            <Plus className="h-4 w-4 mr-1" />
-                            Groupe
+                            <Plus className="h-3 w-3 md:h-4 md:w-4 md:mr-1" />
+                            <span className="hidden md:inline">Groupe</span>
                           </Button>
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => setCategorieDialog({ open: true, data: categorie })}
+                            className="h-8 w-8 p-0"
                           >
-                            <Edit className="h-4 w-4" />
+                            <Edit className="h-3 w-3 md:h-4 md:w-4" />
                           </Button>
                           <Button
                             size="sm"
                             variant="ghost"
                             onClick={() => handleDeleteCategorie(categorie.RefCategorie)}
-                            className="text-red-600 hover:text-red-700 hover:bg-red-50"
+                            className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 w-8 p-0"
                           >
-                            <Trash2 className="h-4 w-4" />
+                            <Trash2 className="h-3 w-3 md:h-4 md:w-4" />
                           </Button>
                         </div>
                       </div>
                       
-                      {/* Groupes de la catégorie */}
+                      {/* Groupes - padding réduit sur mobile */}
                       {isExpanded && (
-                        <div className="p-4 space-y-3">
+                        <div className="p-2 md:p-4 space-y-2 md:space-y-3">
                           {categorieGroupes.length === 0 ? (
-                            <div className="text-center py-8 text-slate-500 rounded-lg border-2 border-dashed">
-                              <Package className="mx-auto h-8 w-8 text-slate-300 mb-2" />
-                              <p className="text-sm">Aucun groupe dans cette catégorie</p>
+                            <div className="text-center py-6 md:py-8 text-slate-500 rounded-lg border-2 border-dashed">
+                              <Package className="mx-auto h-6 w-6 md:h-8 md:w-8 text-slate-300 mb-2" />
+                              <p className="text-xs md:text-sm">Aucun groupe dans cette catégorie</p>
                               <Button
                                 size="sm"
                                 variant="outline"
@@ -387,7 +393,7 @@ return (
                                   open: true, 
                                   data: { RefCategorie: categorie.RefCategorie, NomGroupe: '', Description: '' }
                                 })}
-                                className="mt-3"
+                                className="mt-3 h-8 text-xs"
                               >
                                 <Plus className="h-3 w-3 mr-1" />
                                 Créer le premier groupe
@@ -395,7 +401,7 @@ return (
                             </div>
                           ) : (
                             categorieGroupes.map(groupe => (
-                              <div key={groupe.RefGroupe} className="ml-4 border-l-4 border-blue-200 pl-4 dark:border-blue-800">
+                              <div key={groupe.RefGroupe} className="ml-2 md:ml-4 border-l-4 border-blue-200 pl-2 md:pl-4 dark:border-blue-800">
                                 <GroupeCard
                                   groupe={groupe}
                                   pieces={pieces}

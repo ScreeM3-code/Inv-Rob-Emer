@@ -133,61 +133,64 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
 
   return (
     <Card className="shadow-lg hover:shadow-xl transition-shadow">
-      <CardHeader>
+      <CardHeader className="p-3 md:p-6">
         <div className="flex items-center justify-between">
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2 md:gap-3">
             <button
               className="p-1 rounded"
               onClick={() => setExpanded(prev => !prev)}
               aria-label={expanded ? 'Masquer les pièces' : 'Afficher les pièces'}
             >
               {expanded ? (
-                <ChevronDown className="w-5 h-5 text-slate-600" />
+                <ChevronDown className="w-4 h-4 md:w-5 md:h-5 text-slate-600" />
               ) : (
-                <ChevronRight className="w-5 h-5 text-slate-400" />
+                <ChevronRight className="w-4 h-4 md:w-5 md:h-5 text-slate-400" />
               )}
             </button>
-            <Package className="w-6 h-6 text-blue-600" />
+            <Package className="w-5 h-5 md:w-6 md:h-6 text-blue-600" />
             <div>
               <div className="flex items-center gap-2">
-                <CardTitle className="text-lg cursor-pointer" onClick={() => setExpanded(prev => !prev)}>
+                <CardTitle className="text-sm md:text-lg cursor-pointer" onClick={() => setExpanded(prev => !prev)}>
                   {groupe.NomGroupe}
                 </CardTitle>
-                <Badge className="bg-white text-slate-600 text-sm px-2 py-0.5">
-                  {groupe.pieces ? groupe.pieces.length : 0} pièce{(groupe.pieces?.length || 0) > 1 ? 's' : ''}
+                <Badge className="bg-white text-slate-600 text-xs px-1.5 md:px-2 py-0.5">
+                  {groupe.pieces ? groupe.pieces.length : 0}
                 </Badge>
               </div>
               {groupe.Description && (
-                <p className="text-sm text-slate-600 mt-1">{groupe.Description}</p>
+                <p className="text-xs md:text-sm text-slate-600 mt-1 line-clamp-1">{groupe.Description}</p>
               )}
             </div>
           </div>
-          <div className="flex items-center gap-2">
+          <div className="flex items-center gap-1 md:gap-2">
             {allQuantitiesValid ? (
               canPerformSortie ? (
-                <Badge className="bg-green-500 text-white">
-                  <CheckCircle className="w-3 h-3 mr-1" />
-                  Prêt
+                <Badge className="bg-green-500 text-white text-xs">
+                  <CheckCircle className="w-2 h-2 md:w-3 md:h-3 mr-1" />
+                  <span className="hidden md:inline">Prêt</span>
+                  <span className="md:hidden">✓</span>
                 </Badge>
               ) : (
-                <Badge className="bg-yellow-500 text-white">
-                  <AlertTriangle className="w-3 h-3 mr-1" />
-                  Stock insuffisant
+                <Badge className="bg-yellow-500 text-white text-xs">
+                  <AlertTriangle className="w-2 h-2 md:w-3 md:h-3 mr-1" />
+                  <span className="hidden md:inline">Stock insuffisant</span>
+                  <span className="md:hidden">!</span>
                 </Badge>
               )
             ) : (
-              <Badge className="bg-red-500 text-white">
-                <AlertTriangle className="w-3 h-3 mr-1" />
-                Quantités invalides
+              <Badge className="bg-red-500 text-white text-xs">
+                <AlertTriangle className="w-2 h-2 md:w-3 md:h-3 mr-1" />
+                <span className="hidden md:inline">Quantités invalides</span>
+                <span className="md:hidden">✗</span>
               </Badge>
             )}
           </div>
         </div>
       </CardHeader>
 
-      <CardContent className="space-y-4">
+      <CardContent className="space-y-3 md:space-y-4 p-3 md:p-6 pt-0">
         {expanded && (
-          <div className="space-y-3">
+          <div className="space-y-2 md:space-y-3">
             {groupe.pieces?.map((gp, index) => {
               const status = getPieceStatus(gp);
               const piece = status.piece;
@@ -196,7 +199,7 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
               return (
                 <div 
                   key={gp.id ?? `${groupe.RefGroupe}-${gp.RéfPièce}`} 
-                  className={`p-3 rounded-lg border-2 ${
+                  className={`p-2 md:p-3 rounded-lg border-2 ${
                     status.available 
                       ? 'border-green-200 bg-green-50 dark:bg-green-700/100' 
                       : 'border-red-200 bg-red-50 dark:bg-red-700/100'
@@ -204,46 +207,47 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
                 >
                   <div className="flex items-start justify-between mb-2">
                     {/* Colonne gauche : infos pièce */}
-                    <div className="flex-1">
+                    <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         {piece && (
                           <img
                             src={`${API}/pieces/${piece.RéfPièce}/image`}
                             alt={piece.NomPièce}
-                            className="w-12 h-12 object-cover rounded"
+                            className="w-10 h-10 md:w-12 md:h-12 object-cover rounded flex-shrink-0"
                             onError={(e) => { e.currentTarget.style.display = 'none'; }}
                           />
                         )}
 
-                        <h4 className="font-semibold text-sm">
+                        <h4 className="font-semibold text-xs md:text-sm truncate">
                           {piece?.NomPièce || 'Pièce inconnue'}
                         </h4>
 
                         {status.available ? (
-                          <CheckCircle className="w-4 h-4 text-green-600" />
+                          <CheckCircle className="w-3 h-3 md:w-4 md:h-4 text-green-600 flex-shrink-0" />
                         ) : (
-                          <AlertTriangle className="w-4 h-4 text-red-600" />
+                          <AlertTriangle className="w-3 h-3 md:w-4 md:h-4 text-red-600 flex-shrink-0" />
                         )}
                       </div>
                       
+                      {/* Infos détaillées - masquées sur mobile */}
                       {piece && (
-                        <div className="space-y-1 text-xs">
+                        <div className="hidden md:block space-y-1 text-xs">
                           <p>N° pièce: <span className="font-mono">{piece.NumPièce}</span></p>
                           <p>N° fournisseur: <span className="font-mono">{piece.NumPièceAutreFournisseur || 'N/A'}</span></p>
-                          {piece.DescriptionPièce && <p>{piece.DescriptionPièce}</p>}
+                          {piece.DescriptionPièce && <p className="line-clamp-1">{piece.DescriptionPièce}</p>}
                         </div>
                       )}
                     </div>
 
                     {/* Colonne droite : contrôles */}
-                    <div className="flex flex-col items-end gap-2 ml-4">
+                    <div className="flex flex-col items-end gap-1 md:gap-2 ml-2">
                       {/* Ligne 1 : Boutons ordre + X */}
-                      <div className="flex items-center gap-1">
-                        {/* Boutons de déplacement */}
+                      <div className="flex items-center gap-0.5 md:gap-1">
+                        {/* Boutons de déplacement - masqués sur mobile */}
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6"
+                          className="hidden md:flex h-6 w-6"
                           onClick={() => handleMovepiece(gp.id, 'up')}
                           disabled={index === 0}
                           title="Monter"
@@ -253,7 +257,7 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
                         <Button
                           variant="ghost"
                           size="icon"
-                          className="h-6 w-6"
+                          className="hidden md:flex h-6 w-6"
                           onClick={() => handleMovepiece(gp.id, 'down')}
                           disabled={index === groupe.pieces.length - 1}
                           title="Descendre"
@@ -262,12 +266,12 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
                         </Button>
 
                         {/* Badge stock */}
-                        <Badge className={`${
+                        <Badge className={`text-xs ${
                           status.available 
                             ? 'bg-green-100 text-green-800' 
                             : 'bg-red-100 text-red-800'
                         }`}>
-                          {status.inStock || 0} / {status.required}
+                          {status.inStock || 0}/{status.required}
                         </Badge>
 
                         {/* Bouton X */}
@@ -278,13 +282,13 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
                           onClick={() => onRemovePiece(gp.id)}
                           title="Retirer du groupe"
                         >
-                          <X className="h-4 w-4" />
+                          <X className="h-3 w-3 md:h-4 md:w-4" />
                         </Button>
                       </div>
 
                       {/* Ligne 2 : Quantité requise éditable */}
-                      <div className="flex items-center gap-2">
-                        <span className="text-xs text-slate-600 dark:text-white">Qté requise:</span>
+                      <div className="flex items-center gap-1 md:gap-2">
+                        <span className="text-xs text-slate-600 dark:text-white hidden md:inline">Qté requise:</span>
                         {isEditing ? (
                           <>
                             <Input
@@ -292,57 +296,57 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
                               min="1"
                               value={tempQty}
                               onChange={(e) => setTempQty(e.target.value)}
-                              className="w-16 h-7 text-xs"
+                              className="w-12 md:w-16 h-6 md:h-7 text-xs"
                               autoFocus
                             />
                             <Button
                               size="icon"
-                              className="h-7 w-7 bg-green-600 hover:bg-green-700"
+                              className="h-6 w-6 md:h-7 md:w-7 bg-green-600 hover:bg-green-700"
                               onClick={() => handleSaveRequiredQty(gp.id)}
                             >
-                              <Save className="h-3 w-3" />
+                              <Save className="h-2.5 w-2.5 md:h-3 md:w-3" />
                             </Button>
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-7 w-7"
+                              className="h-6 w-6 md:h-7 md:w-7"
                               onClick={() => {
                                 setEditingQty(null);
                                 setTempQty('');
                               }}
                             >
-                              <X className="h-3 w-3" />
+                              <X className="h-2.5 w-2.5 md:h-3 md:w-3" />
                             </Button>
                           </>
                         ) : (
                           <>
-                            <span className="font-bold text-sm">{gp.Quantite}</span>
+                            <span className="font-bold text-xs md:text-sm">{gp.Quantite}</span>
                             <Button
                               size="icon"
                               variant="ghost"
-                              className="h-7 w-7"
+                              className="h-6 w-6 md:h-7 md:w-7"
                               onClick={() => {
                                 setEditingQty(gp.id);
                                 setTempQty(gp.Quantite.toString());
                               }}
                               title="Modifier la quantité requise"
                             >
-                              <Edit className="h-3 w-3" />
+                              <Edit className="h-2.5 w-2.5 md:h-3 md:w-3" />
                             </Button>
                           </>
                         )}
                       </div>
 
                       {/* Ligne 3 : Quantité à sortir */}
-                      <div className="flex items-center gap-2 mt-2 pt-2 border-t">
-                        <span className="text-xs text-slate-600 min-w-fit dark:text-white">Qté à sortir:</span>
+                      <div className="flex items-center gap-1 md:gap-2 mt-1 md:mt-2 pt-1 md:pt-2 border-t w-full">
+                        <span className="text-xs text-slate-600 dark:text-white hidden md:inline">Sortir:</span>
                         <Input
                           type="number"
                           min="0"
                           max={status.inStock}
                           value={(quantities[gp.RéfPièce] !== undefined) ? quantities[gp.RéfPièce] : gp.Quantite}
                           onChange={(e) => handleQuantityChange(gp.RéfPièce, e.target.value)}
-                          className="w-16 h-8 text-sm"
+                          className="w-12 md:w-16 h-6 md:h-8 text-xs md:text-sm"
                         />
                       </div>
                     </div>
@@ -358,35 +362,35 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
             variant="outline"
             size="sm"
             onClick={onAddPiece}
-            className="w-full border-dashed"
+            className="w-full border-dashed h-8 md:h-9 text-xs md:text-sm"
           >
-            <Package className="w-4 h-4 mr-2" />
-            Ajouter une pièce au groupe
+            <Package className="w-3 h-3 md:w-4 md:h-4 mr-2" />
+            Ajouter une pièce
           </Button>
         )}
 
         {/* Actions */}
-        <div className="flex justify-between items-center pt-4 border-t">
-          <div className="flex gap-2">
-            <Button variant="ghost" size="sm" onClick={() => onEdit(groupe)}>
-              <Edit className="w-4 h-4 mr-1" />
-              Modifier
+        <div className="flex justify-between items-center pt-3 md:pt-4 border-t">
+          <div className="flex gap-1 md:gap-2">
+            <Button variant="ghost" size="sm" onClick={() => onEdit(groupe)} className="h-8 px-2 md:px-3 text-xs md:text-sm">
+              <Edit className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
+              <span className="hidden md:inline">Modifier</span>
             </Button>
             <Button
               variant="ghost"
               size="sm"
               onClick={() => onDelete(groupe.RefGroupe)}
-              className="text-red-600 hover:text-red-700 hover:bg-red-50"
+              className="text-red-600 hover:text-red-700 hover:bg-red-50 h-8 px-2 md:px-3 text-xs md:text-sm"
             >
-              <Trash2 className="w-4 h-4 mr-1" />
-              Supprimer
+              <Trash2 className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
+              <span className="hidden md:inline">Supprimer</span>
             </Button>
           </div>
 
           <Button
             onClick={handleSortir}
             disabled={!canPerformSortie || !allQuantitiesValid}
-            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:opacity-50 text-white"
+            className="bg-gradient-to-r from-orange-500 to-red-500 hover:from-orange-600 hover:to-red-600 disabled:opacity-50 text-white h-8 px-3 md:px-4 text-xs md:text-sm"
             title={
               !allQuantitiesValid 
                 ? "Certaines quantités dépassent le stock" 
@@ -395,8 +399,9 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
                 : "Sortir les pièces sélectionnées"
             }
           >
-            <Minus className="w-4 h-4 mr-2" />
-            Sortir pièces
+            <Minus className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
+            <span className="hidden sm:inline">Sortir pièces</span>
+            <span className="sm:hidden">Sortir</span>
           </Button>
         </div>
       </CardContent>

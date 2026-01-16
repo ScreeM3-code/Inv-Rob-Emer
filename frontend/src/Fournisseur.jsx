@@ -207,47 +207,49 @@ export default function FournisseursPage() {
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
 
         {/* Header */}
-        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
-          <div className="flex items-center space-x-4">
-            <Building2 className="h-8 w-8 text-blue-600" />
+        <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-4 md:mb-6 gap-3 md:gap-4">
+          <div className="flex items-center space-x-3 md:space-x-4">
+            <Building2 className="h-6 w-6 md:h-8 md:w-8 text-blue-600" />
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Fournisseurs</h1>
-              <p className="text-slate-600 dark:text-white">Gérez vos contacts et Fournisseur</p>
+              <h1 className="text-xl md:text-3xl font-bold text-slate-900 dark:text-white">Fournisseurs</h1>
+              <p className="text-xs md:text-base text-slate-600 dark:text-white">Gérez vos contacts</p>
             </div>
           </div>
           <Button 
             onClick={() => openForm()} 
-            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:text-white"
+            className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:text-white w-full md:w-auto h-9 md:h-auto text-sm"
           >
-            <Plus className="w-4 h-4 mr-2 dark:text-white" /> Ajouter un Fournisseur
+            <Plus className="w-3 h-3 md:w-4 md:h-4 mr-2 dark:text-white" /> 
+            <span className="hidden sm:inline">Ajouter un Fournisseur</span>
+            <span className="sm:hidden">Fournisseur</span>
           </Button>
         </div>
         
         {/* Barre de recherche */}
-        <div className="mb-6 backdrop-blur-sm rounded-lg shadow-lg p-4">
+        <div className="mb-4 md:mb-6 backdrop-blur-sm rounded-lg shadow-lg p-3 md:p-4">
           <div className="relative">
-            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-5 h-5" />
+            <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-slate-400 w-4 h-4 md:w-5 md:h-5" />
             <Input 
-              placeholder="Rechercher un fournisseur (nom, contact, email, téléphone, produit, adresse)..." 
+              placeholder="Rechercher..." 
               value={searchTerm}
               onChange={e => setSearchTerm(e.target.value)}
-              className="pl-12 pr-10 h-12 text-base"
+              className="pl-9 md:pl-12 pr-10 h-10 md:h-12 text-sm md:text-base"
             />
             {searchTerm && (
               <button
                 onClick={() => setSearchTerm('')}
                 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
               >
-                <X className="w-5 h-5" />
+                <X className="w-4 h-4 md:w-5 md:h-5" />
               </button>
             )}
           </div>
           
           {/* Compteur de résultats */}
           {searchTerm && (
-            <div className="mt-3 text-sm text-slate-600 flex items-center gap-2">
+            <div className="mt-2 md:mt-3 text-xs md:text-sm text-slate-600 flex items-center gap-2">
               <span className="font-medium">
-                {filteredFournisseurs.length} résultat{filteredFournisseurs.length !== 1 ? 's' : ''} trouvé{filteredFournisseurs.length !== 1 ? 's' : ''}
+                {filteredFournisseurs.length} résultat{filteredFournisseurs.length !== 1 ? 's' : ''}
               </span>
               {filteredFournisseurs.length < fournisseurs.length && (
                 <span className="text-slate-400">
@@ -276,7 +278,7 @@ export default function FournisseursPage() {
         {!loading && !error && (
           <>
             {filteredFournisseurs.length > 0 ? (
-              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-5">
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5">
                 {filteredFournisseurs.map(f => (
                   <FournisseurCard 
                     key={f.RéfFournisseur} 
@@ -288,12 +290,12 @@ export default function FournisseursPage() {
                 ))}
               </div>
             ) : (
-              <div className="text-center py-16 rounded-lg border-2 border-dashed border-slate-200">
-                <Building2 className="mx-auto w-20 h-20 text-slate-300 mb-4" />
-                <h3 className="text-xl font-semibold text-slate-900 mb-2">
+              <div className="text-center py-12 md:py-16 rounded-lg border-2 border-dashed border-slate-200">
+                <Building2 className="mx-auto w-16 h-16 md:w-20 md:h-20 text-slate-300 mb-4" />
+                <h3 className="text-lg md:text-xl font-semibold text-slate-900 mb-2">
                   {searchTerm ? 'Aucun fournisseur trouvé' : 'Aucun fournisseur'}
                 </h3>
-                <p className="text-slate-600 mb-4">
+                <p className="text-sm md:text-base text-slate-600 mb-4">
                   {searchTerm 
                     ? `Aucun résultat pour "${searchTerm}"`
                     : "Commencez par ajouter votre premier fournisseur"}
@@ -302,9 +304,9 @@ export default function FournisseursPage() {
                   <Button 
                     variant="outline" 
                     onClick={() => setSearchTerm('')}
-                    className="mt-2"
+                    className="mt-2 h-9 text-sm"
                   >
-                    <X className="w-4 h-4 mr-2" />
+                    <X className="w-3 h-3 md:w-4 md:h-4 mr-2" />
                     Effacer la recherche
                   </Button>
                 )}

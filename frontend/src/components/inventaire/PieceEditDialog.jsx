@@ -50,61 +50,75 @@ export default function PieceEditDialog({
     <Dialog open={true} onOpenChange={onCancel}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle>Modifier la pièce</DialogTitle>
+          <DialogTitle className="text-base md:text-lg">Modifier la pièce</DialogTitle>
         </DialogHeader>
         
-        <div className="grid gap-4 py-4">
+        <div className="grid gap-3 md:gap-4 py-3 md:py-4">
           {/* Nom et Description */}
           <div>
-            <Label>Nom de la pièce *</Label>
+            <Label className="text-xs md:text-sm">Nom de la pièce *</Label>
             <Input
                 defaultValue={memoizedValues.NomPièce}
                 onChange={(e) => debouncedOnChange('NomPièce', e.target.value)}
+                className="h-9 md:h-10 text-sm"
             />
           </div>
 
           <div>
-            <Label>Description</Label>
+            <Label className="text-xs md:text-sm">Description</Label>
             <Input
                 defaultValue={memoizedValues.DescriptionPièce}
                 onChange={(e) => debouncedOnChange('DescriptionPièce', e.target.value)}
+                className="h-9 md:h-10 text-sm"
             />
           </div>
 
           {/* Numéros de pièce */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             <div>
-              <Label>N° de pièce</Label>
+              <Label className="text-xs md:text-sm">N° de pièce</Label>
               <Input
                   defaultValue={memoizedValues.NumPièce}
                   onChange={(e) => debouncedOnChange('NumPièce', e.target.value)}
-              />
-              <Label>N° SAP</Label>
-              <Input
-                  defaultValue={memoizedValues.RTBS}
-                  onChange={(e) => debouncedOnChange('RTBS', e.target.value)}
+                  className="h-9 md:h-10 text-sm"
               />
             </div>
             <div>
-              <Label>N° pièce autre fournisseur</Label>
+              <Label className="text-xs md:text-sm">N° pièce fournisseur</Label>
               <Input
                   defaultValue={memoizedValues.NumPièceAutreFournisseur}
                   onChange={(e) => debouncedOnChange('NumPièceAutreFournisseur', e.target.value)}
+                  className="h-9 md:h-10 text-sm"
               />
-              <Label>N° Festo</Label>
+            </div>
+          </div>
+
+          {/* Numéros SAP et FESTO - masqués sur mobile */}
+          <div className="hidden md:grid grid-cols-2 gap-4">
+            <div>
+              <Label className="text-sm">N° SAP</Label>
+              <Input
+                  defaultValue={memoizedValues.RTBS}
+                  onChange={(e) => debouncedOnChange('RTBS', e.target.value)}
+                  className="h-10 text-sm"
+              />
+            </div>
+            <div>
+              <Label className="text-sm">N° Festo</Label>
               <Input
                   defaultValue={memoizedValues.NoFESTO}
                   onChange={(e) => debouncedOnChange('NoFESTO', e.target.value)}
+                  className="h-10 text-sm"
               />
             </div>
           </div>
 
           {/* Fournisseurs */}
-          <div className="border-t pt-4">
-            <h4 className="font-semibold text-gray-700 mb-3">Fournisseurs</h4>
-            <div className="grid grid-cols-2 gap-4">
+          <div className="border-t pt-3 md:pt-4">
+            <h4 className="font-semibold text-gray-700 mb-2 md:mb-3 text-sm md:text-base">Fournisseurs</h4>
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
               <div>
-                <Label>Fournisseur principal</Label>
+                <Label className="text-xs md:text-sm">Fournisseur principal</Label>
                 <Select
                   value={piece.RéfFournisseur?.toString() || "none"}
                   onValueChange={(value) => {
@@ -113,11 +127,11 @@ export default function PieceEditDialog({
                     onChange('RéfFournisseur', isNaN(n) ? null : n);
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-9 md:h-10 text-sm">
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Aucun fournisseur</SelectItem>
+                    <SelectItem value="none">Aucun</SelectItem>
                     {fournisseurs.map((f) => (
                       <SelectItem key={f.RéfFournisseur} value={f.RéfFournisseur.toString()}>
                         {f.NomFournisseur}
@@ -127,8 +141,9 @@ export default function PieceEditDialog({
                 </Select>
               </div>
               
-              <div>
-                <Label>Autre fournisseur</Label>
+              {/* Autre fournisseur - masqué sur mobile */}
+              <div className="hidden md:block">
+                <Label className="text-sm">Autre fournisseur</Label>
                 <Select
                   value={piece.RéfAutreFournisseur?.toString() || "none"}
                   onValueChange={(value) => {
@@ -137,11 +152,11 @@ export default function PieceEditDialog({
                     onChange('RéfAutreFournisseur', isNaN(n) ? null : n);
                   }}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger className="h-10 text-sm">
                     <SelectValue placeholder="Sélectionner" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Aucun fournisseur</SelectItem>
+                    <SelectItem value="none">Aucun</SelectItem>
                     {fournisseurs.map((f) => (
                       <SelectItem key={f.RéfFournisseur} value={f.RéfFournisseur.toString()}>
                         {f.NomFournisseur}
@@ -154,8 +169,8 @@ export default function PieceEditDialog({
           </div>
 
           {/* Fabricant */}
-          <div className="border-t pt-4">
-            <Label>Fabricant</Label>
+          <div className="border-t pt-3 md:pt-4">
+            <Label className="text-xs md:text-sm">Fabricant</Label>
             <Select
               value={piece.RefFabricant?.toString() || "none"}
               onValueChange={(value) => {
@@ -164,11 +179,11 @@ export default function PieceEditDialog({
                 onChange('RefFabricant', isNaN(n) ? null : n);
               }}
             >
-              <SelectTrigger>
+              <SelectTrigger className="h-9 md:h-10 text-sm">
                 <SelectValue placeholder="Sélectionner un fabricant" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="none">Aucun fabricant</SelectItem>
+                <SelectItem value="none">Aucun</SelectItem>
                 {fabricants.map((fab) => (
                   <SelectItem key={fab.RefFabricant} value={fab.RefFabricant.toString()}>
                     {fab.NomFabricant}
@@ -179,26 +194,26 @@ export default function PieceEditDialog({
           </div>
 
           {/* Quantités */}
-          <div className="border-t pt-4">
-            <h4 className="font-semibold text-gray-700 mb-3">Quantités et stock</h4>
-            <div className="grid grid-cols-3 gap-4">
+          <div className="border-t pt-3 md:pt-4">
+            <h4 className="font-semibold text-gray-700 mb-2 md:mb-3 text-sm md:text-base">Quantités</h4>
+            <div className="grid grid-cols-3 gap-2 md:gap-4">
               <div>
-                <Label>Qté stock *</Label>
+                <Label className="text-xs md:text-sm">Stock *</Label>
                 <Input
                   type="number"
                   min={0}
                   value={piece.QtéenInventaire ?? 0}
                   onChange={(e) => {
                     const v = e.target.value;
-                    // Accept empty string while typing; convert to numbers safely
                     if (v === "") return onChange('QtéenInventaire', 0);
                     const n = parseInt(v, 10);
                     onChange('QtéenInventaire', Math.max(0, isNaN(n) ? 0 : n));
                   }}
+                  className="h-9 md:h-10 text-sm"
                 />
               </div>
               <div>
-                <Label>Qté min *</Label>
+                <Label className="text-xs md:text-sm">Min *</Label>
                 <Input
                   type="number"
                   min={0}
@@ -209,10 +224,11 @@ export default function PieceEditDialog({
                     const n = parseInt(v, 10);
                     onChange('Qtéminimum', Math.max(0, isNaN(n) ? 0 : n));
                   }}
+                  className="h-9 md:h-10 text-sm"
                 />
               </div>
               <div>
-                <Label>Qté max</Label>
+                <Label className="text-xs md:text-sm">Max</Label>
                 <Input
                   type="number"
                   min={0}
@@ -223,22 +239,24 @@ export default function PieceEditDialog({
                     const n = parseInt(v, 10);
                     onChange('Qtémax', Math.max(0, isNaN(n) ? 0 : n));
                   }}
+                  className="h-9 md:h-10 text-sm"
                 />
               </div>
             </div>
           </div>
 
           {/* Emplacement et Prix */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
             <div>
-              <Label>Emplacement</Label>
+              <Label className="text-xs md:text-sm">Emplacement</Label>
               <Input
                 value={piece.Lieuentreposage || ""}
                 onChange={(e) => onChange('Lieuentreposage', e.target.value)}
+                className="h-9 md:h-10 text-sm"
               />
             </div>
             <div>
-              <Label>Prix unitaire (CAD $) *</Label>
+              <Label className="text-xs md:text-sm">Prix unitaire (CAD $) *</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -248,21 +266,20 @@ export default function PieceEditDialog({
                   const v = e.target.value;
                   onChange('Prix_unitaire', v === "" ? 0 : Math.max(0, parseFloat(v) || 0));
                 }}
+                className="h-9 md:h-10 text-sm"
               />
             </div>
           </div>
         </div>
 
-        <DialogFooter>
-          <Button variant="outline" onClick={onCancel}>
+        <DialogFooter className="gap-2">
+          <Button variant="outline" onClick={onCancel} className="h-9 text-sm">
             Annuler
           </Button>
           <Button
             onClick={onSave}
-            disabled={
-              !piece.NomPièce?.trim()
-            }
-            className="bg-rio-red hover:bg-rio-red-dark"
+            disabled={!piece.NomPièce?.trim()}
+            className="bg-rio-red hover:bg-rio-red-dark h-9 text-sm"
           >
             Sauvegarder
           </Button>

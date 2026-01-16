@@ -477,40 +477,40 @@ function Dashboard () {
         </div>
 
         {/* Stats Cards */}
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6 mb-8">
+        <div className="hidden md:grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
           <Card className="glass-card hover:shadow-2xl transition-all duration-300 group">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium dark:text-gray-100">Total Pièces</CardTitle>
-              <div className="p-2 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 group-hover:scale-110 transition-transform">
-                <Package className="h-4 w-4 text-white" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium dark:text-gray-100">Total Pièces</CardTitle>
+              <div className="p-1 md:p-2 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 group-hover:scale-110 transition-transform">
+                <Package className="h-3 w-3 md:h-4 md:w-4 text-white" />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold dark:text-gray-100">{(stats.total_pieces || 0).toLocaleString()}</div>
+            <CardContent className="p-3 md:p-6 pt-0">
+              <div className="text-xl md:text-2xl font-bold dark:text-gray-100">{(stats.total_pieces || 0).toLocaleString()}</div>
             </CardContent>
           </Card>
           
           <Card className="glass-card hover:shadow-2xl transition-all duration-300 group">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium dark:text-gray-100">Stock Critique</CardTitle>
-              <div className="p-2 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 group-hover:scale-110 transition-transform">
-                <AlertTriangle className="h-4 w-4 text-red-400" />
-               </div>
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium dark:text-gray-100">Stock Critique</CardTitle>
+              <div className="p-1 md:p-2 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 group-hover:scale-110 transition-transform">
+                <AlertTriangle className="h-3 w-3 md:h-4 md:w-4 text-red-400" />
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold  dark:text-gray-100">{(stats.stock_critique || 0).toLocaleString()}</div>
+            <CardContent className="p-3 md:p-6 pt-0">
+              <div className="text-xl md:text-2xl font-bold  dark:text-gray-100">{(stats.stock_critique || 0).toLocaleString()}</div>
             </CardContent>
           </Card>
           
           <Card className="glass-card hover:shadow-2xl transition-all duration-300 group">
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium dark:text-gray-100">Valeur Stock</CardTitle>
-              <div className="p-2 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 group-hover:scale-110 transition-transform">
-                <DollarSign className="h-4 w-4 text-white" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium dark:text-gray-100">Valeur Stock</CardTitle>
+              <div className="p-1 md:p-2 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 group-hover:scale-110 transition-transform">
+                <DollarSign className="h-3 w-3 md:h-4 md:w-4 text-white" />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold  dark:text-gray-100">
+            <CardContent className="p-3 md:p-6 pt-0">
+              <div className="text-lg md:text-2xl font-bold  dark:text-gray-100">
                 {(stats.valeur_stock || 0).toLocaleString('fr-CA', {style: 'currency', currency: 'CAD'})}
               </div>
             </CardContent>
@@ -519,14 +519,14 @@ function Dashboard () {
           <Card className="glass-card hover:shadow-2xl transition-all duration-300 group cursor-pointer"
             onClick={() => navigate("/commandes")}
           >
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium dark:text-gray-100">À Commander</CardTitle>
-              <div className="p-2 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 group-hover:scale-110 transition-transform">
-                <Package className="h-4 w-4 text-white" />
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
+              <CardTitle className="text-xs md:text-sm font-medium dark:text-gray-100">À Commander</CardTitle>
+              <div className="p-1 md:p-2 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 group-hover:scale-110 transition-transform">
+                <Package className="h-3 w-3 md:h-4 md:w-4 text-white" />
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600  dark:text-yellow-600">
+            <CardContent className="p-3 md:p-6 pt-0">
+              <div className="text-xl md:text-2xl font-bold text-yellow-600  dark:text-yellow-600">
                 {(stats.pieces_a_commander || 0).toLocaleString()}
               </div>
             </CardContent>
@@ -535,42 +535,28 @@ function Dashboard () {
 
 
         {/* Search et Filtres */}
-        <Card className="mb-6 backdrop-blur-sm border-0 shadow-lg">
-          <CardContent className="p-6">
-            <div className="flex flex-col lg:flex-row gap-4 items-center">
-              <div className="flex-1 relative">
-                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4" />
+        <Card className="mb-4 md:mb-6 backdrop-blur-sm border-0 shadow-lg">
+          <CardContent className="p-3 md:p-6">
+            <div className="flex flex-col lg:flex-row gap-3 md:gap-4 items-center">
+              <div className="flex-1 relative w-full">
+                <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-3 h-3 md:w-4 md:h-4" />
                 <Input
-                  placeholder="Rechercher par nom ou référence..."
+                  placeholder="Rechercher..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-10"
+                  className="pl-8 md:pl-10 h-9 md:h-10 text-sm"
                 />
               </div>
               
-              <div className="flex items-center gap-2 text-sm">
-                <span className="font-medium">Filtres:</span>
-                {/* <Select
-                  value={filters.statut}
-                  onValueChange={(value) => setFilters({...filters, statut: value})}
-                >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Tous statuts" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="tous">Tous statuts</SelectItem>
-                    <SelectItem value="actif">Actif</SelectItem>
-                    <SelectItem value="obsolete">Obsolète</SelectItem>
-                    <SelectItem value="discontinue">Discontinué</SelectItem>
-                  </SelectContent>
-                </Select>*/}
+              <div className="flex items-center gap-2 text-xs md:text-sm w-full lg:w-auto">
+                <span className="font-medium hidden md:inline">Filtres:</span>
                 
                 <Select
                   value={filters.stock}
                   onValueChange={(value) => setFilters({...filters, stock: value})}
                 >
-                  <SelectTrigger className="w-[180px]">
-                    <SelectValue placeholder="Tous stocks" />
+                  <SelectTrigger className="w-full lg:w-[140px] h-9 text-xs md:text-sm">
+                    <SelectValue placeholder="Stock" />
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="tous">Tous stock</SelectItem>
@@ -579,15 +565,16 @@ function Dashboard () {
                     <SelectItem value="critique">Stock Critique</SelectItem>
                   </SelectContent>
                 </Select>
+                
                 <Select
                   value={filters.commande}
                   onValueChange={(value) => setFilters({...filters, commande: value})}
                 >
-                  <SelectTrigger className="w-[180px]">
+                  <SelectTrigger className="w-full lg:w-[140px] h-9 text-xs md:text-sm">
                     <SelectValue placeholder="Commandes" />
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="tous">Toutes commandes</SelectItem>
+                    <SelectItem value="tous">Toutes</SelectItem>
                     <SelectItem value="en_commande">En commande</SelectItem>
                     <SelectItem value="sans_commande">Sans commande</SelectItem>
                   </SelectContent>
@@ -614,7 +601,7 @@ function Dashboard () {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-5">
+          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-5">
             {displayedItems.map((piece) => {
               const fournisseur = fournisseurs.find(f => f.RéfFournisseur === piece.RéfFournisseur);
               // Prefer the `autre_fournisseur` object when provided by the backend
