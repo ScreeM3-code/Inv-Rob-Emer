@@ -145,32 +145,34 @@ function Receptions() {
                               <div className="ml-4">{getStockBadge(statutStock)}</div>
                             </div>
 
-                            <div className="text-sm text-gray-600 mt-1">N° {piece.NumPièce}</div>
+                            <div className="text-sm text-gray-600 mt-1 dark:text-white">N° {piece.NumPièce}</div>
+                            <div className="text-sm text-gray-600 mt-1 dark:text-white">N° {piece.NumPièceAutreFournisseur}</div>
+                            <div className="text-sm text-gray-600 mt-1 dark:text-white">N° {piece.NoFESTO}</div>
 
                             {piece.DescriptionPièce && (
-                              <p className="text-sm text-gray-500 mt-3">{piece.DescriptionPièce}</p>
+                              <p className="text-sm text-gray-500 mt-3 dark:text-white">{piece.DescriptionPièce}</p>
                             )}
                           </div>
                         </div>
                         <div className="grid grid-cols-2 md:grid-cols-5 gap-4 mb-4 text-sm">
                           <div>
-                            <span className="text-gray-500">Commandée:</span>
+                            <span className="text-gray-500 dark:text-white">Commandée:</span>
                             <div className="font-semibold text-blue-600">{piece.Qtécommandée}</div>
                           </div>
                           <div>
-                            <span className="text-gray-500">Reçue:</span>
+                            <span className="text-gray-500 dark:text-white">Reçue:</span>
                             <div className="font-semibold text-green-600">{piece.Qtéreçue}</div>
                           </div>
                           <div>
-                            <span className="text-gray-500">À recevoir:</span>
+                            <span className="text-gray-500 dark:text-white">À recevoir:</span>
                             <div className="font-semibold text-orange-600">{piece.Qtéarecevoir}</div>
                           </div>
                           <div>
-                            <span className="text-gray-500">Stock actuel:</span>
+                            <span className="text-gray-500 dark:text-white">Stock actuel:</span>
                             <div className="font-semibold">{piece.QtéenInventaire}</div>
                           </div>
                           <div>
-                            <span className="text-gray-500">Prix unitaire:</span>
+                            <span className="text-gray-500 dark:text-white">Prix unitaire:</span>
                             <div className="font-semibold">{piece.Prix_unitaire.toLocaleString('fr-CA', {style: 'currency', currency: 'CAD'})}</div>
                           </div>
                         </div>
@@ -178,7 +180,7 @@ function Receptions() {
                         {/* Fournisseur */}
                         {piece.fournisseur_principal && (
                           <div className="mt-4 pt-4 border-t border-gray-200">
-                            <h4 className="text-sm font-semibold text-gray-700 mb-2">Fournisseur</h4>
+                            <h4 className="text-sm font-semibold text-gray-700 mb-2 dark:text-white">Fournisseur</h4>
                             <Badge variant="outline" className="text-rio-red border-rio-red">
                               {piece.fournisseur_principal.NomFournisseur}
                             </Badge>
@@ -187,7 +189,7 @@ function Receptions() {
 
                         {/* Date de commande */}
                         {piece.Datecommande && (
-                          <div className="mt-2 text-sm text-gray-500">
+                          <div className="mt-2 text-sm text-gray-500 dark:text-white">
                             Commandé le: {new Date(piece.Datecommande).toLocaleDateString('fr-CA')}
                           </div>
                         )}

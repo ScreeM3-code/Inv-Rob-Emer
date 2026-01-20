@@ -435,10 +435,11 @@ function Dashboard () {
 
  
    return (
-    <div className="min-h-screen from-slate-50 via-blue-50 to-indigo-50">
+    <div className="min-h-screen w-full p-2 from-slate-50 via-blue-50 to-indigo-50">
       <AnimatedBackground />
       <Toaster />
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6">
+      <div className="max-w-7xl mx-auto px-2 sm:px-6 lg:px-8 py-6">
+
         {/* Stats */}
         {/* Header avec bouton d'ajout */}
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center mb-6 gap-4">
@@ -601,12 +602,9 @@ function Dashboard () {
         </div>
       ) : (
         <>
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-3 md:gap-5">
+          <div className="grid grid-cols-2 lg:grid-cols-3 gap-3 md:gap-5 w-full">
             {displayedItems.map((piece) => {
               const fournisseur = fournisseurs.find(f => f.RéfFournisseur === piece.RéfFournisseur);
-              // Prefer the `autre_fournisseur` object when provided by the backend
-              // because it comes from a separate table. Otherwise try to resolve
-              // by id against the `fournisseurs` list (if the id matches).
               const autreFournisseur = piece.autre_fournisseur || fournisseurs.find(f => f.RéfFournisseur === piece.RéfAutreFournisseur) || null;
               const fabricant = fabricants.find(f => f.RefFabricant === piece.RefFabricant);
               return (

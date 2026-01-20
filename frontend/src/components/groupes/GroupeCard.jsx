@@ -194,6 +194,7 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
             {groupe.pieces?.map((gp, index) => {
               const status = getPieceStatus(gp);
               const piece = status.piece;
+              const imageUrl = `${API}/pieces/${gp.RéfPièce}/image`;
               const isEditing = editingQty === gp.id;
 
               return (
@@ -205,13 +206,15 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
                       : 'border-red-200 bg-red-50 dark:bg-red-700/100'
                   }`}
                 >
-                  <div className="flex items-start justify-between mb-2">
+                  <div className="flex items-start justify-between mb-2 gap-2">
                     {/* Colonne gauche : infos pièce */}
+                    <div className="w-20 h-20 flex-shrink-0 rounded overflow-hidden bg-white border md:w-40 md:h-40 md:flex-shrink-0 md:rounded md:overflow-hidden md:bg-white md:border">
+                      <img src={imageUrl} alt={gp.NomPièce} className="w-full h-full object-contain" onError={(e)=>{e.currentTarget.style.display='none'}} />
+                    </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
                         {piece && (
                           <img
-                            src={`${API}/pieces/${piece.RéfPièce}/image`}
                             alt={piece.NomPièce}
                             className="w-10 h-10 md:w-12 md:h-12 object-cover rounded flex-shrink-0"
                             onError={(e) => { e.currentTarget.style.display = 'none'; }}
@@ -231,7 +234,7 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
                       
                       {/* Infos détaillées - masquées sur mobile */}
                       {piece && (
-                        <div className="hidden md:block space-y-1 text-xs">
+                        <div className="block space-y-1 text-xs">
                           <p>N° pièce: <span className="font-mono">{piece.NumPièce}</span></p>
                           <p>N° fournisseur: <span className="font-mono">{piece.NumPièceAutreFournisseur || 'N/A'}</span></p>
                           {piece.DescriptionPièce && <p className="line-clamp-1">{piece.DescriptionPièce}</p>}

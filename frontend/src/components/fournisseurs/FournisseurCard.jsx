@@ -11,7 +11,7 @@ export default function FournisseurCard({ fournisseur, onEdit, onDelete, onManag
     </div>
   );
 
-  const logoUrl = fournisseur.Domaine ? `https://logo.clearbit.com/${fournisseur.Domaine}` : '';
+  const logoUrl = fournisseur.Domaine ? `https://img.logo.dev/${fournisseur.Domaine}?token=pk_I3--EpsKQV-62K22jiWMbw` : '';
   const handleLogoError = (e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; };
 
   const contacts = fournisseur.contacts || [];
@@ -31,11 +31,6 @@ export default function FournisseurCard({ fournisseur, onEdit, onDelete, onManag
         </CardTitle>
       </CardHeader>
       <CardContent className="flex-grow space-y-3 md:space-y-4 p-3 md:p-6 pt-0">
-        {/* Infos principales - toujours visibles */}
-        <div className="space-y-1 md:space-y-2">
-          <InfoItem icon={<User className="w-3 h-3 md:w-4 md:h-4" />}  text={`${fournisseur.NomContact || 'Contact N/A'}`} />
-          {fournisseur.NuméroTél && <InfoItem icon={<Phone className="w-3 h-3 md:w-4 md:h-4" />} text={fournisseur.NuméroTél} />}
-        </div>
         
         {/* Infos secondaires - masquées sur mobile */}
         <div className="hidden md:block space-y-2">
@@ -49,7 +44,7 @@ export default function FournisseurCard({ fournisseur, onEdit, onDelete, onManag
         
         {/* Contacts - masqués sur mobile */}
         {contacts.length > 0 && (
-          <div className="hidden md:block border-t pt-3 space-y-2">
+          <div className="md:block border-t pt-3 space-y-2">
             <h4 className="text-sm font-semibold text-slate-800 dark:text-white">Contacts</h4>
             {contacts.slice(0, 2).map((contact, index) => (
               <div key={index} className="text-sm">

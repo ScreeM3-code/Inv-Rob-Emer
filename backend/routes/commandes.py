@@ -214,7 +214,7 @@ async def receive_all_order(
         query = '''
             UPDATE "Pièce"
             SET "QtéenInventaire" = "QtéenInventaire" + $2,
-                "Qtéreçue" = COALESCE("Qtéreçue", 0) + $2,
+                "Qtéreçue" = 0,
                 "Qtéarecevoir" = 0,
                 "Qtécommandée" = 0,
                 "Datecommande" = NULL,

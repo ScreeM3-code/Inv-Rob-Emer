@@ -114,7 +114,7 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
   }, {});
 
   return (
-    <Card className="flex flex-col glass-card hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
+    <Card className="w-full flex flex-col glass-card hover:shadow-2xl transition-all duration-300 hover:-translate-y-1">
       <CardHeader>
         <div className="flex justify-between items-start">
           <CardTitle className="text-lg font-bold pr-4">{piece.NomPièce}</CardTitle>
@@ -122,9 +122,9 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
       </CardHeader>
 
       {/* Image + numbers row */}
-      <div className="h-48 from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 overflow-hidden group">
+      <div className="h-30 from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700 overflow-hidden group md:h-48">
         <div className="flex h-full">
-          <div className="w-1/2 relative flex items-center justify-center p-4 bg-white">
+          <div className="w-1/2 h-30 relative flex items-center justify-center p-4 bg-white md:w-1/2">
             {!imageError ? (
               <img src={imageUrl} alt={piece.NomPièce} className="w-full h-full object-contain transition-transform group-hover:scale-105" onError={() => setImageError(true)} />
             ) : (
@@ -153,7 +153,7 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
             <input ref={fileInputRef} type="file" accept="image/*" onChange={handleImageUpload} className="hidden" />
           </div>
           {/* Badges overlay on # section */}
-          <div className="w-1/2 p-4 flex flex-col justify-left space-y-2 top-3 left-3 gap-2 z-20">
+          <div className="hidden md:flex w-1/2 p-4 flex-col md:justify-left md:space-y-2 md:top-3 md:left-3 md:gap-2 md:z-20">
             {stockStatus && (
               <Badge className={`${stockStatus.color} flex items-center`}>
                 {stockStatus.icon}
@@ -178,12 +178,44 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
         <div></div>
         {piece.DescriptionPièce && <p className="text-sm text-slate-600 dark:text-white">{piece.DescriptionPièce}</p>}
 
-        <div className="grid grid-cols-4 gap-2">
+        <div className="hidden md:grid md:grid-cols-4 md:gap-2">
           <StatItem label="Stock" value={piece.QtéenInventaire} />
           <StatItem label="Min." value={piece.Qtéminimum} />
           <StatItem label="Max." value={piece.Qtémax} />
           <StatItem label="Prix" value={piece.Prix_unitaire} isPrice />
         </div>
+
+        <div className="flex items-start gap-4 md:hidden">
+          
+
+          <div className="flex-none">
+            <StatItem className="h-20 w-20" label="Stock" value={piece.QtéenInventaire} />
+          </div>
+
+
+          <div className="flex-grow flex flex-col items-start space-y-2">
+            {stockStatus && (
+              <Badge className={`${stockStatus.color} flex items-center`}>
+                {stockStatus.icon}
+                <span className="ml-1.5 text-xs">{stockStatus.label}</span>
+              </Badge>
+            )}
+            
+            {piece.Qtécommandée > 0 && (
+              <Badge className="bg-purple-500 text-white flex items-center text-xs">
+                <Package className="w-3 h-3 mr-1" />
+                En commande ({piece.Qtécommandée})
+              </Badge>
+            )}
+
+            {piece.NumPièce?.trim() && <p className="text-sm text-slate-500 font-mono dark:text-white">{piece.NumPièce}</p>}
+            {piece.NumPièceAutreFournisseur?.trim() && <p className="text-sm text-slate-500 font-mono dark:text-white">#Fourn: {piece.NumPièceAutreFournisseur}</p>}
+            {piece.RTBS && <p className="text-sm text-slate-500 font-mono dark:text-white">SAP: {piece.RTBS}</p>}
+            {piece.NoFESTO?.trim() && <p className="text-sm text-slate-500 font-mono dark:text-white">FESTO: {piece.NoFESTO}</p>}
+          </div>
+        </div>
+
+
 
         {/* Section fournisseurs - MASQUÉE SUR MOBILE */}
         <div className="hidden md:block space-y-2 text-sm border-t pt-4">
