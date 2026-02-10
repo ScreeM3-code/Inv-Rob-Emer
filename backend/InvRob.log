@@ -1,19 +1,8 @@
-2026-01-19 14:45:54,500 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
-2026-01-19 14:45:54,500 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2026-01-19 14:45:54,582 - uvicorn.error - INFO - Started server process [29684]
-2026-01-19 14:45:54,582 - uvicorn.error - INFO - Waiting for application startup.
-2026-01-19 14:45:54,718 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2026-01-19 14:45:54,723 - Inventaire-Robot - INFO - \u2705 947 Pièce trouvés
-2026-01-19 14:45:54,727 - uvicorn.error - INFO - Application startup complete.
-2026-01-19 14:45:54,727 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
-2026-01-19 22:47:48,229 - uvicorn.error - WARNING - Invalid HTTP request received.
-2026-01-19 22:47:48,230 - uvicorn.error - WARNING - Invalid HTTP request received.
-2026-01-20 08:04:28,740 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=INA%20KLM%20Germany%20NA6907%20INA&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2026-01-20 08:04:29,336 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=INA%20KLM%20Germany%20NA6907%20INA&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2026-01-20 08:04:46,138 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=INA%20KLM%20Germany%20NA6907%20INA&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2026-01-20 08:04:46,506 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=INA%20KLM%20Germany%20NA6907%20INA&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2026-01-20 08:04:53,355 - httpx - INFO - HTTP Request: GET https://www.dhresource.com/webp/m/260x260/f2/albu/g19/M00/87/57/rBNaN2G5VnyAPgx8ABqETUI9004057.jpg "HTTP/1.1 403 Forbidden"
-2026-01-20 08:05:00,848 - httpx - INFO - HTTP Request: GET https://www.dhresource.com/webp/m/260x260/f2/albu/g19/M00/87/57/rBNaN2G5VnyAPgx8ABqETUI9004057.jpg "HTTP/1.1 403 Forbidden"
-2026-01-20 08:05:08,447 - httpx - INFO - HTTP Request: GET https://img4.dhresource.com/webp/m/260x260/f3/albu/ys/m/14/527e66b3-d196-47f2-b405-733632f84c6c.jpg "HTTP/1.1 403 Forbidden"
-2026-01-20 08:05:13,063 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=INA%20KLM%20Germany%20NA6907%20INA&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
-2026-01-20 08:05:13,582 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=INA%20KLM%20Germany%20NA6907%20INA&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2026-02-10 13:23:40,024 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
+2026-02-10 13:23:40,024 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2026-02-10 13:23:40,121 - uvicorn.error - INFO - Started server process [13444]
+2026-02-10 13:23:40,121 - uvicorn.error - INFO - Waiting for application startup.
+2026-02-10 13:23:40,251 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2026-02-10 13:23:40,255 - Inventaire-Robot - INFO - \u2705 947 Pièce trouvés
+2026-02-10 13:23:40,257 - uvicorn.error - INFO - Application startup complete.
+2026-02-10 13:23:40,257 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)

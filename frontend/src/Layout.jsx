@@ -2,6 +2,7 @@ import React from "react";
 import { Link, useLocation, Outlet } from "react-router-dom";
 import { Package, Store, Cog, FileText, Layers } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
+import { useAuth } from './contexts/AuthContext';
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { User } from 'lucide-react';
 import { Badge } from '@/components/ui/badge';
@@ -11,6 +12,8 @@ export default function Layout() {
   const location = useLocation();
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
 
+
+  const auth = useAuth();
 
   return (
     <div className="min-h-screen flex flex-col">
@@ -56,6 +59,15 @@ export default function Layout() {
             {/* Bouton hamburger mobile + ThemeToggle */}
             <div className="flex items-center gap-4">
               <ThemeToggle />
+              {auth && auth.user ? (
+                <div className="flex items-center space-x-3">
+                  <span className="hidden sm:inline text-sm">{auth.user.username}</span>
+                  {auth.user.role === 'admin' && <Link to="/users" className="text-sm text-gray-600 hover:text-rio-red">Users</Link>}
+                  <button onClick={() => auth.logout()} className="text-sm text-gray-600 hover:text-rio-red">Logout</button>
+                </div>
+              ) : (
+                <Link to="/login" className="text-sm text-gray-600 hover:text-rio-red">Login</Link>
+              )}
               <button
                 onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
                 className="md:hidden p-2 rounded-md text-gray-600 hover:bg-gray-100"

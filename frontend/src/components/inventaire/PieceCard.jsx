@@ -251,7 +251,6 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
           </Button>
           <Input 
             type="number" 
-            min="1" 
             max={piece.QtéenInventaire} 
             value={qrQty} 
             onChange={(e) => { 
@@ -259,7 +258,7 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
               const n = isNaN(v) ? 1 : v; 
               setQrQty(Math.max(1, Math.min(n, piece.QtéenInventaire || 1))); 
             }} 
-            className="w-14 h-8 md:w-20 md:h-8 text-sm" 
+            className="w-10 h-8 md:w-20 md:h-8 text-sm" 
           />
         </div>
 
@@ -272,12 +271,8 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
                 className="border-blue-500 text-blue-500 hover:bg-blue-50 relative h-8 px-2 md:px-3 text-xs md:text-sm"
               >
                 <Layers className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
-                <span className="hidden md:inline">Groupes</span>
-                {pieceGroupes?.length > 0 && (
-                  <Badge className="ml-1 md:ml-2 bg-blue-500 text-white h-4 min-w-4 flex items-center justify-center text-xs">
-                    {pieceGroupes.length}
-                  </Badge>
-                )}
+                <span className="hidden md:inline xs-text">Groupes</span>
+
               </Button>
             </PopoverTrigger>
             <PopoverContent className="w-96 max-h-[500px] overflow-y-auto" align="end">
@@ -333,7 +328,6 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
             className="h-8 px-2 md:px-3 text-xs md:text-sm"
           >
             <Edit className="w-3 h-3 md:w-4 md:h-4 md:mr-2" />
-            <span className="hidden md:inline">Modifier</span>
           </Button>
         </div>
       </CardFooter>

@@ -29,5 +29,12 @@ export default defineConfig({
           ],
         },
     hmr: !disableHotReload, // Désactive HMR si demandé
+    proxy: {
+      '/api': {
+        target: 'http://localhost:8000',
+        changeOrigin: true,
+        rewrite: (path) => path,
+      },
+    },
   },
 });

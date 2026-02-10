@@ -21,7 +21,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse
 from fastapi import Request, HTTPException
-
+import socket
 import os
 # Imports locaux
 from config import CORS_ORIGINS, BUILD_DIR
@@ -37,7 +37,7 @@ from routes import (
     soumissions_router,
     uploads_router
 )
-#from auth import router as auth_router
+from auth import router as auth_router
 
 
 
@@ -68,20 +68,24 @@ app.add_middleware(
 )
 
 
-
 @app.get("/api/current-user")
-def get_current_user():
-    """Retourne l'utilisateur Windows actuel + rôle"""
-    username = os.getenv("USERNAME") or os.getenv("USER") or "unknown"
+def get_client_info(request: Request):
+    ip = request.client.host
+
+    try:
+        hostname = socket.gethostbyaddr(ip)[0]
+    except Exception:
+        hostname = "inconnu"
 
     return {
-        "user": username,
-
+        "ip": ip,
+        "hostname": hostname
     }
+
 
 # Inclusion des routers
 app.include_router(pieces_router, prefix="/api")
-#app.include_router(auth_router, prefix="/api")
+app.include_router(auth_router, prefix="/api")
 app.include_router(fournisseurs_router, prefix="/api")
 app.include_router(fabricants_router, prefix="/api")
 app.include_router(commandes_router, prefix="/api")

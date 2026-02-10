@@ -7,6 +7,7 @@ import "./index.css";
 import AppRouter from "./Router";
 import { CartProvider } from "@/components/cart/CartContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
+import { AuthProvider } from './contexts/AuthContext';
 
 // ← Ajouter cette ligne
 const queryClient = new QueryClient();
@@ -16,11 +17,13 @@ root.render(
   <React.StrictMode>
     <BrowserRouter>
       <QueryClientProvider client={queryClient}>
-        <ThemeProvider> {/* AJOUTE */}
-          <CartProvider>
-            <AppRouter />
-          </CartProvider>
-        </ThemeProvider> {/* AJOUTE */}
+        <ThemeProvider>
+          <AuthProvider>
+            <CartProvider>
+              <AppRouter />
+            </CartProvider>
+          </AuthProvider>
+        </ThemeProvider>
       </QueryClientProvider>
     </BrowserRouter>
   </React.StrictMode>,
