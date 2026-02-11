@@ -1,8 +1,29 @@
-2026-02-10 13:23:40,024 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
-2026-02-10 13:23:40,024 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2026-02-10 13:23:40,121 - uvicorn.error - INFO - Started server process [13444]
-2026-02-10 13:23:40,121 - uvicorn.error - INFO - Waiting for application startup.
-2026-02-10 13:23:40,251 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2026-02-10 13:23:40,255 - Inventaire-Robot - INFO - \u2705 947 Pièce trouvés
-2026-02-10 13:23:40,257 - uvicorn.error - INFO - Application startup complete.
-2026-02-10 13:23:40,257 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2026-02-10 14:50:14,297 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
+2026-02-10 14:50:14,297 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2026-02-10 14:50:14,387 - uvicorn.error - INFO - Started server process [42024]
+2026-02-10 14:50:14,387 - uvicorn.error - INFO - Waiting for application startup.
+2026-02-10 14:50:14,511 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2026-02-10 14:50:14,516 - Inventaire-Robot - INFO - \u2705 947 Pièce trouvés
+2026-02-10 14:50:14,517 - uvicorn.error - INFO - Application startup complete.
+2026-02-10 14:50:14,517 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:8000 (Press CTRL+C to quit)
+2026-02-10 15:36:25,448 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] Une connexion existante a dû être fermée par l’hôte distant
+2026-02-10 15:36:30,209 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] Une connexion existante a dû être fermée par l’hôte distant
+2026-02-10 15:36:44,253 - uvicorn.error - INFO - Shutting down
+2026-02-10 15:36:44,362 - uvicorn.error - INFO - Waiting for application shutdown.
+2026-02-10 15:36:44,374 - Inventaire-Robot - INFO - Pool PostgreSQL fermé.
+2026-02-10 15:36:44,374 - uvicorn.error - INFO - Application shutdown complete.
+2026-02-10 15:36:44,374 - uvicorn.error - INFO - Finished server process [42024]

@@ -246,7 +246,7 @@ function Dashboard () {
         RéfPièce: piece.RéfPièce,
         nompiece: piece.NomPièce,
         numpiece: piece.NumPièce,
-        User: user || "Système",
+        User: user?.username || "Système",
         DateRecu: new Date().toISOString(),
         description: piece.DescriptionPièce,
       };

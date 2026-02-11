@@ -1,9 +1,5 @@
-rapports
+
 
 username
 
-historique rechercher pas # de pieces fournisseur
 
-réception manque d'information comme # pièces # pieces founisseur
-
-enelve pas les recu quand on fait une reception total

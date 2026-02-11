@@ -14,8 +14,15 @@ export function log(...args) {
 }
 
 // Lightweight fetch wrapper that validates response.ok and attempts JSON parsing
-export async function fetchJson(url, options) {
-  const res = await fetch(url, options);
+export async function fetchJson(url, options = {}) {
+  // Ajouter le token Authorization si disponible
+  const token = localStorage.getItem('access_token');
+  if (token && !options.headers?.Authorization) {
+    if (!options.headers) options.headers = {};
+    options.headers.Authorization = `Bearer ${token}`;
+  }
+  
+  const res = await fetch(url, { ...options, credentials: 'include' });
   const text = await res.text();
   let data = null;
   try {

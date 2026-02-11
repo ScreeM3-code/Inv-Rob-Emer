@@ -20,7 +20,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 from fastapi.responses import FileResponse, HTMLResponse
-from fastapi import Request, HTTPException
+from fastapi import Request, HTTPException, Depends
 import socket
 import os
 # Imports locaux
@@ -37,7 +37,7 @@ from routes import (
     soumissions_router,
     uploads_router
 )
-from auth import router as auth_router
+from auth import router as auth_router, get_current_user
 
 
 
@@ -63,24 +63,15 @@ app.add_middleware(
     CORSMiddleware,
     allow_credentials=True,
     allow_origins=CORS_ORIGINS,
-    allow_methods=["*"],
+    allow_methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
     allow_headers=["*"],
 )
 
 
 @app.get("/api/current-user")
-def get_client_info(request: Request):
-    ip = request.client.host
-
-    try:
-        hostname = socket.gethostbyaddr(ip)[0]
-    except Exception:
-        hostname = "inconnu"
-
-    return {
-        "ip": ip,
-        "hostname": hostname
-    }
+def get_current_user_endpoint(user: dict = Depends(get_current_user)):
+    """Retourne les informations de l'utilisateur connecté"""
+    return {"user": {"username": user.get("username"), "role": user.get("role")}}
 
 
 # Inclusion des routers
@@ -146,7 +137,7 @@ if __name__ == "__main__":
         uvicorn.run("server:app", host="0.0.0.0", port=8000, reload=True)
     else:
         logger.info("🚀 Mode production")
-        uvicorn.run(app, host="0.0.0.0", port=8000, log_config=None, access_log=False)
+        uvicorn.run(app, host="0.0.0.0", port=2549, log_config=None, access_log=False)
 
 
 # backend/InvRobot.py - AJOUTE une fonction helper
