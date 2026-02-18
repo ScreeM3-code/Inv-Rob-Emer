@@ -1,9 +1,9 @@
 """Routes pour la gestion des commandes"""
 import asyncpg
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List
 from datetime import datetime
-
+import httpx
 from database import get_db_connection
 from models import Commande, StatsResponse
 from utils.helpers import safe_string, safe_int, safe_float, calculate_qty_to_order
@@ -56,6 +56,7 @@ async def get_commande(conn: asyncpg.Connection = Depends(get_db_connection)):
         rows = await conn.fetch('''
             SELECT p.*,
                    f1."NomFournisseur" AS fournisseur_principal_nom,
+                   f1."NumSap" AS fournisseur_principal_num_sap,
                    f2."NomAutreFournisseur" AS autre_fournisseur_nom,
                    f3."NomFabricant"
             FROM "Pièce" p
@@ -74,6 +75,7 @@ async def get_commande(conn: asyncpg.Connection = Depends(get_db_connection)):
                 fournisseur_principal = {
                     "RéfFournisseur": piece_dict.get("RéfFournisseur"),
                     "NomFournisseur": safe_string(piece_dict.get("fournisseur_principal_nom", "")),
+                    "NumSap": safe_string(piece_dict.get("fournisseur_principal_num_sap", "")),
                 }
 
             autre_fournisseur = None
@@ -121,9 +123,10 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
         rows = await conn.fetch('''
             SELECT p.*,
-                   f1."NomFournisseur" AS fournisseur_principal_nom,
-                   f2."NomAutreFournisseur" AS autre_fournisseur_nom,
-                   f3."NomFabricant"
+                    f1."NomFournisseur" AS fournisseur_principal_nom,
+                    f1."NumSap" AS fournisseur_principal_num_sap,
+                    f2."NomAutreFournisseur" AS autre_fournisseur_nom,
+                    f3."NomFabricant"
             FROM "Pièce" p
             LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
             LEFT JOIN "Autre Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfAutreFournisseur"
@@ -142,6 +145,7 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
                 fournisseur_principal = {
                     "RéfFournisseur": piece_dict.get("RéfFournisseur"),
                     "NomFournisseur": safe_string(piece_dict.get("fournisseur_principal_nom", "")),
+                    "NumSap": safe_string(piece_dict.get("fournisseur_principal_num_sap", "")),
                 }
 
             autre_fournisseur = None
@@ -314,3 +318,101 @@ async def receive_partial_order(
     except Exception as e:
         print(f"❌ Erreur receive_partial_order: {e}")
         raise HTTPException(status_code=500, detail="Erreur lors de la réception partielle")
+    
+@router.post("/ereq/submit")
+async def submit_ereq(payload: dict, request: Request):
+    """Proxy vers SAP eReq — relaie les cookies de session Windows du navigateur"""
+    EREQ_BASE = "https://fip.remote.riotinto.com/sap/opu/odata/rio/ZMPTP_EREQ_SRV"
+    SAP_CLIENT = "500"
+
+    sap_cookies = payload.get("sap_cookies", "")
+    body_json = payload.get("body_json", "")
+
+    if not sap_cookies:
+        raise HTTPException(status_code=400, detail="Cookies SAP manquants. Assurez-vous d'être connecté à eReq dans ce navigateur.")
+
+    try:
+        async with httpx.AsyncClient(verify=False, timeout=60.0) as client:
+            # Étape 1 : récupérer le x-csrf-token
+            token_resp = await client.get(
+                f"{EREQ_BASE}/?sap-client={SAP_CLIENT}",
+                headers={
+                    "x-csrf-token": "Fetch",
+                    "Accept": "application/json",
+                    "Cookie": sap_cookies,
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                    "Referer": "https://fip.remote.riotinto.com/sap/bc/ui5_ui5/sap/zmptp_ereq/index.html",
+                    "Origin": "https://fip.remote.riotinto.com",
+                },
+            )
+            print(f"🔑 Token response status: {token_resp.status_code}")
+            print(f"🔑 Token response headers: {dict(token_resp.headers)}")
+            csrf_token = token_resp.headers.get("x-csrf-token")
+            if not csrf_token:
+                raise HTTPException(status_code=401, detail=f"Session SAP expirée ou invalide (HTTP {token_resp.status_code}). Reconnectez-vous à eReq.")
+
+            # Étape 2 : construire et envoyer le batch
+            ts = int(datetime.now().timestamp())
+            batch_boundary = f"batch_{ts}"
+            changeset_boundary = f"changeset_{ts}"
+
+            # Construire la requête interne HTTP
+            inner_headers = "\r\n".join([
+                f"POST PRHeaderSet?sap-client={SAP_CLIENT} HTTP/1.1",
+                "sap-contextid-accept: header",
+                "Accept: application/json",
+                "Accept-Language: fr",
+                "DataServiceVersion: 2.0",
+                "MaxDataServiceVersion: 2.0",
+                f"x-csrf-token: {csrf_token}",
+                "Content-Type: application/json",
+                f"Content-Length: {len(body_json.encode('utf-8'))}",
+                "",
+                "",
+            ])
+            inner_request = inner_headers + body_json
+
+            # Construire le changeset
+            changeset_content = "\r\n".join([
+                f"--{changeset_boundary}",
+                "Content-Type: application/http",
+                "Content-Transfer-Encoding: binary",
+                "",
+                inner_request,
+                f"--{changeset_boundary}--",
+            ])
+
+            # Construire le batch complet
+            batch_body = "\r\n".join([
+                f"--{batch_boundary}",
+                f"Content-Type: multipart/mixed; boundary={changeset_boundary}",
+                "",
+                changeset_content,
+                f"--{batch_boundary}--",
+            ])
+
+            batch_resp = await client.post(
+                f"{EREQ_BASE}/$batch?sap-client={SAP_CLIENT}",
+                content=batch_body.encode(),
+                headers={
+                    "Content-Type": f"multipart/mixed; boundary={batch_boundary}",
+                    "x-csrf-token": csrf_token,
+                    "Accept": "multipart/mixed",
+                    "DataServiceVersion": "2.0",
+                    "MaxDataServiceVersion": "2.0",
+                    "Cookie": sap_cookies,
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+                    "Referer": "https://fip.remote.riotinto.com/sap/bc/ui5_ui5/sap/zmptp_ereq/index.html",
+                    "Origin": "https://fip.remote.riotinto.com",
+                },
+            )
+
+            print(f"📦 Batch response status: {batch_resp.status_code}")
+            print(f"📦 Batch response body: {batch_resp.text[:500]}")
+            return {"status": batch_resp.status_code, "body": batch_resp.text}
+
+    except Exception as e:
+        print(f"❌ EREQ ERROR: {type(e).__name__}: {str(e)}")
+        import traceback
+        traceback.print_exc()
+        raise HTTPException(status_code=502, detail=f"Erreur: {type(e).__name__}: {str(e)}")

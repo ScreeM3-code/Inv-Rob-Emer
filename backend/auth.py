@@ -11,6 +11,8 @@ from pydantic import BaseModel as PydanticBaseModel
 import uuid
 import asyncpg
 from database import get_db_connection
+import secrets
+from email_service import send_password_reset_email
 
 # Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "CHANGE_ME_IN_PRODUCTION")  # ⚠️ Mettre dans .env
@@ -40,6 +42,18 @@ class UserResponse(PydanticBaseModel):
     username: str
     role: str
     created_at: Optional[datetime] = None
+
+class ForgotPasswordRequest(PydanticBaseModel):
+    email: str
+
+class ResetPasswordRequest(PydanticBaseModel):
+    token: str
+    new_password: str
+
+class UpdateUserRequest(PydanticBaseModel):
+    email: Optional[str] = None
+    group_id: Optional[int] = None
+    role: Optional[str] = None
 
 
 # ==================== Fonctions utilitaires ====================
@@ -249,80 +263,6 @@ async def refresh_token(
 
 
 # ==================== Gestion des utilisateurs ====================
-@router.get('/users')
-async def list_users(
-        user: dict = Depends(require_admin),
-        conn: asyncpg.Connection = Depends(get_db_connection)
-):
-    """Retourne la liste des utilisateurs (admin seulement)"""
-    query = """
-        SELECT id, username, role, created_at 
-        FROM users 
-        ORDER BY created_at DESC
-    """
-    rows = await conn.fetch(query)
-
-    users = []
-    for row in rows:
-        users.append({
-            "id": str(row['id']),
-            "username": row['username'],
-            "role": row['role'],
-            "created_at": row['created_at'].isoformat() if row['created_at'] else None
-        })
-
-    return {"users": users}
-
-
-@router.post('/users')
-async def create_user(
-        data: CreateUserRequest,
-        user: dict = Depends(require_admin),
-        conn: asyncpg.Connection = Depends(get_db_connection)
-):
-    """Crée un nouvel utilisateur (admin seulement)"""
-
-    # Vérifier si l'utilisateur existe déjà
-    existing_user = await get_user_by_username(conn, data.username)
-    if existing_user:
-        raise HTTPException(status_code=400, detail="Utilisateur existe déjà")
-
-    # Valider le rôle
-    if data.role not in ['user', 'admin']:
-        raise HTTPException(status_code=400, detail="Rôle invalide (user ou admin)")
-
-    # Créer l'utilisateur
-    user_id = uuid.uuid4()
-    password_hash = hash_password(data.password)
-
-    query = """
-        INSERT INTO users (id, username, password_hash, role, created_at)
-        VALUES ($1, $2, $3, $4, $5)
-        RETURNING id, username, role, created_at
-    """
-
-    try:
-        row = await conn.fetchrow(
-            query,
-            user_id,
-            data.username,
-            password_hash,
-            data.role,
-            datetime.now()
-        )
-
-        return {
-            "msg": "Utilisateur créé",
-            "user": {
-                "id": str(row['id']),
-                "username": row['username'],
-                "role": row['role'],
-                "created_at": row['created_at'].isoformat() if row['created_at'] else None
-            }
-        }
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur lors de la création: {str(e)}")
-
 
 @router.delete('/users/{username}')
 async def delete_user(
@@ -378,3 +318,157 @@ async def change_password(
         return {"msg": f"Mot de passe de {username} modifié"}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Erreur lors de la modification: {str(e)}")
+    
+@router.post('/forgot-password')
+async def forgot_password(data: ForgotPasswordRequest, request: Request):
+    """Envoie un email de réinitialisation si l'adresse est connue."""
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        user = await conn.fetchrow(
+            "SELECT id, username, email FROM users WHERE email = $1",
+            data.email.lower().strip()
+        )
+
+    # On répond toujours OK pour ne pas révéler si l'email existe
+    if not user:
+        return {"msg": "Si cet email existe, un lien vous a été envoyé."}
+
+    token = secrets.token_urlsafe(32)
+    async with pool.acquire() as conn:
+        # Invalider les anciens tokens de cet utilisateur
+        await conn.execute(
+            "UPDATE password_reset_tokens SET used = TRUE WHERE user_id = $1 AND used = FALSE",
+            user['id']
+        )
+        # Créer le nouveau token (expire dans 1h)
+        await conn.execute(
+            """INSERT INTO password_reset_tokens (user_id, token, expires_at)
+               VALUES ($1, $2, NOW() + INTERVAL '1 hour')""",
+            user['id'], token
+        )
+
+    send_password_reset_email(user['email'], user['username'], token)
+    return {"msg": "Si cet email existe, un lien vous a été envoyé."}
+
+
+@router.post('/reset-password')
+async def reset_password(data: ResetPasswordRequest, request: Request):
+    """Applique le nouveau mot de passe si le token est valide."""
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        record = await conn.fetchrow(
+            """SELECT prt.user_id, prt.expires_at, prt.used
+               FROM password_reset_tokens prt
+               WHERE prt.token = $1""",
+            data.token
+        )
+
+        if not record:
+            raise HTTPException(status_code=400, detail="Token invalide ou expiré")
+        if record['used']:
+            raise HTTPException(status_code=400, detail="Ce lien a déjà été utilisé")
+        if record['expires_at'].replace(tzinfo=None) < datetime.utcnow():
+            raise HTTPException(status_code=400, detail="Ce lien a expiré")
+
+        if len(data.new_password) < 8:
+            raise HTTPException(status_code=400, detail="Le mot de passe doit contenir au moins 8 caractères")
+
+        new_hash = pwd_context.hash(data.new_password)
+
+        # Mettre à jour le mot de passe
+        await conn.execute(
+            "UPDATE users SET password_hash = $1 WHERE id = $2",
+            new_hash, record['user_id']
+        )
+        # Marquer le token comme utilisé
+        await conn.execute(
+            "UPDATE password_reset_tokens SET used = TRUE WHERE token = $1",
+            data.token
+        )
+
+    return {"msg": "Mot de passe mis à jour avec succès"}
+
+
+# ==================== Gestion des utilisateurs ====================
+
+@router.get('/users')
+async def list_users(request: Request, user: dict = Depends(require_admin)):
+    """Retourne la liste des utilisateurs avec leur groupe."""
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        rows = await conn.fetch(
+            """SELECT u.id, u.username, u.email, u.role, u.group_id,
+                      g.name AS group_name, g.permissions
+               FROM users u
+               LEFT JOIN user_groups g ON u.group_id = g.id
+               ORDER BY u.username"""
+        )
+    return {"users": [dict(r) for r in rows]}
+
+
+@router.post('/users')
+async def create_user(data: CreateUserRequest, request: Request, user: dict = Depends(require_admin)):
+    """Crée un utilisateur avec email et groupe."""
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        existing = await conn.fetchrow(
+            "SELECT id FROM users WHERE username = $1", data.username
+        )
+        if existing:
+            raise HTTPException(status_code=400, detail="Utilisateur existe déjà")
+
+        import uuid
+        user_id = uuid.uuid4()
+        hashed = pwd_context.hash(data.password)
+
+        # Trouver le group_id selon le rôle par défaut
+        group = await conn.fetchrow(
+            "SELECT id FROM user_groups WHERE name = $1", data.role or 'user'
+        )
+        group_id = group['id'] if group else None
+
+        await conn.execute(
+            """INSERT INTO users (id, username, password_hash, role, group_id, created_at)
+               VALUES ($1, $2, $3, $4, $5, NOW())""",
+            user_id, data.username, hashed, data.role or 'user', group_id
+        )
+    return {"msg": "Utilisateur créé", "user": {"username": data.username, "role": data.role}}
+
+
+@router.patch('/users/{username}')
+async def update_user(username: str, data: UpdateUserRequest, request: Request, user: dict = Depends(require_admin)):
+    """Met à jour email et/ou groupe d'un utilisateur."""
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        existing = await conn.fetchrow(
+            "SELECT id FROM users WHERE username = $1", username
+        )
+        if not existing:
+            raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+
+        if data.email is not None:
+            await conn.execute(
+                "UPDATE users SET email = $1 WHERE username = $2",
+                data.email.lower().strip(), username
+            )
+        if data.group_id is not None:
+            await conn.execute(
+                "UPDATE users SET group_id = $1 WHERE username = $2",
+                data.group_id, username
+            )
+        if data.role is not None:
+            await conn.execute(
+                "UPDATE users SET role = $1 WHERE username = $2",
+                data.role, username
+            )
+
+    return {"msg": f"Utilisateur {username} mis à jour"}
+
+
+@router.get('/groups')
+async def list_groups(request: Request, user: dict = Depends(require_admin)):
+    """Retourne tous les groupes de permissions."""
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        rows = await conn.fetch("SELECT * FROM user_groups ORDER BY name")
+    return {"groups": [dict(r) for r in rows]}

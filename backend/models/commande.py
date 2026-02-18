@@ -30,6 +30,7 @@ class Commande(BaseModel):
     SoumDem: Optional[bool] = False
     RTBS: Optional[int] = None
     NoFESTO: Optional[str] = ""
+    NumSap: Optional[str] = ""
 
 class StatsResponse(BaseModel):
     total_pieces: int
