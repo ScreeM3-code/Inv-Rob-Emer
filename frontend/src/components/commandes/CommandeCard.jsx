@@ -32,7 +32,11 @@ export default function CommandeCard({
     costCentre: '26005511',
     needByDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     qty: String(order.Qtéàcommander || order.Qtécommandée || 1),
+    Price: parseFloat(ereqForm.price).toFixed(2),
     recipient: '',
+    refSoumission: '',
+    pdfFile: null,
+    pdfName: '',
     sap_cookies: localStorage.getItem('sap_cookies') || '',
   });
 
@@ -55,7 +59,7 @@ export default function CommandeCard({
           Vendor: vendorCode,
           PRItemDesc: `${order.NumPièce || order.VendorMaterialNum || ''} ${order.NomPièce || ''}`.trim(),
           Material: '', Plant: '2605', Currency: 'CAD',
-          Price: String(order.Prix_unitaire || '0'),
+          Price: parseFloat(ereqForm.price).toFixed(2),
           Qty: parseFloat(ereqForm.qty).toFixed(2),
           UoM: 'CHA', OANum: '', LeadTime: '0', OAItemNum: '00000',
           PurchOrg: 'RT42', PurchGroup: '269', TrackingNum: '',
@@ -137,13 +141,68 @@ export default function CommandeCard({
       const approvalMatch = result.body?.match(/"ApprovalText":"([^"]+)"/);
       const approvalText = approvalMatch ? approvalMatch[1] : '';
 
+      // Post-traitement si succès
+      if (prNum) {
+        try {
+          const userData = await fetch(`${API_URL}/current-user`).then(r => r.json());
+          const userName = userData.user || userData.hostname || 'Système';
+
+          // 1. Historique
+          await fetch(`${API_URL}/historique`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              Opération: 'Commande (eReq)',
+              DateCMD: new Date().toISOString(),
+              DateRecu: null,
+              RéfPièce: order.RéfPièce,
+              nompiece: order.NomPièce,
+              numpiece: order.NumPièce,
+              qtécommande: String(ereqForm.qty),
+              QtéSortie: '0',
+              description: `DA SAP: ${prNum}${ereqForm.refSoumission ? ` | Soumission: ${ereqForm.refSoumission}` : ''}`,
+              User: userName,
+              Delais: null,
+            }),
+          });
+
+          // 2. Mettre à jour la soumission si # fourni
+          if (ereqForm.refSoumission) {
+            await fetch(
+              `${API_URL}/soumissions/${ereqForm.refSoumission}/statut-complet?statut=Commandée`,
+              {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  note: `DA SAP #${prNum} créée le ${new Date().toLocaleDateString('fr-CA')}`,
+                  date_rappel: null,
+                }),
+              }
+            );
+          }
+
+          // 3. Mettre à jour le statut de la pièce
+          await fetch(`${API_URL}/pieces/${order.RéfPièce}`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+              Cmd_info: `DA SAP #${prNum} | ${new Date().toLocaleDateString('fr-CA')}`,
+              Datecommande: new Date().toISOString().split('T')[0],
+              Qtécommandée: parseInt(ereqForm.qty),
+              Qtéarecevoir: parseInt(ereqForm.qty),
+              Prix_unitaire: parseFloat(ereqForm.price),
+            }),
+          });
+
+          // Rafraîchir la liste si callback disponible
+          if (onRefresh) onRefresh();
+        } catch (postErr) {
+          console.warn('⚠️ Post-traitement eReq (non bloquant):', postErr);
+        }
+      }
+
       setShowEreqDialog(false);
-      setEreqResult({ 
-        prNum, 
-        approvalText,
-        rawBody: result.body,
-        status: result.status 
-      });
+      setEreqResult({ prNum, approvalText, rawBody: result.body, status: result.status });
     } catch (err) {
       console.error('Erreur eReq:', err);
       toast({ title: 'Erreur eReq', description: err.message, variant: 'destructive' });
@@ -387,11 +446,19 @@ export default function CommandeCard({
             </div>
 
             <div className="space-y-3">
-              <div>
-                <label className="text-sm font-medium">Quantité</label>
-                <input type="number" min="1" value={ereqForm.qty}
-                  onChange={e => setEreqForm(f => ({ ...f, qty: e.target.value }))}
-                  className="w-full mt-1 border rounded px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600" />
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="text-sm font-medium">Quantité</label>
+                  <input type="number" min="1" value={ereqForm.qty}
+                    onChange={e => setEreqForm(f => ({ ...f, qty: e.target.value }))}
+                    className="w-full mt-1 border rounded px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600" />
+                </div>
+                <div>
+                  <label className="text-sm font-medium">Prix unitaire (CAD)</label>
+                  <input type="number" min="0" step="0.01" value={ereqForm.price}
+                    onChange={e => setEreqForm(f => ({ ...f, price: e.target.value }))}
+                    className="w-full mt-1 border rounded px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600" />
+                </div>
               </div>
               <div>
                 <label className="text-sm font-medium">Date requise</label>
@@ -418,6 +485,24 @@ export default function CommandeCard({
                     onChange={e => setEreqForm(f => ({ ...f, costCentre: e.target.value }))}
                     className="w-full mt-1 border rounded px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600" />
                 </div>
+              </div>
+              <div>
+                <label className="text-sm font-medium"># Soumission (optionnel)</label>
+                <input type="text" value={ereqForm.refSoumission} placeholder="ex: 1042"
+                  onChange={e => setEreqForm(f => ({ ...f, refSoumission: e.target.value }))}
+                  className="w-full mt-1 border rounded px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600" />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Pièce jointe soumission (PDF)</label>
+                <input type="file" accept=".pdf"
+                  onChange={e => {
+                    const file = e.target.files[0];
+                    if (file) setEreqForm(f => ({ ...f, pdfFile: file, pdfName: file.name }));
+                  }}
+                  className="w-full mt-1 border rounded px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600" />
+                {ereqForm.pdfName && (
+                  <p className="text-xs text-green-600 mt-1">📎 {ereqForm.pdfName}</p>
+                )}
               </div>
             </div>
 
