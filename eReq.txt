@@ -1,0 +1,77 @@
+--ED7F20AE07B505C456082B5E456FE0B70
+Content-Type: application/http
+Content-Length: 504
+content-transfer-encoding: binary
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 303
+dataserviceversion: 2.0
+location: https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/PRNumIncrementSet('NB')
+
+{"d":{"__metadata":{"id":"https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/PRNumIncrementSet('NB')","uri":"https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/PRNumIncrementSet('NB')","type":"RIO_ZMPTP_EREQ_SRV.PRNumIncrement"},"PRType":"NB","ItemInterval":"00001"}}
+--ED7F20AE07B505C456082B5E456FE0B70
+Content-Type: application/http
+Content-Length: 972
+content-transfer-encoding: binary
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 772
+dataserviceversion: 2.0
+location: https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/AppVariablesSet('500')
+
+{"d":{"__metadata":{"id":"https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/AppVariablesSet('500')","uri":"https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/AppVariablesSet('500')","type":"RIO_ZMPTP_EREQ_SRV.AppVariables"},"Client":"500","RTTMSURL":"https://rttms.service-now.com/rttms","ProcPolicyURL":"https://myprospect.riotinto.org/en/whoweare/policy_hub/Documents/RTP-B-002 Procurement Standard.pdf","SparesfinderURL":"https://riotintosso.sparesfinder.com/doLogin.aspx?GO=fUEcMoUS_EiVynpVGoXVmg","ProcureHubENURL":"https://myprospect.riotinto.org/en/functions/procurement/customer/Pages/Self-service-tools.aspx","ProcureHubFRURL":"https://myprospect.riotinto.org/fr/functions/procurement/customer/Pages/Self-service-tools.aspx"}}
+--ED7F20AE07B505C456082B5E456FE0B70--
+
+
+REQUETE
+--ED7F20AE07B505C456082B5E456FE0B70
+Content-Type: application/http
+Content-Length: 504
+content-transfer-encoding: binary
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 303
+dataserviceversion: 2.0
+location: https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/PRNumIncrementSet('NB')
+
+{"d":{"__metadata":{"id":"https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/PRNumIncrementSet('NB')","uri":"https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/PRNumIncrementSet('NB')","type":"RIO_ZMPTP_EREQ_SRV.PRNumIncrement"},"PRType":"NB","ItemInterval":"00001"}}
+--ED7F20AE07B505C456082B5E456FE0B70
+Content-Type: application/http
+Content-Length: 972
+content-transfer-encoding: binary
+
+HTTP/1.1 200 OK
+Content-Type: application/json
+Content-Length: 772
+dataserviceversion: 2.0
+location: https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/AppVariablesSet('500')
+
+{"d":{"__metadata":{"id":"https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/AppVariablesSet('500')","uri":"https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/AppVariablesSet('500')","type":"RIO_ZMPTP_EREQ_SRV.AppVariables"},"Client":"500","RTTMSURL":"https://rttms.service-now.com/rttms","ProcPolicyURL":"https://myprospect.riotinto.org/en/whoweare/policy_hub/Documents/RTP-B-002 Procurement Standard.pdf","SparesfinderURL":"https://riotintosso.sparesfinder.com/doLogin.aspx?GO=fUEcMoUS_EiVynpVGoXVmg","ProcureHubENURL":"https://myprospect.riotinto.org/en/functions/procurement/customer/Pages/Self-service-tools.aspx","ProcureHubFRURL":"https://myprospect.riotinto.org/fr/functions/procurement/customer/Pages/Self-service-tools.aspx"}}
+--ED7F20AE07B505C456082B5E456FE0B70--
+
+RÉPONSE
+--85EC0D0641E5F0B5EE69C706BC8ED9941
+Content-Type: application/http
+Content-Length: 2675
+content-transfer-encoding: binary
+
+HTTP/1.1 201 Created
+Content-Type: application/json
+Content-Length: 2468
+location: https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/PRHeaderSet('40795052')
+dataserviceversion: 2.0
+
+{"d":{"__metadata":{"id":"https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/PRHeaderSet('40795052')","uri":"https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/PRHeaderSet('40795052')","type":"RIO_ZMPTP_EREQ_SRV.PRHeader"},"PRNum":"40795052","HeaderNotes":"","ProcPolicyNotes":"","TestRun":false,"ApproverID":"","ApproverFullName":"","ApprovalText":"Demande d'achat créée sous le n° 40795052","PRAttachment":{"results":[]},"PRItem":{"results":[{"__metadata":{"id":"https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/PRItemSet(PRItemNum='00001',PRNum='')","uri":"https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/PRItemSet(PRItemNum='00001',PRNum='')","type":"RIO_ZMPTP_EREQ_SRV.PRItem"},"AcctAssignment":"K","ManualAddressNumber":"","Blkcode":"000","ReferenceAddressNumber":"","CatalogID":"","RefCustomerforAddress":"","Category":"125","RefVendorforAddress":"","Currency":"CAD","DeliveryText":"","DistributionIndicator":"1","EngagementType":"","Equipment":"","ExpValue":"0.00","IsMaterialConfigurable":false,"ItemCategory":"0","ItemNote":"","ItemText":"","LeadTime":"0","ManufacturerNum":"","ManufacturerPartNum":"","Material":"","MaterialAllowed":"","MaterialValue":"0.00","MissingReptId":"","NeedByDate":"\/Date(1773619200000)\/","OAItemNum":"00000","OANum":"","OffsiteWork":"","OverallLimit":"0.00","Overtime":"","Plant":"2605","POItemNum":"00000","PONum":"","Price":"17.92","PRItemDesc":"6625010 RKC 4T-2/TEL SENSOR CABLE,","PRItemNum":"00001","PrMismatchId":"","PRNum":"","ProcPolicyNotes":"","PurchGroup":"269","PurchOrg":"RT42","Qty":"3.000","Recipient":"Simon DC","RequestedBy":"","SafetyPlan":"","SafetyPlanComments":"","ScopeOfWork":"","ServiceOnsite":false,"SubconWork":"","TrackingNum":"","UnloadingPt":"109","UoM":"CHA","Vendor":"10135643","VendorMaterialNum":"6625010","PRMaterialData":{"results":[]},"PRItemDeliveryAddress":null,"PRAccount":{"results":[{"__metadata":{"id":"https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/PRAccountSet(PRNum='',PRItemNum='00001',AcctSerialNum='00')","uri":"https://FIP.REMOTE.RIOTINTO.COM:443/sap/opu/odata/rio/ZMPTP_EREQ_SRV/PRAccountSet(PRNum='',PRItemNum='00001',AcctSerialNum='00')","type":"RIO_ZMPTP_EREQ_SRV.PRAccount"},"PRNum":"","PRItemNum":"00001","AcctSerialNum":"00","DistributionPercent":"0.0","GLAcct":"404400","CostCentre":"26005511","WorkOrder":"","Network":"","ActivityNum":"","WBS":"","Qty":"0.000"}]}}]}}}
+--85EC0D0641E5F0B5EE69C706BC8ED9941--
+
+--85EC0D0641E5F0B5EE69C706BC8ED9940--
+
+TÉMOIN
+nom / valeur / Domain / path / expires / taille / httponly / secure / samesite / partition / cross site / priority  
+oucqqssuyzvoywwworferoytzzosywzebzqzezz_anchor	%23EREQ-display	fip.remote.riotinto.com	/	Session	61		✓	None	https://riotinto.com		Medium
+SAP_SESSIONID_FIP_500	vWTK4Zh_H_xC2fJCj-TOLUNPXJEMyRHxvpkAIkiVhmY%3d	fip.remote.riotinto.com	/	Session	67		✓	None			Medium
+sap-usercontext	sap-language=FR&sap-client=500	fip.remote.riotinto.com	/	Session	45		✓	None			Medium
+visid_incap_3118982	KECABQzAQA2MdMPqNuxMv6gu9mgAAAAAQUIPAAAAAADRxxXgzi9Dt5ja6hTdXNxH	.riotinto.com	/	2026-10-20T07:14:39.892Z	83	✓					Medium
