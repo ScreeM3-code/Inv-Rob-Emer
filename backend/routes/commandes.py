@@ -10,6 +10,11 @@ from utils.helpers import safe_string, safe_int, safe_float, calculate_qty_to_or
 from auth import require_admin, require_auth
 from pydantic import BaseModel as PydanticBaseModel
 from typing import Optional
+from notification_service import (
+    notify_demande_approbation,
+    notify_approbation_result,
+    notify_piece_commandee,
+)
 
 router = APIRouter(tags=["commandes"])
 
@@ -474,6 +479,17 @@ async def soumettre_approbation(
     L'acheteur soumet une pièce pour approbation par l'admin.
     Passe le statut à 'en_attente'.
     """
+
+    # Notifier les admins
+    piece_info = await conn.fetchrow(
+        'SELECT "NomPièce" FROM "Pièce" WHERE "RéfPièce" = $1', piece_id
+    )
+    piece_nom = piece_info['NomPièce'] if piece_info else f"Pièce #{piece_id}"
+    import asyncio
+    asyncio.create_task(
+        notify_demande_approbation(conn, piece_nom, piece_id, user['username'])
+    )
+
     piece = await conn.fetchrow(
         'SELECT "RéfPièce", approbation_statut FROM "Pièce" WHERE "RéfPièce" = $1',
         piece_id
@@ -521,6 +537,10 @@ async def approuver_piece(
            WHERE "RéfPièce" = $3''',
         user['username'], data.note, piece_id
     )
+    import asyncio
+    asyncio.create_task(
+        notify_approbation_result(conn, piece_nom, "approuvee", data.note or "")
+    )
     return {"msg": "Pièce approuvée", "statut": "approuvee"}
 
 
@@ -548,6 +568,10 @@ async def refuser_piece(
                approbation_note   = $2
            WHERE "RéfPièce" = $3''',
         user['username'], data.note, piece_id
+    )
+    import asyncio
+    asyncio.create_task(
+        notify_approbation_result(conn, piece_nom, "refusee", data.note or "")
     )
     return {"msg": "Pièce refusée", "statut": "refusee"}
 

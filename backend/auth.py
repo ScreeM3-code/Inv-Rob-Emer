@@ -12,8 +12,8 @@ import uuid
 import asyncpg
 from database import get_db_connection
 import secrets
-from email_service import send_password_reset_email
-import json as _json
+from email_service import send_password_reset_email, send_email
+import json as _json, json
 
 # Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "CHANGE_ME_IN_PRODUCTION")  # ⚠️ Mettre dans .env
@@ -38,6 +38,22 @@ ALL_PERMISSIONS = [
     "historique_view",
     "can_delete_any", "can_manage_users", "can_approve_orders", "can_submit_approval",
 ]
+
+# Clés valides de notification
+VALID_NOTIF_KEYS = {
+    "pieces_a_commander",
+    "demande_approbation",
+    "approbation_accordee",
+    "approbation_refusee",
+    "piece_commandee",
+}
+
+class NotifPrefsRequest(PydanticBaseModel):
+    pieces_a_commander:   Optional[bool] = None
+    demande_approbation:  Optional[bool] = None
+    approbation_accordee: Optional[bool] = None
+    approbation_refusee:  Optional[bool] = None
+    piece_commandee:      Optional[bool] = None
 
 # ==================== Modèles Pydantic ====================
 class LoginRequest(PydanticBaseModel):
@@ -603,3 +619,146 @@ async def delete_group(
         await conn.execute("DELETE FROM user_groups WHERE id = $1", group_id)
 
     return {"msg": f"Groupe supprimé"}
+
+@router.get('/me/notification-prefs')
+async def get_my_notif_prefs(
+    request: Request,
+    user: dict = Depends(require_auth)
+):
+    """Retourne les préférences de notification de l'utilisateur connecté."""
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT email, notification_prefs FROM users WHERE username = $1",
+            user['username']
+        )
+    if not row:
+        raise HTTPException(status_code=404, detail="Utilisateur introuvable")
+
+    raw = row['notification_prefs']
+
+    if isinstance(raw, str):
+        prefs = json.loads(raw)  # ← transforme la chaîne JSON en dict
+    else:
+        prefs = raw or {}
+
+    print(prefs)
+    # Valeurs par défaut si clé absente
+    defaults = {
+        "pieces_a_commander":   True,
+        "demande_approbation":  True,
+        "approbation_accordee": True,
+        "approbation_refusee":  True,
+        "piece_commandee":      False,
+    }
+    for k, v in defaults.items():
+        prefs.setdefault(k, v)
+
+    return {
+        "email":  row['email'],
+        "prefs":  prefs,
+        "has_email": bool(row['email'])
+    }
+
+
+@router.put('/me/notification-prefs')
+async def update_my_notif_prefs(
+    data: NotifPrefsRequest,
+    request: Request,
+    user: dict = Depends(require_auth)
+):
+    """Met à jour les préférences de notification de l'utilisateur connecté."""
+    pool = request.app.state.pool
+
+    # Construire l'objet prefs en fusionnant avec l'existant
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT notification_prefs FROM users WHERE username = $1",
+            user['username']
+        )
+
+        raw = row['notification_prefs']
+        current = json.loads(raw) if raw else {}
+
+    # Appliquer seulement les champs fournis
+    updates = data.dict(exclude_none=True)
+    current.update(updates)
+
+    async with pool.acquire() as conn:
+        await conn.execute(
+            "UPDATE users SET notification_prefs = $1 WHERE username = $2",
+            _json.dumps(current), user['username']
+        )
+
+    return {"msg": "Préférences sauvegardées", "prefs": current}
+
+
+@router.put('/me/email')
+async def update_my_email(
+    email: str = Body(..., embed=True),
+    request: Request = None,
+    user: dict = Depends(require_auth)
+):
+    """Permet à l'utilisateur de mettre à jour son propre email."""
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        await conn.execute(
+            "UPDATE users SET email = $1 WHERE username = $2",
+            email.lower().strip() if email else None,
+            user['username']
+        )
+    return {"msg": "Email mis à jour"}
+
+
+@router.post('/test-email')
+async def test_email(
+    request: Request,
+    user: dict = Depends(require_admin)
+):
+    """
+    (Admin seulement) Envoie un email de test à l'adresse de l'admin connecté.
+    Utile pour diagnostiquer la config SMTP.
+    """
+    import os
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        row = await conn.fetchrow(
+            "SELECT email FROM users WHERE username = $1", user['username']
+        )
+
+    if not row or not row['email']:
+        raise HTTPException(
+            status_code=400,
+            detail="Aucun email configuré sur votre compte. Ajoutez-en un d'abord."
+        )
+
+    smtp_info = {
+        "SMTP_HOST":  os.getenv("SMTP_HOST", "localhost"),
+        "SMTP_PORT":  os.getenv("SMTP_PORT", "25"),
+        "SMTP_FROM":  os.getenv("SMTP_FROM", "non défini"),
+        "SMTP_TLS":   os.getenv("SMTP_TLS", "false"),
+        "SMTP_SSL":   os.getenv("SMTP_SSL", "false"),
+        "SMTP_USER":  "oui" if os.getenv("SMTP_USER") else "non",
+    }
+    info_rows = "".join(f"<tr><td style='padding:4px 12px;color:#666'>{k}</td><td style='padding:4px 12px;font-weight:bold'>{v}</td></tr>" for k,v in smtp_info.items())
+
+    body = f"""
+    <html><body style="font-family:Arial,sans-serif;max-width:500px;margin:auto;">
+      <h2 style="color:#c0392b;">✅ Test SMTP — Inventaire Robot</h2>
+      <p>Si vous recevez cet email, votre configuration SMTP fonctionne correctement.</p>
+      <h4 style="margin-top:20px;">Configuration actuelle :</h4>
+      <table style="font-size:13px;">{info_rows}</table>
+      <p style="color:#888;font-size:12px;margin-top:20px;">Envoyé par {user['username']} via le panneau admin.</p>
+    </body></html>
+    """
+
+    ok = send_email(row['email'], "✅ Test SMTP — Inventaire Robot", body)
+    if ok:
+        return {"msg": f"Email de test envoyé à {row['email']}", "smtp": smtp_info}
+    else:
+        raise HTTPException(
+            status_code=500,
+            detail=f"Échec de l'envoi. Consultez les logs backend (InvRob.log) pour le détail. Config: {smtp_info}"
+        )
+
+

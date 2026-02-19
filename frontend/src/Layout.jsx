@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
-import { Package, Store, Cog, FileText, Layers, User, Shield, LogOut, LogIn, Menu, X, ShoppingCart, Inbox, History, CheckCircle } from "lucide-react";
+import { Package, Store, Cog, FileText, Layers, User, Shield, LogOut, LogIn, Menu, X, ShoppingCart, Inbox, History, CheckCircle, Bell } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useAuth } from './contexts/AuthContext';
 import { usePermissions } from './hooks/usePermissions';
@@ -150,6 +150,12 @@ export default function Layout() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
+                    <DropdownMenuItem asChild>
+                      <Link to="/profile" className="cursor-pointer flex items-center gap-2">
+                        <Bell className="h-4 w-4" />
+                        Mon profil & notifications
+                      </Link>
+                    </DropdownMenuItem>
                     {isAdmin && (
                       <>
                         <DropdownMenuItem onClick={() => navigate('/users')} className="cursor-pointer">
@@ -237,6 +243,15 @@ export default function Layout() {
                         Gestion des utilisateurs
                       </Link>
                     )}
+
+                    <Link
+                      to="/profile"
+                      onClick={() => setMobileMenuOpen(false)}
+                      className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                    >
+                      <Bell className="h-5 w-5" />
+                      Mon profil & notifications
+                    </Link>
 
                     <button
                       onClick={() => { handleLogout(); setMobileMenuOpen(false); }}

@@ -1,16 +1,8 @@
-2026-02-19 11:25:05,327 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
-2026-02-19 11:25:05,327 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2026-02-19 11:25:05,398 - uvicorn.error - INFO - Started server process [63140]
-2026-02-19 11:25:05,398 - uvicorn.error - INFO - Waiting for application startup.
-2026-02-19 11:25:05,622 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2026-02-19 11:25:05,627 - Inventaire-Robot - INFO - \u2705 949 Pièce trouvés
-2026-02-19 11:25:05,628 - uvicorn.error - INFO - Application startup complete.
-2026-02-19 11:25:05,628 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
-2026-02-19 11:33:11,814 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
-handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
-Traceback (most recent call last):
-  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
-    self._context.run(self._callback, *self._args)
-  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
-    self._sock.shutdown(socket.SHUT_RDWR)
-ConnectionResetError: [WinError 10054] Une connexion existante a dû être fermée par l’hôte distant
+2026-02-19 13:50:37,262 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
+2026-02-19 13:50:37,262 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2026-02-19 13:50:37,332 - uvicorn.error - INFO - Started server process [52340]
+2026-02-19 13:50:37,332 - uvicorn.error - INFO - Waiting for application startup.
+2026-02-19 13:50:37,503 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2026-02-19 13:50:37,511 - Inventaire-Robot - INFO - \u2705 949 Pièce trouvés
+2026-02-19 13:50:37,512 - uvicorn.error - INFO - Application startup complete.
+2026-02-19 13:50:37,514 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
