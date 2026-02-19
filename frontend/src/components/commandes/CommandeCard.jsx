@@ -3,10 +3,11 @@ import React, { useState, useEffect } from 'react';
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
-import { Edit3, FileText, PackagePlus, Users, CheckCircle, XCircle, History, MailPlus, ShoppingCart, Loader2 } from "lucide-react";
+import { Edit3, FileText, PackagePlus, Users, CheckCircle, XCircle, History, MailPlus, ShoppingCart, Loader2, Clock, Send } from "lucide-react";
 import { fetchJson } from '../../lib/utils';
 import { toast } from '@/hooks/use-toast';
 import SoumissionsHistoryDialog from '../soumissions/SoumissionsHistoryDialog';
+import { usePermissions } from '../../hooks/usePermissions';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL + '/api';
 
@@ -24,7 +25,15 @@ export default function CommandeCard({
   const [imageError, setImageError] = useState(false);
   const imageUrl = `${API_URL}/pieces/${order.RéfPièce}/image`;
   const [showSoumissionsHistory, setShowSoumissionsHistory] = useState(false);
+  const { isAdmin } = usePermissions();
+  const [submitting, setSubmitting] = useState(false);
   const [showEreqDialog, setShowEreqDialog] = useState(false);
+
+  const openEreqDialog = () => {
+    // Lire localStorage à chaque ouverture pour avoir la valeur fraîche
+    setEreqForm(f => ({ ...f, sap_session_id: localStorage.getItem('sap_session_id') || f.sap_session_id }));
+    setShowEreqDialog(true);
+  };
   const [ereqLoading, setEreqLoading] = useState(false);
   const [ereqResult, setEreqResult] = useState(null); // { prNum, rawBody }
   const [ereqForm, setEreqForm] = useState({
@@ -32,13 +41,31 @@ export default function CommandeCard({
     costCentre: '26005511',
     needByDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     qty: String(order.Qtéàcommander || order.Qtécommandée || 1),
-    Price: parseFloat(ereqForm.price).toFixed(2),
+    price: String(order.Prix_unitaire || '0'),
     recipient: '',
     refSoumission: '',
     pdfFile: null,
     pdfName: '',
-    sap_cookies: localStorage.getItem('sap_cookies') || '',
+    sap_session_id: localStorage.getItem('sap_session_id') || '',
   });
+
+  
+  async function soumettreApprobation() {
+    setSubmitting(true);
+    try {
+      const res = await fetch(`${API}/toorders/${order.RéfPièce}/soumettre`, {
+        method: 'POST',
+        credentials: 'include',
+      });
+      if (!res.ok) throw new Error('Erreur serveur');
+      toast({ title: '✅ Soumis', description: `${order.NomPièce} envoyée pour approbation` });
+      onRefresh();
+    } catch (e) {
+      toast({ title: 'Erreur', description: e.message, variant: 'destructive' });
+    } finally {
+      setSubmitting(false);
+    }
+  }
 
   const handleEreqSubmit = async () => {
     const vendorCode = order.fournisseur_principal?.NumSap;
@@ -49,7 +76,20 @@ export default function CommandeCard({
 
     setEreqLoading(true);
     try {
-      const needByDateISO = new Date(ereqForm.needByDate).toISOString().split('.')[0]; // "2026-03-24T00:00:00"
+      const needByDateISO = new Date(ereqForm.needByDate).toISOString().split('.')[0];
+
+      // Convertir PDF en base64 pour SAP si fourni
+      let pdfBase64 = '';
+      let pdfFileName = '';
+      if (ereqForm.pdfFile) {
+        pdfBase64 = await new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result.split(',')[1]); // enlever "data:...;base64,"
+          reader.onerror = reject;
+          reader.readAsDataURL(ereqForm.pdfFile);
+        });
+        pdfFileName = ereqForm.pdfFile.name;
+      }
 
       const payload = {
         PRNum: '', ApproverFullName: '', ApprovalText: '', HeaderNotes: '', TestRun: false,
@@ -116,20 +156,33 @@ export default function CommandeCard({
           },
           ProcPolicyNotes: '',
         }],
-        PRAttachment: [],
+        PRAttachment: pdfBase64 ? [{
+          PRNum: '',
+          AttachmentNum: '',
+          Filename: pdfFileName,
+          MIMEType: 'application/pdf',
+          Base64Content: pdfBase64,
+        }] : [],
       };
 
       // Sauvegarder les cookies pour la prochaine fois
-      if (ereqForm.sap_cookies) {
-        localStorage.setItem('sap_cookies', ereqForm.sap_cookies);
+      if (ereqForm.sap_session_id) {
+        localStorage.setItem('sap_session_id', ereqForm.sap_session_id);
       }
+
+      const sapCookies = [
+        `SAP_SESSIONID_FIP_500=${ereqForm.sap_session_id}`,
+        `sap-usercontext=sap-language=FR&sap-client=500`,
+        `oucqqssuyzvoywwworferoytzcoztebavdctezz_anchor=%23EREQ-display`,
+        `oucqqssuyzvoymmworferoytzosywzebzqzezz_anchor=%23EREQ-display`,
+      ].join('; ');
 
       const proxyResp = await fetch(`${API_URL}/ereq/submit`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
           body_json: JSON.stringify(payload),
-          sap_cookies: ereqForm.sap_cookies,
+          sap_cookies: sapCookies,
         }),
       });
 
@@ -147,7 +200,21 @@ export default function CommandeCard({
           const userData = await fetch(`${API_URL}/current-user`).then(r => r.json());
           const userName = userData.user || userData.hostname || 'Système';
 
-          // 1. Historique
+          // 1. Upload PDF dans la BD si soumission fournie
+          if (ereqForm.pdfFile && ereqForm.refSoumission) {
+            try {
+              const formDataPdf = new FormData();
+              formDataPdf.append('file', ereqForm.pdfFile);
+              await fetch(`${API_URL}/uploads/soumission/${ereqForm.refSoumission}`, {
+                method: 'POST',
+                body: formDataPdf,
+              });
+            } catch (pdfErr) {
+              console.warn('⚠️ Upload PDF BD (non bloquant):', pdfErr);
+            }
+          }
+
+          // 2. Historique
           await fetch(`${API_URL}/historique`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
@@ -387,6 +454,19 @@ export default function CommandeCard({
               {isInCart ? 'Dans le panier' : 'Soumission'}
             </Button>
 
+            {order.approbation_statut === 'en_attente' && (
+              <Badge className="bg-yellow-500 text-white flex items-center gap-1 text-xs">
+                <Clock className="w-3 h-3" />
+                En attente d'approbation
+              </Badge>
+            )}
+            {order.approbation_statut === 'refusee' && (
+              <Badge className="bg-red-500 text-white flex items-center gap-1 text-xs">
+                <XCircle className="w-3 h-3" />
+                Refusée {order.approbation_note ? `— ${order.approbation_note}` : ''}
+              </Badge>
+            )}
+
             {/* Passer commande */}
             <Button
               variant="outline"
@@ -408,11 +488,28 @@ export default function CommandeCard({
               <Edit3 className="h-4 w-4" />
             </Button>
 
+
+            {!isAdmin && order.approbation_statut !== 'en_attente' && order.approbation_statut !== 'approuvee' && (
+              <Button
+                size="sm"
+                variant="outline"
+                className="border-yellow-500 text-yellow-600 hover:bg-yellow-50"
+                onClick={soumettreApprobation}
+                disabled={submitting}
+              >
+                {submitting
+                  ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
+                  : <Send className="h-3.5 w-3.5 mr-1" />
+                }
+                Soumettre pour approbation
+              </Button>
+            )}
+
             {/* eReq SAP */}
             <Button
               variant="outline"
               size="sm"
-              onClick={() => setShowEreqDialog(true)}
+              onClick={openEreqDialog}
               title="Créer une demande d'achat SAP (eReq)"
               className="border-orange-500 text-orange-600 hover:bg-orange-50"
             >
@@ -508,21 +605,21 @@ export default function CommandeCard({
 
             <details className="mt-4">
               <summary className="text-xs text-gray-400 cursor-pointer hover:text-gray-600">
-                🔑 Session SAP (cookies)
+                🔑 Session SAP
               </summary>
               <div className="mt-2">
                 <p className="text-xs text-gray-400 mb-1">
-                  Ouvrir eReq → F12 → Application → Cookies → <code>fip.remote.riotinto.com</code> → copier les 4 cookies sous format <code>nom=valeur; nom=valeur</code>
+                  F12 → Application → Cookies → <code>fip.remote.riotinto.com</code> → copier la valeur de <code>SAP_SESSIONID_FIP_500</code>
                 </p>
-                <textarea
-                  rows={3}
-                  value={ereqForm.sap_cookies}
-                  onChange={e => setEreqForm(f => ({ ...f, sap_cookies: e.target.value }))}
-                  placeholder="SAP_SESSIONID_FIP_500=...; sap-usercontext=...; ..."
+                <input
+                  type="text"
+                  value={ereqForm.sap_session_id}
+                  onChange={e => setEreqForm(f => ({ ...f, sap_session_id: e.target.value }))}
+                  placeholder="HRqCCc0WX3gh..."
                   className="w-full mt-1 border rounded px-3 py-2 text-xs font-mono dark:bg-gray-700 dark:border-gray-600"
                 />
-                {ereqForm.sap_cookies && (
-                  <p className="text-xs text-green-500 mt-1">✓ Cookies sauvegardés localement</p>
+                {ereqForm.sap_session_id && (
+                  <p className="text-xs text-green-500 mt-1">✓ Session sauvegardée localement</p>
                 )}
               </div>
             </details>

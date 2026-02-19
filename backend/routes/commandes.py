@@ -7,8 +7,14 @@ import httpx
 from database import get_db_connection
 from models import Commande, StatsResponse
 from utils.helpers import safe_string, safe_int, safe_float, calculate_qty_to_order
+from auth import require_admin, require_auth
+from pydantic import BaseModel as PydanticBaseModel
+from typing import Optional
 
 router = APIRouter(tags=["commandes"])
+
+class ApprobationRequest(PydanticBaseModel):
+    note: Optional[str] = None
 
 @router.get("/stats", response_model=StatsResponse)
 async def get_stats(conn: asyncpg.Connection = Depends(get_db_connection)):
@@ -134,6 +140,7 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
             WHERE COALESCE(p."Qtécommandée", 0) <= 0
              AND p."QtéenInventaire" < p."Qtéminimum"
              AND p."Qtéminimum" > 0
+             AND p.approbation_statut = 'approuvee'
         ''')
 
         result = []
@@ -223,6 +230,8 @@ async def receive_all_order(
                 "Qtécommandée" = 0,
                 "Datecommande" = NULL,
                 "Cmd_info" = NULL,
+                "SoumDem" = FALSE,
+                "approbation_statut" = FALSE,
                 "Modified" = $3
             WHERE "RéfPièce" = $1
         '''
@@ -416,3 +425,151 @@ async def submit_ereq(payload: dict, request: Request):
         import traceback
         traceback.print_exc()
         raise HTTPException(status_code=502, detail=f"Erreur: {type(e).__name__}: {str(e)}")
+
+@router.get("/toorders/en-attente")
+async def get_pieces_en_attente(
+    conn: asyncpg.Connection = Depends(get_db_connection),
+    user: dict = Depends(require_admin)
+):
+    """
+    Retourne les pièces soumises pour approbation (admin seulement).
+    Inclut aussi les refusées pour que l'admin puisse les réviser.
+    """
+    rows = await conn.fetch('''
+        SELECT p."RéfPièce", p."NomPièce", p."NumPièce",
+               p."QtéenInventaire", p."Qtéminimum", p."Qtémax",
+               p."Prix unitaire" AS prix_unitaire,
+               p.approbation_statut,
+               p.approbation_par,
+               p.approbation_date,
+               p.approbation_note,
+               f1."NomFournisseur"      AS fournisseur_principal_nom,
+               f2."NomAutreFournisseur" AS autre_fournisseur_nom,
+               f3."NomFabricant"
+        FROM "Pièce" p
+        LEFT JOIN "Fournisseurs" f1        ON p."RéfFournisseur"      = f1."RéfFournisseur"
+        LEFT JOIN "Autre Fournisseurs" f2  ON p."RéfAutreFournisseur" = f2."RéfAutreFournisseur"
+        LEFT JOIN "Fabricant" f3           ON p."RefFabricant"        = f3."RefFabricant"
+        WHERE COALESCE(p."Qtécommandée", 0) <= 0
+          AND p."QtéenInventaire" < p."Qtéminimum"
+          AND p."Qtéminimum" > 0
+          AND (p.approbation_statut IN ('en_attente', 'refusee') OR p.approbation_statut IS NULL)
+        ORDER BY
+            CASE WHEN p.approbation_statut IS NULL THEN 0
+                WHEN p.approbation_statut = 'en_attente' THEN 1
+                ELSE 2 END,
+            p.approbation_date DESC NULLS LAST
+    ''')
+
+    return [dict(r) for r in rows]
+
+
+@router.post("/toorders/{piece_id}/soumettre")
+async def soumettre_approbation(
+    piece_id: int,
+    conn: asyncpg.Connection = Depends(get_db_connection),
+    user: dict = Depends(require_auth)
+):
+    """
+    L'acheteur soumet une pièce pour approbation par l'admin.
+    Passe le statut à 'en_attente'.
+    """
+    piece = await conn.fetchrow(
+        'SELECT "RéfPièce", approbation_statut FROM "Pièce" WHERE "RéfPièce" = $1',
+        piece_id
+    )
+    if not piece:
+        raise HTTPException(status_code=404, detail="Pièce introuvable")
+
+    if piece['approbation_statut'] == 'en_attente':
+        return {"msg": "Déjà en attente d'approbation"}
+
+    await conn.execute(
+        '''UPDATE "Pièce"
+           SET approbation_statut = 'en_attente',
+               approbation_par    = NULL,
+               approbation_date   = NOW(),
+               approbation_note   = NULL
+           WHERE "RéfPièce" = $1''',
+        piece_id
+    )
+    return {"msg": "Pièce soumise pour approbation", "statut": "en_attente"}
+
+
+@router.post("/toorders/{piece_id}/approuver")
+async def approuver_piece(
+    piece_id: int,
+    data: ApprobationRequest,
+    conn: asyncpg.Connection = Depends(get_db_connection),
+    user: dict = Depends(require_admin)
+):
+    """
+    Admin approuve une pièce — elle devient visible dans la liste de commande.
+    """
+    piece = await conn.fetchrow(
+        'SELECT "RéfPièce" FROM "Pièce" WHERE "RéfPièce" = $1', piece_id
+    )
+    if not piece:
+        raise HTTPException(status_code=404, detail="Pièce introuvable")
+
+    await conn.execute(
+        '''UPDATE "Pièce"
+           SET approbation_statut = 'approuvee',
+               approbation_par    = $1,
+               approbation_date   = NOW(),
+               approbation_note   = $2
+           WHERE "RéfPièce" = $3''',
+        user['username'], data.note, piece_id
+    )
+    return {"msg": "Pièce approuvée", "statut": "approuvee"}
+
+
+@router.post("/toorders/{piece_id}/refuser")
+async def refuser_piece(
+    piece_id: int,
+    data: ApprobationRequest,
+    conn: asyncpg.Connection = Depends(get_db_connection),
+    user: dict = Depends(require_admin)
+):
+    """
+    Admin refuse une pièce — elle reste visible avec statut 'refusee'.
+    """
+    piece = await conn.fetchrow(
+        'SELECT "RéfPièce" FROM "Pièce" WHERE "RéfPièce" = $1', piece_id
+    )
+    if not piece:
+        raise HTTPException(status_code=404, detail="Pièce introuvable")
+
+    await conn.execute(
+        '''UPDATE "Pièce"
+           SET approbation_statut = 'refusee',
+               approbation_par    = $1,
+               approbation_date   = NOW(),
+               approbation_note   = $2
+           WHERE "RéfPièce" = $3''',
+        user['username'], data.note, piece_id
+    )
+    return {"msg": "Pièce refusée", "statut": "refusee"}
+
+
+@router.post("/toorders/{piece_id}/reset-approbation")
+async def reset_approbation(
+    piece_id: int,
+    conn: asyncpg.Connection = Depends(get_db_connection),
+    user: dict = Depends(require_admin)
+):
+    """
+    Admin remet une pièce à NULL (retire l'approbation/refus).
+    """
+    await conn.execute(
+        '''UPDATE "Pièce"
+           SET approbation_statut = NULL,
+               approbation_par    = NULL,
+               approbation_date   = NULL,
+               approbation_note   = NULL
+           WHERE "RéfPièce" = $1''',
+        piece_id
+    )
+    return {"msg": "Approbation réinitialisée"}
+
+

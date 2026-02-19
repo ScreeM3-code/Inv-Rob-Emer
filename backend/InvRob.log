@@ -1,14 +1,12 @@
-2026-02-18 13:03:33,831 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
-2026-02-18 13:03:33,831 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2026-02-18 13:03:33,898 - uvicorn.error - INFO - Started server process [36408]
-2026-02-18 13:03:33,898 - uvicorn.error - INFO - Waiting for application startup.
-2026-02-18 13:03:34,024 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2026-02-18 13:03:34,029 - Inventaire-Robot - INFO - \u2705 949 Pièce trouvés
-2026-02-18 13:03:34,030 - uvicorn.error - INFO - Application startup complete.
-2026-02-18 13:03:34,031 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
-2026-02-18 13:03:59,487 - httpx - INFO - HTTP Request: GET https://fip.remote.riotinto.com/sap/opu/odata/rio/ZMPTP_EREQ_SRV/?sap-client=500 "HTTP/1.1 200 OK"
-2026-02-18 13:04:05,259 - httpx - INFO - HTTP Request: POST https://fip.remote.riotinto.com/sap/opu/odata/rio/ZMPTP_EREQ_SRV/$batch?sap-client=500 "HTTP/1.1 202 Accepted"
-2026-02-18 14:00:54,179 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+2026-02-19 11:25:05,327 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
+2026-02-19 11:25:05,327 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2026-02-19 11:25:05,398 - uvicorn.error - INFO - Started server process [63140]
+2026-02-19 11:25:05,398 - uvicorn.error - INFO - Waiting for application startup.
+2026-02-19 11:25:05,622 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2026-02-19 11:25:05,627 - Inventaire-Robot - INFO - \u2705 949 Pièce trouvés
+2026-02-19 11:25:05,628 - uvicorn.error - INFO - Application startup complete.
+2026-02-19 11:25:05,628 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
+2026-02-19 11:33:11,814 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
 handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
 Traceback (most recent call last):
   File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
@@ -16,5 +14,3 @@ Traceback (most recent call last):
   File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
     self._sock.shutdown(socket.SHUT_RDWR)
 ConnectionResetError: [WinError 10054] Une connexion existante a dû être fermée par l’hôte distant
-2026-02-18 14:01:07,386 - httpx - INFO - HTTP Request: GET https://fip.remote.riotinto.com/sap/opu/odata/rio/ZMPTP_EREQ_SRV/?sap-client=500 "HTTP/1.1 200 OK"
-2026-02-18 14:01:22,747 - httpx - INFO - HTTP Request: POST https://fip.remote.riotinto.com/sap/opu/odata/rio/ZMPTP_EREQ_SRV/$batch?sap-client=500 "HTTP/1.1 202 Accepted"

@@ -13,6 +13,7 @@ import asyncpg
 from database import get_db_connection
 import secrets
 from email_service import send_password_reset_email
+import json as _json
 
 # Configuration
 SECRET_KEY = os.getenv("JWT_SECRET_KEY", "CHANGE_ME_IN_PRODUCTION")  # ⚠️ Mettre dans .env
@@ -24,6 +25,19 @@ security = HTTPBearer(auto_error=False)
 
 router = APIRouter(prefix="/auth", tags=["auth"])
 
+# Liste complète des permissions disponibles dans le système
+ALL_PERMISSIONS = [
+    "inventaire_view", "inventaire_create", "inventaire_update",
+    "inventaire_delete", "inventaire_sortie_rapide",
+    "groupes_view", "groupes_create", "groupes_update", "groupes_delete",
+    "fournisseur_view", "fournisseur_create", "fournisseur_update", "fournisseur_delete",
+    "fabricant_view", "fabricant_create", "fabricant_update", "fabricant_delete",
+    "commandes_view", "commandes_create", "commandes_update",
+    "soumissions_view", "soumissions_create", "soumissions_update",
+    "receptions_view", "receptions_create", "receptions_update",
+    "historique_view",
+    "can_delete_any", "can_manage_users", "can_approve_orders", "can_submit_approval",
+]
 
 # ==================== Modèles Pydantic ====================
 class LoginRequest(PydanticBaseModel):
@@ -55,6 +69,16 @@ class UpdateUserRequest(PydanticBaseModel):
     group_id: Optional[int] = None
     role: Optional[str] = None
 
+class CreateGroupRequest(PydanticBaseModel):
+    name: str
+    description: Optional[str] = None
+    permissions: dict  # { "inventaire_view": True, ... }
+
+
+class UpdateGroupRequest(PydanticBaseModel):
+    description: Optional[str] = None
+    permissions: dict
+
 
 # ==================== Fonctions utilitaires ====================
 def verify_password(plain_password: str, hashed_password: str) -> bool:
@@ -75,24 +99,19 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None):
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
 
 
-async def get_user_by_username(conn: asyncpg.Connection, username: str):
-    """Récupère un utilisateur par son username depuis la DB"""
-    query = """
-        SELECT id, username, role, password_hash, created_at 
-        FROM users 
-        WHERE username = $1
-    """
-    row = await conn.fetchrow(query, username)
-
-    if row:
-        return {
-            "id": str(row['id']),
-            "username": row['username'],
-            "role": row['role'],
-            "password_hash": row['password_hash'],
-            "created_at": row['created_at']
-        }
-    return None
+async def get_user_by_username(conn, username: str):
+    """Récupère un utilisateur avec son groupe et ses permissions."""
+    row = await conn.fetchrow(
+        """SELECT u.id, u.username, u.password_hash, u.role,
+                  u.email, u.group_id,
+                  g.name        AS group_name,
+                  g.permissions AS group_permissions
+           FROM users u
+           LEFT JOIN user_groups g ON u.group_id = g.id
+           WHERE u.username = $1""",
+        username
+    )
+    return dict(row) if row else None
 
 
 async def get_current_user_from_token(
@@ -121,10 +140,13 @@ async def get_current_user_from_token(
             raise credentials_exception
 
         return {
-            "id": user["id"],
-            "username": user["username"],
-            "role": user["role"]
+            "username": payload.get("sub"),
+            "role": payload.get("role"),
+            "id": payload.get("id"),
+            "group": payload.get("group"),
+            "permissions": payload.get("permissions", {}),
         }
+
     except JWTError:
         raise credentials_exception
 
@@ -186,10 +208,19 @@ async def login(
         )
 
     # Créer le token
+    import json
+
+    # Charger les permissions depuis le JSONB (asyncpg retourne une string ou dict)
+    raw_perms = user.get('group_permissions') or {}
+    if isinstance(raw_perms, str):
+        raw_perms = json.loads(raw_perms)
+
     token = create_access_token({
-        "sub": user['username'],
-        "role": user['role'],
-        "id": user['id']
+        "sub":         user['username'],
+        "role":        user['role'],
+        "id":          str(user['id']),
+        "group":       user.get('group_name') or user['role'],
+        "permissions": raw_perms,
     })
 
     # Placer le token dans un cookie HttpOnly
@@ -207,16 +238,19 @@ async def login(
         "access_token": token,
         "token_type": "bearer",
         "user": {
-            "id": user['id'],
-            "username": user['username'],
-            "role": user['role']
+            "id":          str(user['id']),
+            "username":    user['username'],
+            "role":        user['role'],
+            "email":       user.get('email'),
+            "group":       user.get('group_name') or user['role'],
+            "permissions": raw_perms,
         }
     }
 
 
 @router.get('/me')
 async def me(user: dict = Depends(get_current_user)):
-    """Retourne l'utilisateur actuellement connecté"""
+    """Retourne l'utilisateur connecté avec ses permissions."""
     return {"user": user}
 
 
@@ -472,3 +506,100 @@ async def list_groups(request: Request, user: dict = Depends(require_admin)):
     async with pool.acquire() as conn:
         rows = await conn.fetch("SELECT * FROM user_groups ORDER BY name")
     return {"groups": [dict(r) for r in rows]}
+
+@router.get('/groups/permissions-list')
+async def list_available_permissions(user: dict = Depends(require_admin)):
+    """Retourne la liste de toutes les permissions disponibles."""
+    return {"permissions": ALL_PERMISSIONS}
+
+
+@router.post('/groups')
+async def create_group(
+    data: CreateGroupRequest,
+    request: Request,
+    user: dict = Depends(require_admin)
+):
+    """Crée un nouveau groupe de permissions."""
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        existing = await conn.fetchrow(
+            "SELECT id FROM user_groups WHERE name = $1", data.name.lower().strip()
+        )
+        if existing:
+            raise HTTPException(status_code=400, detail="Un groupe avec ce nom existe déjà")
+
+        row = await conn.fetchrow(
+            """INSERT INTO user_groups (name, description, permissions)
+               VALUES ($1, $2, $3)
+               RETURNING id, name, description, permissions""",
+            data.name.lower().strip(),
+            data.description or '',
+            _json.dumps(data.permissions)
+        )
+    return {"msg": "Groupe créé", "group": dict(row)}
+
+
+@router.put('/groups/{group_id}')
+async def update_group(
+    group_id: int,
+    data: UpdateGroupRequest,
+    request: Request,
+    user: dict = Depends(require_admin)
+):
+    """Met à jour la description et les permissions d'un groupe."""
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        existing = await conn.fetchrow(
+            "SELECT id, name FROM user_groups WHERE id = $1", group_id
+        )
+        if not existing:
+            raise HTTPException(status_code=404, detail="Groupe introuvable")
+
+        # Empêcher la modification du groupe admin
+        if existing['name'] == 'admin':
+            raise HTTPException(status_code=400, detail="Le groupe admin ne peut pas être modifié")
+
+        row = await conn.fetchrow(
+            """UPDATE user_groups
+               SET description = $1, permissions = $2
+               WHERE id = $3
+               RETURNING id, name, description, permissions""",
+            data.description,
+            _json.dumps(data.permissions),
+            group_id
+        )
+    return {"msg": "Groupe mis à jour", "group": dict(row)}
+
+
+@router.delete('/groups/{group_id}')
+async def delete_group(
+    group_id: int,
+    request: Request,
+    user: dict = Depends(require_admin)
+):
+    """Supprime un groupe (impossible si des utilisateurs y sont assignés)."""
+    pool = request.app.state.pool
+    async with pool.acquire() as conn:
+        existing = await conn.fetchrow(
+            "SELECT id, name FROM user_groups WHERE id = $1", group_id
+        )
+        if not existing:
+            raise HTTPException(status_code=404, detail="Groupe introuvable")
+
+        # Protéger les groupes système
+        if existing['name'] in ('admin', 'user', 'acheteur'):
+            raise HTTPException(status_code=400, detail=f"Le groupe '{existing['name']}' est un groupe système et ne peut pas être supprimé")
+
+        # Vérifier si des users utilisent ce groupe
+        count = await conn.fetchval(
+            "SELECT COUNT(*) FROM users WHERE group_id = $1", group_id
+        )
+        if count > 0:
+            raise HTTPException(
+                status_code=400,
+                detail=f"Impossible de supprimer : {count} utilisateur(s) appartiennent à ce groupe"
+            )
+
+        await conn.execute("DELETE FROM user_groups WHERE id = $1", group_id)
+
+    return {"msg": f"Groupe supprimé"}

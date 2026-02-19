@@ -12,6 +12,7 @@ import PieceEditDialog from "@/components/inventaire/PieceEditDialog";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { Toaster } from "@/components/ui/toaster";
 import { toast } from "@/hooks/use-toast";
+import { usePermissions } from './hooks/usePermissions';
 
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -66,6 +67,7 @@ function Dashboard () {
   const [currentPage, setCurrentPage] = useState(1);
   const [groupes, setGroupes] = useState([]);
   const [categories, setCategories] = useState([]);
+  const { can, isAdmin } = usePermissions();
   const [filters, setFilters] = useState({
     statut: "tous",
     stock: "tous",

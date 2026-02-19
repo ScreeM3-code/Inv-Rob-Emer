@@ -5,7 +5,7 @@ import { Badge } from './components/ui/badge';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from './components/ui/dialog';
 import { Input } from './components/ui/input';
 import { Label } from './components/ui/label';
-import { ClipboardCheck, Package, Truck, AlertCircle, CheckCircle, FileText } from 'lucide-react';
+import { ClipboardCheck, Package, Truck, AlertCircle, CheckCircle, FileText, Search  } from 'lucide-react';
 import { fetchJson, log } from './lib/utils';
 import { toast } from '@/hooks/use-toast';
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
@@ -20,6 +20,8 @@ function Receptions() {
   const [loading, setLoading] = useState(true);
   const navigate = useNavigate();
   const [selectedPiece, setSelectedPiece] = useState(null);
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterFourn, setFilterFourn] = useState('');
   const [viewingSoumissionsFor, setViewingSoumissionsFor] = useState(null);
   const [partialQuantity, setPartialQuantity] = useState('');
   const [isPartialDialogOpen, setIsPartialDialogOpen] = useState(false);
@@ -98,6 +100,24 @@ function Receptions() {
     );
   }
 
+  const fournisseursUniques = [...new Set(
+    receptions.map(p => p.fournisseur_principal?.NomFournisseur || p.autre_fournisseur?.NomFournisseur || '').filter(Boolean)
+  )];
+
+  const filteredReceptions = receptions.filter(piece => {
+    const q = searchQuery.toLowerCase();
+    const matchSearch = !q || 
+      piece.NomPièce?.toLowerCase().includes(q) ||
+      piece.NumPièce?.toLowerCase().includes(q) ||
+      piece.Cmd_info?.toLowerCase().includes(q) ||
+      piece.fournisseur_principal?.NomFournisseur?.toLowerCase().includes(q) ||
+      piece.autre_fournisseur?.NomAutreFournisseur?.toLowerCase().includes(q);
+    const matchFourn = !filterFourn || 
+      piece.fournisseur_principal?.NomFournisseur === filterFourn ||
+      piece.autre_fournisseur?.NomFournisseur === filterFourn;
+    return matchSearch && matchFourn;
+  });
+
   return (
     <div className="min-h-screen">
       <AnimatedBackground />
@@ -112,20 +132,52 @@ function Receptions() {
           </div>
         </div>
 
+        {/* Barre de recherche / filtre */}
+        <div className="flex flex-col sm:flex-row gap-3 mb-4">
+          <div className="relative flex-1">
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
+            <Input
+              placeholder="Rechercher par nom, numéro, DA, fournisseur..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="pl-10"
+            />
+          </div>
+          {fournisseursUniques.length > 0 && (
+            <select
+              value={filterFourn}
+              onChange={(e) => setFilterFourn(e.target.value)}
+              className="border rounded-md px-3 py-2 text-sm bg-white dark:bg-gray-800 dark:text-white"
+            >
+              <option value="">Tous les fournisseurs</option>
+              {fournisseursUniques.map(f => (
+                <option key={f} value={f}>{f}</option>
+              ))}
+            </select>
+          )}
+          {(searchQuery || filterFourn) && (
+            <Button variant="outline" onClick={() => { setSearchQuery(''); setFilterFourn(''); }}>
+              Effacer
+            </Button>
+          )}
+        </div>
+
         {/* Liste des réceptions */}
         <div className="grid gap-4">
-          {receptions.length === 0 ? (
+          {filteredReceptions.length === 0 ? (
             <Card>
               <CardContent className="text-center py-12">
                 <Package className="mx-auto h-12 w-12 text-gray-400" />
-                <h3 className="mt-2 text-sm font-medium text-gray-900">Aucune commande à recevoir</h3>
+                <h3 className="mt-2 text-sm font-medium text-gray-900">
+                  {receptions.length === 0 ? 'Aucune commande à recevoir' : 'Aucun résultat pour cette recherche'}
+                </h3>
                 <p className="mt-1 text-sm text-gray-500">
-                  Toutes les commandes ont été réceptionnées.
+                  {receptions.length === 0 ? 'Toutes les commandes ont été réceptionnées.' : 'Essayez d\'autres termes de recherche.'}
                 </p>
               </CardContent>
             </Card>
           ) : (
-            receptions.map((piece) => {
+            filteredReceptions.map((piece) => {
               const statutStock = getStockStatus(piece.QtéenInventaire, piece.Qtéminimum);
               const imageUrl = `${API}/pieces/${piece.RéfPièce}/image`;
               const autreFourn = piece.autre_fournisseur || piece.RéfAutreFournisseur || null;

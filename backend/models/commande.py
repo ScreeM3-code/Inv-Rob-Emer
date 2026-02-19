@@ -37,3 +37,4 @@ class StatsResponse(BaseModel):
     stock_critique: int
     valeur_stock: float
     pieces_a_commander: int
+

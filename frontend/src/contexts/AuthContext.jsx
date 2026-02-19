@@ -2,16 +2,10 @@ import React, { createContext, useContext, useEffect, useState } from 'react';
 
 const AuthContext = createContext(null);
 
-// Construire l'URL de base pour l'API
 const getApiBase = () => {
-  // En production, utiliser VITE_BACKEND_URL si disponible
-  if (import.meta.env.VITE_BACKEND_URL) {
-    return import.meta.env.VITE_BACKEND_URL;
-  }
-  // En dev, utiliser le proxy (/ redirige vers le backend)
+  if (import.meta.env.VITE_BACKEND_URL) return import.meta.env.VITE_BACKEND_URL;
   return '';
 };
-
 const API_BASE = getApiBase();
 
 export function useAuth() {
@@ -27,6 +21,7 @@ export function AuthProvider({ children }) {
       const res = await fetch(`${API_BASE}/api/auth/me`, { credentials: 'include' });
       if (res.ok) {
         const data = await res.json();
+        // data.user contient maintenant username, role, group, permissions
         setUser(data.user);
       } else {
         setUser(null);
@@ -39,34 +34,28 @@ export function AuthProvider({ children }) {
     }
   }
 
-  useEffect(() => {
-    fetchMe();
-  }, []);
+  useEffect(() => { fetchMe(); }, []);
 
   async function login(username, password) {
-    console.log('[AuthContext] Attempting login:', username);
     const res = await fetch(`${API_BASE}/api/auth/login`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       credentials: 'include',
       body: JSON.stringify({ username, password })
     });
-    console.log('[AuthContext] Login response status:', res.status);
-    
+
     if (!res.ok) {
       const errorData = await res.json().catch(() => ({}));
-      console.error('[AuthContext] Login error:', errorData);
       throw new Error(errorData.detail || 'Login failed');
     }
-    
+
     const data = await res.json();
-    console.log('[AuthContext] Login successful, user:', data.user);
-    
-    // Stocker le token aussi en localStorage comme fallback pour les requêtes cross-origin
+
     if (data.access_token) {
       localStorage.setItem('access_token', data.access_token);
     }
-    
+
+    // data.user contient username, role, group, permissions
     setUser(data.user);
     return data.user;
   }
@@ -77,14 +66,13 @@ export function AuthProvider({ children }) {
     setUser(null);
   }
 
-  const value = { 
-    user, 
-    loading, 
-    login, 
-    logout, 
+  const value = {
+    user,
+    loading,
+    login,
+    logout,
     refresh: fetchMe,
-    // Helper pour obtenir le token (cookie ou localStorage)
-    getToken: () => localStorage.getItem('access_token')
+    getToken: () => localStorage.getItem('access_token'),
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

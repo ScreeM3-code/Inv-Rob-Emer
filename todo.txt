@@ -1,6 +1,12 @@
-faudrais faire comme dans le CommandeForm pouvoir modifier le prix /// mettre la soumission en pièces jointe /// mettre # de soumission /// et quand on envoie a SAP mettre une historique récupéré le # de la DA et le stocker a quelque part
+jsximport { usePermissions } from './hooks/usePermissions';
 
-Cookie sur a 95% que c'est juste lui qui va chnager SAP_SESSIONID_FIP_500=HRqCCc0WX3ghMEsQGATPuqAGew0M5BHxvpkAIkiVhmY%3d donc le scripts mets les autre par default et demande juste lui sans name
+const { can, isAdmin } = usePermissions();
+
+// Dans le JSX :
+{can('inventaire_delete') && <Button onClick={handleDelete}>Supprimer</Button>}
+{can('commandes_create') && <Button onClick={handleCommande}>Commander</Button>}
+
+
 
 
 

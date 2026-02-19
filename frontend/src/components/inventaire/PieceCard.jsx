@@ -9,6 +9,7 @@ import { AlertTriangle, Edit, Package, Trash2, Building2, Factory, Warehouse, Mi
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Label } from "@/components/ui/label";
 import ImageSelector from './ImageSelector';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const API = import.meta.env.VITE_BACKEND_URL + '/api';
 
@@ -18,7 +19,12 @@ const getStockStatus = {
   ok: { label: "OK", color: "bg-green-400 text-yellow-900", icon: <CircleCheck className="w-4 h-4" /> }
 };
 
-
+// Extraire le # DA depuis Cmd_info (ex: "DA SAP #12345 | 2024-01-15")
+const extractDA = (cmdInfo) => {
+  if (!cmdInfo) return null;
+  const match = cmdInfo.match(/DA SAP[:\s#]+(\d+)/i);
+  return match ? match[1] : null;
+};
 
 
 export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pieceGroupes, groupes, fabricant, onEdit, onDelete, onQuickRemove, onAddToGroupe, onRemoveFromGroupe }) {
@@ -30,6 +36,7 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
   const [showImageMenu, setShowImageMenu] = React.useState(false);
   const [showImageSelector, setShowImageSelector] = useState(false);
   const imageUrl = `${API}/pieces/${piece.RéfPièce}/image`;
+  const { can, isAdmin } = usePermissions();
   const fileInputRef = React.useRef(null);
 
   const StatItem = ({ label, value, isPrice = false }) => {
@@ -166,6 +173,12 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
                 En commande ({piece.Qtécommandée})
               </Badge>
             )}
+            {/* Badge DA SAP */}
+            {piece.Cmd_info && extractDA(piece.Cmd_info) && (
+              <Badge className="bg-orange-500 text-white flex items-center text-xs">
+                🏷️ DA #{extractDA(piece.Cmd_info)}
+              </Badge>
+            )}
             {piece.NumPièce?.trim() && <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">{piece.NumPièce}</p>}
             {piece.NumPièceAutreFournisseur?.trim() && <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">#Fourn: {piece.NumPièceAutreFournisseur}</p>}
             {piece.RTBS && <p className="text-sm text-slate-500 font-mono pt-1 dark:text-white">SAP: {piece.RTBS}</p>}
@@ -205,6 +218,12 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
               <Badge className="bg-purple-500 text-white flex items-center text-xs">
                 <Package className="w-3 h-3 mr-1" />
                 En commande ({piece.Qtécommandée})
+              </Badge>
+            )}
+            {/* Badge DA SAP */}
+            {piece.Cmd_info && extractDA(piece.Cmd_info) && (
+              <Badge className="bg-orange-500 text-white flex items-center text-xs">
+                🏷️ DA #{extractDA(piece.Cmd_info)}
               </Badge>
             )}
 
@@ -312,7 +331,7 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
               </div>
             </PopoverContent>
           </Popover>
-
+          {can('inventaire_delete') && 
           <Button 
             variant="ghost" 
             size="icon" 
@@ -321,6 +340,7 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
           >
             <Trash2 className="w-3 h-3 md:w-4 md:h-4 text-red-500" />
           </Button>
+          }
           <Button 
             variant="outline" 
             size="sm" 

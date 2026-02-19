@@ -1,5 +1,5 @@
 import React from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from './contexts/AuthContext';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
@@ -20,12 +20,9 @@ export default function Login() {
     setError(null);
     setLoading(true);
     try {
-      console.log('[Login] Submitting form with username:', username);
       await auth.login(username, password);
-      console.log('[Login] Login successful, navigating to inventaire');
       navigate('/inventaire');
     } catch (err) {
-      console.error('[Login] Error:', err);
       setError(err.message || 'Identifiants invalides');
     } finally {
       setLoading(false);
@@ -71,9 +68,17 @@ export default function Login() {
             </div>
             
             <div className="space-y-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
-                Mot de passe
-              </label>
+              <div className="flex items-center justify-between">
+                <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
+                  Mot de passe
+                </label>
+                <Link
+                  to="/forgot-password"
+                  className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                >
+                  Mot de passe oublié ?
+                </Link>
+              </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
                 <Input 
@@ -107,7 +112,6 @@ export default function Login() {
                 'Se connecter'
               )}
             </Button>
-
           </form>
         </CardContent>
       </Card>

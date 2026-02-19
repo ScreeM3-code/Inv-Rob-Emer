@@ -12,10 +12,28 @@ export default function SoumissionsHistoryDialog({ piece, onClose }) {
   const [soumissions, setSoumissions] = useState([]);
   const [loading, setLoading] = useState(true);
   const [selectedSoumission, setSelectedSoumission] = useState(null);
+  const [daNumbers, setDaNumbers] = useState([]); // { da, date, user }
 
   useEffect(() => {
     loadSoumissions();
+    loadDaNumbers();
   }, [piece]);
+
+  const loadDaNumbers = async () => {
+    try {
+      const historique = await fetchJson(`${API_URL}/historique/${piece.RéfPièce}`);
+      const das = (historique || [])
+        .filter(h => h.description && /DA SAP[:\s#]+(\d+)/i.test(h.description))
+        .map(h => {
+          const match = h.description.match(/DA SAP[:\s#]+(\d+)/i);
+          return { da: match?.[1], date: h.DateCMD || h.DateRecu, user: h.User };
+        })
+        .filter(x => x.da);
+      setDaNumbers(das);
+    } catch (e) {
+      setDaNumbers([]);
+    }
+  };
 
   const loadSoumissions = async () => {
     try {
@@ -71,7 +89,24 @@ export default function SoumissionsHistoryDialog({ piece, onClose }) {
         <DialogHeader>
           <DialogTitle>Historique des soumissions - {piece.NomPièce}</DialogTitle>
         </DialogHeader>
-
+        {/* Bloc DA SAP */}
+        {daNumbers.length > 0 && (
+          <div className="bg-orange-50 border border-orange-200 rounded-lg p-3 mb-2">
+            <p className="text-xs font-semibold text-orange-700 mb-1 uppercase tracking-wide">
+              🏷️ DA SAP associées à cette pièce
+            </p>
+            <div className="flex flex-wrap gap-2">
+              {daNumbers.map((item, i) => (
+                <span key={i} className="inline-flex items-center bg-orange-100 border border-orange-300 text-orange-800 text-sm font-mono px-2 py-1 rounded">
+                  <strong>#{item.da}</strong>
+                  <span className="ml-2 text-xs text-orange-500">
+                    {item.date ? new Date(item.date).toLocaleDateString('fr-CA') : ''} — {item.user}
+                  </span>
+                </span>
+              ))}
+            </div>
+          </div>
+        )}
         <div className="py-4">
           {loading ? (
             <div className="flex justify-center items-center py-10">

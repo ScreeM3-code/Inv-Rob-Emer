@@ -12,16 +12,25 @@ import Groupes from "./Groupes";
 import SoumissionsHistorique from "./SoumissionsHistorique";
 import Login from "./Login";
 import UsersPage from "./Users";
+import ForgotPassword from "./ForgotPassword";
+import ResetPassword from "./ResetPassword";
+import Approbation from "./Approbation";
+
 
 export default function AppRouter() {
   const auth = useAuth();
 
   return (
     <Routes>
+      {/* Pages publiques (pas besoin d'être connecté) */}
       <Route
         path="/login"
         element={!auth.user ? <Login /> : <Navigate to="/inventaire" replace />}
       />
+      <Route path="/forgot-password" element={<ForgotPassword />} />
+      <Route path="/reset-password" element={<ResetPassword />} />
+
+      {/* Pages protégées */}
       <Route
         path="/"
         element={auth.user ? <Layout /> : <Navigate to="/login" replace />}
@@ -30,6 +39,8 @@ export default function AppRouter() {
         <Route path="inventaire" element={<Dashboard />} />
         <Route path="fournisseurs" element={<Fournisseurs />} />
         <Route path="fabricant" element={<Fabricant />} />
+        <Route path="approbation" element={<Approbation />} />
+        <Route path="approbation" element={<Approbation />} />
         <Route path="commandes" element={<Commandes />} />
         <Route path="receptions" element={<Receptions />} />
         <Route path="historique" element={<Historique />} />
