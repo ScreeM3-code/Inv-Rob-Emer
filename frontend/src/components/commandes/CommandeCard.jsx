@@ -7,7 +7,7 @@ import { Edit3, FileText, PackagePlus, Users, CheckCircle, XCircle, History, Mai
 import { fetchJson } from '../../lib/utils';
 import { toast } from '@/hooks/use-toast';
 import SoumissionsHistoryDialog from '../soumissions/SoumissionsHistoryDialog';
-import { usePermissions } from '../../hooks/usePermissions';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL + '/api';
 
@@ -25,7 +25,7 @@ export default function CommandeCard({
   const [imageError, setImageError] = useState(false);
   const imageUrl = `${API_URL}/pieces/${order.RéfPièce}/image`;
   const [showSoumissionsHistory, setShowSoumissionsHistory] = useState(false);
-  const { isAdmin } = usePermissions();
+  const { can, isAdmin } = usePermissions();
   const [submitting, setSubmitting] = useState(false);
   const [showEreqDialog, setShowEreqDialog] = useState(false);
 
@@ -422,7 +422,7 @@ export default function CommandeCard({
           {/* Boutons d'action */}
           <div className="flex flex-col space-y-2 ml-4 ">
             {/* Historique */}
-            <Button
+            {can('historique_view') && <Button
               variant="outline"
               size="sm"
               onClick={() => onViewHistory(order)}
@@ -430,9 +430,9 @@ export default function CommandeCard({
               className="border-blue-600"
             >
               <History className="h-4 w-4 " />
-            </Button>
+            </Button>}
             {/* Historique Soumissions */}
-            <Button
+            {can('soumissions_view') && <Button
               variant="outline"
               size="sm"
               onClick={() => setShowSoumissionsHistory(true)}
@@ -441,10 +441,10 @@ export default function CommandeCard({
             >
               <FileText className="h-4 w-4 mr-1" />
               Soumissions
-            </Button>
+            </Button>}
 
             {/* Ajouter au panier de soumission */}
-            <Button 
+            {can('soumissions_create') && <Button 
               onClick={() => onAddToCart(order)} 
               disabled={isInCart}
               size="sm"
@@ -452,23 +452,10 @@ export default function CommandeCard({
             >
               <MailPlus className="w-4 h-4 mr-2" /> 
               {isInCart ? 'Dans le panier' : 'Soumission'}
-            </Button>
-
-            {order.approbation_statut === 'en_attente' && (
-              <Badge className="bg-yellow-500 text-white flex items-center gap-1 text-xs">
-                <Clock className="w-3 h-3" />
-                En attente d'approbation
-              </Badge>
-            )}
-            {order.approbation_statut === 'refusee' && (
-              <Badge className="bg-red-500 text-white flex items-center gap-1 text-xs">
-                <XCircle className="w-3 h-3" />
-                Refusée {order.approbation_note ? `— ${order.approbation_note}` : ''}
-              </Badge>
-            )}
+            </Button>}
 
             {/* Passer commande */}
-            <Button
+            {can('commandes_create') && <Button
               variant="outline"
               size="sm"
               onClick={() => onOrder(order)}
@@ -476,37 +463,20 @@ export default function CommandeCard({
             >
               <PackagePlus className="h-4 w-4 mr-1" />
               Commander
-            </Button>
+            </Button>}
 
             {/* Modifier */}
-            <Button
+            {can('inventaire_update') && <Button
               variant="outline"
               size="sm"
               onClick={() => onEdit(order)}
               className="border-blue-600"
             >
               <Edit3 className="h-4 w-4" />
-            </Button>
-
-
-            {!isAdmin && order.approbation_statut !== 'en_attente' && order.approbation_statut !== 'approuvee' && (
-              <Button
-                size="sm"
-                variant="outline"
-                className="border-yellow-500 text-yellow-600 hover:bg-yellow-50"
-                onClick={soumettreApprobation}
-                disabled={submitting}
-              >
-                {submitting
-                  ? <Loader2 className="h-3.5 w-3.5 animate-spin mr-1" />
-                  : <Send className="h-3.5 w-3.5 mr-1" />
-                }
-                Soumettre pour approbation
-              </Button>
-            )}
+            </Button>}
 
             {/* eReq SAP */}
-            <Button
+            {can('commandes_create') && <Button
               variant="outline"
               size="sm"
               onClick={openEreqDialog}
@@ -515,7 +485,7 @@ export default function CommandeCard({
             >
               <ShoppingCart className="h-4 w-4 mr-1" />
               eReq
-            </Button>
+            </Button>}
           </div>
         </div>
       </CardContent>
@@ -539,7 +509,6 @@ export default function CommandeCard({
             <div className="bg-gray-50 dark:bg-gray-700 rounded p-3 text-sm mb-4 space-y-1">
               <div><span className="text-gray-500">Fournisseur SAP:</span> <span className="font-mono font-semibold">{order.fournisseur_principal?.NumSap || <span className="text-red-500">⚠️ Manquant</span>}</span></div>
               <div><span className="text-gray-500">Fournisseur:</span> {order.fournisseur_principal?.NomFournisseur || '—'}</div>
-              <div><span className="text-gray-500">Prix unitaire:</span> {order.Prix_unitaire?.toLocaleString('fr-CA', { style: 'currency', currency: 'CAD' })}</div>
             </div>
 
             <div className="space-y-3">

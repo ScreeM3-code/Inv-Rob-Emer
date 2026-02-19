@@ -72,12 +72,7 @@ export default function Login() {
                 <label className="block text-sm font-medium text-gray-700 dark:text-gray-300">
                   Mot de passe
                 </label>
-                <Link
-                  to="/forgot-password"
-                  className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
-                >
-                  Mot de passe oublié ?
-                </Link>
+
               </div>
               <div className="relative">
                 <Lock className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-gray-400" />
@@ -97,7 +92,12 @@ export default function Login() {
                 <span className="text-sm text-red-600 dark:text-red-400">{error}</span>
               </div>
             )}
-            
+              <Link
+                  to="/forgot-password"
+                  className="flex items-center text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400 dark:hover:text-blue-300 transition-colors"
+                >
+                  Mot de passe oublié ?
+                </Link>
             <Button 
               type="submit" 
               className="w-full h-11 bg-gradient-to-r from-rio-red to-red-600 text-black border-gray-300 dark:border-gray-600 dark:text-white hover:from-red-600 hover:to-rio-red transition-all duration-300 shadow-lg hover:shadow-xl" 

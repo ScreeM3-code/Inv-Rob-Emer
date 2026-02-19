@@ -452,7 +452,7 @@ function Dashboard () {
               <p className="text-slate-600 dark:text-white">Gérez vos pièces et votre stock</p>
             </div>
           </div>
-          <Button 
+          {can('inventaire_create') && <Button 
             onClick={() => {
               setNewPiece({
                 NomPièce: "",
@@ -475,7 +475,7 @@ function Dashboard () {
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
           >
             <Plus className="w-4 h-4 mr-2" /> Ajouter une Pièce
-          </Button>
+          </Button>}
           
         </div>
 
@@ -520,7 +520,7 @@ function Dashboard () {
           </Card>
           
           <Card className="glass-card hover:shadow-2xl transition-all duration-300 group cursor-pointer"
-            onClick={() => navigate("/commandes")}
+            onClick={() => {can('commandes_view') && navigate("/commandes")}}
           >
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
               <CardTitle className="text-xs md:text-sm font-medium dark:text-gray-100">À Commander</CardTitle>

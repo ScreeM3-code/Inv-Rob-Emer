@@ -7,6 +7,7 @@ import FournisseurCard from "@/components/fournisseurs/FournisseurCard";
 import FournisseurFormDialog from "@/components/fournisseurs/FournisseurFormDialog";
 import ContactManagerDialog from "@/components/fournisseurs/ContactManagerDialog";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
+import { usePermissions } from '@/hooks/usePermissions';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -18,6 +19,7 @@ export default function FournisseursPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingFournisseur, setEditingFournisseur] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const { can, isAdmin } = usePermissions();
   const [managingContactsFor, setManagingContactsFor] = useState(null);
 
   const loadFournisseurs = useCallback(async () => {
@@ -215,14 +217,14 @@ export default function FournisseursPage() {
               <p className="text-xs md:text-base text-slate-600 dark:text-white">Gérez vos contacts</p>
             </div>
           </div>
-          <Button 
+          {can('fournisseur_create') && <Button 
             onClick={() => openForm()} 
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 dark:text-white w-full md:w-auto h-9 md:h-auto text-sm"
           >
             <Plus className="w-3 h-3 md:w-4 md:h-4 mr-2 dark:text-white" /> 
             <span className="hidden sm:inline">Ajouter un Fournisseur</span>
             <span className="sm:hidden">Fournisseur</span>
-          </Button>
+          </Button>}
         </div>
         
         {/* Barre de recherche */}

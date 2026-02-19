@@ -2,6 +2,7 @@ import React from 'react';
 import { Card, CardContent, CardHeader, CardTitle, CardFooter } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Building2, User, Phone, Mail, MapPin, Edit, Trash2, Users, ShoppingBasket, Component, Webhook  } from "lucide-react";
+import { usePermissions } from '@/hooks/usePermissions';
 
 export default function FournisseurCard({ fournisseur, onEdit, onDelete, onManageContacts }) {
   const InfoItem = ({ icon, text }) => (
@@ -13,7 +14,7 @@ export default function FournisseurCard({ fournisseur, onEdit, onDelete, onManag
 
   const logoUrl = fournisseur.Domaine ? `https://img.logo.dev/${fournisseur.Domaine}?token=pk_I3--EpsKQV-62K22jiWMbw` : '';
   const handleLogoError = (e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; };
-
+  const { can, isAdmin } = usePermissions();
   const contacts = fournisseur.contacts || [];
 
   return (
@@ -60,12 +61,12 @@ export default function FournisseurCard({ fournisseur, onEdit, onDelete, onManag
         )}
       </CardContent>
       <CardFooter className="border-t pt-3 md:pt-4 flex justify-end gap-1 md:gap-2 p-3 md:p-6">
-        <Button variant="ghost" size="icon" onClick={onDelete} className="h-8 w-8 md:h-10 md:w-10">
+        {can('fournisseur_delete') && <Button variant="ghost" size="icon" onClick={onDelete} className="h-8 w-8 md:h-10 md:w-10">
           <Trash2 className="w-3 h-3 md:w-4 md:h-4 text-red-500" />
-        </Button>
-        <Button variant="outline" size="icon" onClick={onEdit} className="h-8 w-8 md:h-10 md:w-10">
+        </Button>}
+        {can('fournisseur_update') && <Button variant="outline" size="icon" onClick={onEdit} className="h-8 w-8 md:h-10 md:w-10">
           <Edit className="w-3 h-3 md:w-4 md:h-4" />
-        </Button>
+        </Button>}
         <Button size="sm" onClick={onManageContacts} className="h-8 px-2 md:px-3 text-xs md:text-sm">
           <Users className="w-3 h-3 md:w-4 md:h-4 mr-1 md:mr-2" />
           <span className="hidden sm:inline">Contacts</span>

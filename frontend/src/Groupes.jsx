@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import GroupeCard from '@/components/groupes/GroupeCard';
 import { Badge } from '@/components/ui/badge';
+import { usePermissions } from '@/hooks/usePermissions';
 import { 
   Plus, Trash2, Edit, Layers, FolderTree, Package, 
   ChevronDown, ChevronRight, Loader2 
@@ -23,6 +24,7 @@ export default function Groupes() {
   const [groupes, setGroupes] = useState([]);
   const [pieces, setPieces] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { can, isAdmin } = usePermissions();
   
   // États pour les dialogs
   const [categorieDialog, setCategorieDialog] = useState({ open: false, data: null });
@@ -284,14 +286,14 @@ return (
           </div>
         </div>
         
-        <Button 
+        {can('groupes_create') && <Button 
           onClick={() => setCategorieDialog({ open: true, data: { NomCategorie: '', Description: '' } })}
           className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 w-full md:w-auto h-9 md:h-10 text-sm"
         >
           <Plus className="h-3 w-3 md:h-4 md:w-4 mr-2" />
           <span className="hidden sm:inline">Nouvelle Catégorie</span>
           <span className="sm:hidden">Catégorie</span>
-        </Button>
+        </Button>}
       </div>
 
       {/* Arborescence */}

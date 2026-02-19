@@ -11,6 +11,7 @@ import { toast } from '@/hooks/use-toast';
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { useNavigate } from 'react-router-dom';
 import SoumissionsHistoryDialog from '@/components/soumissions/SoumissionsHistoryDialog';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -22,6 +23,7 @@ function Receptions() {
   const [selectedPiece, setSelectedPiece] = useState(null);
   const [searchQuery, setSearchQuery] = useState('');
   const [filterFourn, setFilterFourn] = useState('');
+  const { can, isAdmin } = usePermissions();
   const [viewingSoumissionsFor, setViewingSoumissionsFor] = useState(null);
   const [partialQuantity, setPartialQuantity] = useState('');
   const [isPartialDialogOpen, setIsPartialDialogOpen] = useState(false);
@@ -247,23 +249,23 @@ function Receptions() {
                         )}
                       </div>
                       <div className="flex flex-col space-y-2 ml-4">
-                        <Button
+                        {can('receptions_update') && <Button
                           onClick={() => handleReceiveTotal(piece.RéfPièce)}
                           className="bg-green-600 hover:bg-green-700 text-white"
                           disabled={piece.Qtéarecevoir <= 0}
                         >
                           <CheckCircle className="h-4 w-4 mr-2" />
                           Réception totale
-                        </Button>
+                        </Button>}
                         
-                        <Button
+                        {can('receptions_update') && <Button
                           onClick={() => openPartialDialog(piece)}
                           variant="outline"
                           disabled={piece.Qtéarecevoir <= 0}
                         >
                           <Truck className="h-4 w-4 mr-2" />
                           Réception partielle
-                        </Button>
+                        </Button>}
 
                         {/* ← NOUVEAU BOUTON */}
                         <Button

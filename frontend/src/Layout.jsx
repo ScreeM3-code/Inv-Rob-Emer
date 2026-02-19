@@ -85,7 +85,7 @@ export default function Layout() {
             {/* Logo */}
             <Link to="/inventaire" className="flex items-center space-x-3 md:space-x-4 group">
               <div className="p-2 rounded-lg bg-gradient-to-br from-rio-red to-red-600 group-hover:scale-110 transition-transform duration-300">
-                <Package className="h-6 w-6 md:h-8 md:w-8 text-white" />
+                <Package className="h-6 w-6 md:h-8 md:w-8 text-gray-900 dark:text-white" />
               </div>
               <div>
                 <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Inventaire Robots</h1>
@@ -103,7 +103,7 @@ export default function Layout() {
                     to={item.path}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
                       isActive(item.path)
-                        ? 'bg-gradient-to-r from-rio-red to-red-600 text-white shadow-lg'
+                        ? 'bg-gradient-to-r from-rio-red to-red-600 text-white shadow-lg dar'
                         : 'text-gray-600 dark:text-gray-300 hover:text-rio-red hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                   >

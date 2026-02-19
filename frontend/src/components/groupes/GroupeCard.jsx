@@ -5,12 +5,14 @@ import { Badge } from "@/components/ui/badge";
 import { Input } from "@/components/ui/input";
 import { Package, AlertTriangle, CheckCircle, Edit, Trash2, Minus, X, ChevronDown, ChevronRight, Save, ArrowUp, ArrowDown } from "lucide-react";
 import { toast } from '@/hooks/use-toast';
+import { usePermissions } from '@/hooks/usePermissions';
 
 const API = import.meta.env.VITE_BACKEND_URL + '/api';
 
 export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirPieces, onAddPiece, onRemovePiece, onRefresh, showAddPieceButton = true }) {
   const [quantities, setQuantities] = useState({});
   const [expanded, setExpanded] = useState(false);
+  const { can, isAdmin } = usePermissions();
   const [editingQty, setEditingQty] = useState(null); // ID de la pièce en cours d'édition
   const [tempQty, setTempQty] = useState(''); // Quantité temporaire pendant l'édition
   
@@ -375,11 +377,11 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
         {/* Actions */}
         <div className="flex justify-between items-center pt-3 md:pt-4 border-t">
           <div className="flex gap-1 md:gap-2">
-            <Button variant="ghost" size="sm" onClick={() => onEdit(groupe)} className="h-8 px-2 md:px-3 text-xs md:text-sm">
+            {can('groupes_update') && <Button variant="ghost" size="sm" onClick={() => onEdit(groupe)} className="h-8 px-2 md:px-3 text-xs md:text-sm">
               <Edit className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
               <span className="hidden md:inline">Modifier</span>
-            </Button>
-            <Button
+            </Button>}
+            {can('groupes_delete') && <Button
               variant="ghost"
               size="sm"
               onClick={() => onDelete(groupe.RefGroupe)}
@@ -387,7 +389,7 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
             >
               <Trash2 className="w-3 h-3 md:w-4 md:h-4 md:mr-1" />
               <span className="hidden md:inline">Supprimer</span>
-            </Button>
+            </Button>}
           </div>
 
           <Button

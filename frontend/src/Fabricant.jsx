@@ -6,6 +6,7 @@ import { Input } from "@/components/ui/input";
 import FabricantCard from "@/components/fabricants/FabricantCard";
 import FabricantFormDialog from "@/components/fabricants/FabricantFormDialog";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
+import { usePermissions } from '@/hooks/usePermissions';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -17,6 +18,7 @@ export default function FabricantsPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingFabricant, setEditingFabricant] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const { can, isAdmin } = usePermissions();
 
   const loadFabricants = useCallback(async () => {
     setLoading(true);
@@ -124,12 +126,12 @@ export default function FabricantsPage() {
               <p className="text-slate-600 dark:text-white">Gérez les fabricants de vos pièces</p>
             </div>
           </div>
-          <Button 
+          {can('fabricant_create') && <Button 
             onClick={() => openForm()} 
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
           >
             <Plus className="w-4 h-4 mr-2 text-white" /> Ajouter un Fabricant
-          </Button>
+          </Button>}
         </div>
         
         {/* Barre de recherche */}
