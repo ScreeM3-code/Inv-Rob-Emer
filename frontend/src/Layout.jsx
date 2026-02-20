@@ -36,10 +36,11 @@ export default function Layout() {
     { path: '/fournisseurs',          label: 'Fournisseurs',icon: Store,        permission: 'fournisseur_view' },
     { path: '/fabricant',             label: 'Fabricant',   icon: Cog,          permission: 'fabricant_view' },
     { path: '/commandes',             label: 'Commander',   icon: ShoppingCart, permission: 'commandes_view' },
+    { path: '/approbation',           label: 'Approbations', icon: CheckCircle, permission: 'can_approve_orders'},
     { path: '/receptions',            label: 'Réceptions',  icon: Inbox,        permission: 'receptions_view' },
     { path: '/historique',            label: 'Historique',  icon: History,      permission: 'historique_view' },
     { path: '/soumissions-historique',label: 'Soumissions', icon: FileText,     permission: 'soumissions_view' },
-    { path: '/approbation',           label: 'Approbations', icon: CheckCircle, permission: 'can_approve_orders'},
+    
   ];
 
   // Filtrer selon les permissions de l'utilisateur connecté
@@ -60,7 +61,7 @@ export default function Layout() {
       .then(r => r.ok ? r.json() : [])
       .then(data => {
         const count = Array.isArray(data)
-          ? data.filter(p => p.approbation_statut === 'en_attente').length
+          ? data.filter(p => p.approbation_statut === 'en_attente' || p.approbation_statut === null ).length
           : 0;
         setPendingCount(count);
       })
@@ -79,7 +80,7 @@ export default function Layout() {
       <AnimatedBackground />
 
       <header className="bg-white dark:bg-slate-900/80 backdrop-blur-sm shadow-sm border-b border-gray-200 dark:border-gray-700 transition-colors relative z-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <div className="max-w-7xl mx-auto px-1 ">
           <div className="flex justify-between items-center py-4 md:py-6">
 
             {/* Logo */}

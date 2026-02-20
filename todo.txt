@@ -1,3 +1,8 @@
+bug dans groupe les photos sont biz
+
+
+
+
 import { usePermissions } from '@/hooks/usePermissions';
 
 const { can, isAdmin } = usePermissions();
@@ -10,7 +15,7 @@ permision contact dans fournisseurs /// photo
 
 
 "can_delete_any"": false, "
-
+"can_manage_users"": false, "
 
 "groupes_view"": true, " ok
 "groupes_create"": true, " ok
@@ -21,11 +26,11 @@ permision contact dans fournisseurs /// photo
 "inventaire_view"": true, " ok
 "receptions_view"": false, " ok
 
-"can_manage_users"": false, "
+
 
 "commandes_view"": false, " ok
-"commandes_create"": false, " 
-"commandes_update"": false, "
+"commandes_create"": false, " ok
+"commandes_update"": false, " ok
 
 "fabricant_view"": true, " ok
 "fabricant_create"": true, " ok
@@ -39,7 +44,7 @@ permision contact dans fournisseurs /// photo
 "inventaire_update"": true, " ok
 
 "receptions_create"": false, " ok
-"receptions_update"": false, "
+"receptions_update"": false, " ok
 
 "fournisseur_view"": true, " ok
 "fournisseur_create"": true, " ok
@@ -50,6 +55,5 @@ permision contact dans fournisseurs /// photo
 "soumissions_update"": false, "
 "soumissions_view"": false, " ok
 
-"inventaire_sortie_rapide"": true}" ok
-
+"inventaire_sortie_rapide"": true" ok
 

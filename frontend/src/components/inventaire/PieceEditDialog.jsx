@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import PieceFournisseursEditor from '@/components/pieces/PieceFournisseursEditor';
 
 export default function PieceEditDialog({ 
   piece, 
@@ -116,56 +117,11 @@ export default function PieceEditDialog({
           {/* Fournisseurs */}
           <div className="border-t pt-3 md:pt-4">
             <h4 className="font-semibold text-gray-700 mb-2 md:mb-3 text-sm md:text-base">Fournisseurs</h4>
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
-              <div>
-                <Label className="text-xs md:text-sm">Fournisseur principal</Label>
-                <Select
-                  value={piece.RéfFournisseur?.toString() || "none"}
-                  onValueChange={(value) => {
-                    if (value === "none") return onChange('RéfFournisseur', null);
-                    const n = parseInt(value, 10);
-                    onChange('RéfFournisseur', isNaN(n) ? null : n);
-                  }}
-                >
-                  <SelectTrigger className="h-9 md:h-10 text-sm">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Aucun</SelectItem>
-                    {fournisseurs.map((f) => (
-                      <SelectItem key={f.RéfFournisseur} value={f.RéfFournisseur.toString()}>
-                        {f.NomFournisseur}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-              
-              {/* Autre fournisseur - masqué sur mobile */}
-              <div className="hidden md:block">
-                <Label className="text-sm">Autre fournisseur</Label>
-                <Select
-                  value={piece.RéfAutreFournisseur?.toString() || "none"}
-                  onValueChange={(value) => {
-                    if (value === "none") return onChange('RéfAutreFournisseur', null);
-                    const n = parseInt(value, 10);
-                    onChange('RéfAutreFournisseur', isNaN(n) ? null : n);
-                  }}
-                >
-                  <SelectTrigger className="h-10 text-sm">
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Aucun</SelectItem>
-                    {fournisseurs.map((f) => (
-                      <SelectItem key={f.RéfFournisseur} value={f.RéfFournisseur.toString()}>
-                        {f.NomFournisseur}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <PieceFournisseursEditor
+              fournisseurs={piece.fournisseurs || []}
+              allFournisseurs={fournisseurs || []}
+              onChange={(newList) => onChange('fournisseurs', newList)}
+            />
           </div>
 
           {/* Fabricant */}

@@ -236,16 +236,19 @@ export function PieceCard({ piece, fournisseur, autreFournisseur, Categories, pi
 
 
 
-        {/* Section fournisseurs - MASQUÉE SUR MOBILE */}
-        <div className="hidden md:block space-y-2 text-sm border-t pt-4">
-          <div className="flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-blue-500" /> 
-            <strong>Fournisseur:</strong> {fournisseur?.NomFournisseur || 'N/A'}
-          </div>
-          <div className="flex items-center gap-2">
-            <Building2 className="w-4 h-4 text-gray-400" /> 
-            <strong>Autre Fourn.:</strong> {autreFournisseur?.NomFournisseur || 'N/A'}
-          </div>
+          {/* Section fournisseurs - MASQUÉE SUR MOBILE */}
+          <div className="hidden md:block space-y-2 text-sm border-t pt-4">
+            <div className="flex items-center gap-2">
+              <Building2 className="w-4 h-4 text-blue-500" />
+              <strong>Fournisseur:</strong> {fournisseur?.NomFournisseur || 'N/A'}
+            </div>
+            {autreFournisseur && (
+              <div className="flex items-center gap-2">
+                <Building2 className="w-4 h-4 text-gray-400" />
+                <strong>Autre:</strong> {autreFournisseur.NomFournisseur}
+              </div>
+            )}
+
           <div className="flex items-center gap-2">
             <Factory className="w-4 w-4 text-blue-500" /> 
             <strong>Fabricant:</strong> {fabricant?.NomFabricant || 'N/A'}

@@ -10,6 +10,7 @@ from utils.helpers import safe_string, safe_int, safe_float, calculate_qty_to_or
 from auth import require_admin, require_auth
 from pydantic import BaseModel as PydanticBaseModel
 from typing import Optional
+import asyncio
 from notification_service import (
     notify_demande_approbation,
     notify_approbation_result,
@@ -472,6 +473,7 @@ async def get_pieces_en_attente(
 @router.post("/toorders/{piece_id}/soumettre")
 async def soumettre_approbation(
     piece_id: int,
+    piece_nom: str,
     conn: asyncpg.Connection = Depends(get_db_connection),
     user: dict = Depends(require_auth)
 ):
@@ -482,10 +484,9 @@ async def soumettre_approbation(
 
     # Notifier les admins
     piece_info = await conn.fetchrow(
-        'SELECT "NomPièce" FROM "Pièce" WHERE "RéfPièce" = $1', piece_id
+        'SELECT "RéfPièce", "NomPièce" FROM "Pièce" WHERE "RéfPièce" = $1, $2', piece_id, piece_nom
     )
     piece_nom = piece_info['NomPièce'] if piece_info else f"Pièce #{piece_id}"
-    import asyncio
     asyncio.create_task(
         notify_demande_approbation(conn, piece_nom, piece_id, user['username'])
     )
@@ -515,6 +516,7 @@ async def soumettre_approbation(
 @router.post("/toorders/{piece_id}/approuver")
 async def approuver_piece(
     piece_id: int,
+    piece_nom: str,
     data: ApprobationRequest,
     conn: asyncpg.Connection = Depends(get_db_connection),
     user: dict = Depends(require_admin)
@@ -523,7 +525,7 @@ async def approuver_piece(
     Admin approuve une pièce — elle devient visible dans la liste de commande.
     """
     piece = await conn.fetchrow(
-        'SELECT "RéfPièce" FROM "Pièce" WHERE "RéfPièce" = $1', piece_id
+        'SELECT "RéfPièce", "NomPièce" FROM "Pièce" WHERE "RéfPièce" = $1, $2', piece_id, piece_nom
     )
     if not piece:
         raise HTTPException(status_code=404, detail="Pièce introuvable")
@@ -537,7 +539,6 @@ async def approuver_piece(
            WHERE "RéfPièce" = $3''',
         user['username'], data.note, piece_id
     )
-    import asyncio
     asyncio.create_task(
         notify_approbation_result(conn, piece_nom, "approuvee", data.note or "")
     )
@@ -547,6 +548,7 @@ async def approuver_piece(
 @router.post("/toorders/{piece_id}/refuser")
 async def refuser_piece(
     piece_id: int,
+    piece_nom: str,
     data: ApprobationRequest,
     conn: asyncpg.Connection = Depends(get_db_connection),
     user: dict = Depends(require_admin)
@@ -555,7 +557,7 @@ async def refuser_piece(
     Admin refuse une pièce — elle reste visible avec statut 'refusee'.
     """
     piece = await conn.fetchrow(
-        'SELECT "RéfPièce" FROM "Pièce" WHERE "RéfPièce" = $1', piece_id
+        'SELECT "RéfPièce", "NomPièce" FROM "Pièce" WHERE "RéfPièce" = $1, $2', piece_id, piece_nom
     )
     if not piece:
         raise HTTPException(status_code=404, detail="Pièce introuvable")
@@ -569,7 +571,6 @@ async def refuser_piece(
            WHERE "RéfPièce" = $3''',
         user['username'], data.note, piece_id
     )
-    import asyncio
     asyncio.create_task(
         notify_approbation_result(conn, piece_nom, "refusee", data.note or "")
     )

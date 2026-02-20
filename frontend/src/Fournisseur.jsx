@@ -1,13 +1,14 @@
 import React, { useState, useEffect, useCallback } from "react";
 import { fetchJson, log } from './lib/utils';
 import { Button } from "@/components/ui/button";
-import { Plus, Loader2, Search, X, Building2 } from "lucide-react";
+import { Plus, Loader2, Search, X, Building2, Download } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import FournisseurCard from "@/components/fournisseurs/FournisseurCard";
 import FournisseurFormDialog from "@/components/fournisseurs/FournisseurFormDialog";
 import ContactManagerDialog from "@/components/fournisseurs/ContactManagerDialog";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { usePermissions } from '@/hooks/usePermissions';
+import ImportSapDialog from '@/components/fournisseurs/ImportSapDialog';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -19,6 +20,7 @@ export default function FournisseursPage() {
   const [searchTerm, setSearchTerm] = useState("");
   const [editingFournisseur, setEditingFournisseur] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
+  const [showImportSap, setShowImportSap] = useState(false);
   const { can, isAdmin } = usePermissions();
   const [managingContactsFor, setManagingContactsFor] = useState(null);
 
@@ -226,6 +228,15 @@ export default function FournisseursPage() {
             <span className="sm:hidden">Fournisseur</span>
           </Button>}
         </div>
+
+        <Button
+          onClick={() => setShowImportSap(true)}
+          variant="outline"
+          className="border-orange-500 text-orange-600 hover:bg-orange-50"
+        >
+          <Download className="w-4 h-4 mr-2" />
+          Importer SAP
+        </Button>
         
         {/* Barre de recherche */}
         <div className="mb-4 md:mb-6 backdrop-blur-sm rounded-lg shadow-lg p-3 md:p-4">
@@ -336,6 +347,14 @@ export default function FournisseursPage() {
             onSaveContact={handleSaveContact}
             onDeleteContact={handleDeleteContact}
             onCancel={() => setManagingContactsFor(null)}
+          />
+        )}
+
+        {showImportSap && (
+          <ImportSapDialog
+            open={showImportSap}
+            onClose={() => setShowImportSap(false)}
+            onImported={() => { setShowImportSap(false); loadFournisseurs(); }}
           />
         )}
       </div>

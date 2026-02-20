@@ -1,8 +1,8 @@
-2026-02-19 13:50:37,262 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
-2026-02-19 13:50:37,262 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2026-02-19 13:50:37,332 - uvicorn.error - INFO - Started server process [52340]
-2026-02-19 13:50:37,332 - uvicorn.error - INFO - Waiting for application startup.
-2026-02-19 13:50:37,503 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2026-02-19 13:50:37,511 - Inventaire-Robot - INFO - \u2705 949 Pièce trouvés
-2026-02-19 13:50:37,512 - uvicorn.error - INFO - Application startup complete.
-2026-02-19 13:50:37,514 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
+2026-02-20 11:44:16,536 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
+2026-02-20 11:44:16,536 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2026-02-20 11:44:16,614 - uvicorn.error - INFO - Started server process [45068]
+2026-02-20 11:44:16,614 - uvicorn.error - INFO - Waiting for application startup.
+2026-02-20 11:44:16,754 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2026-02-20 11:44:16,761 - Inventaire-Robot - INFO - \u2705 949 Pièce trouvés
+2026-02-20 11:44:16,763 - uvicorn.error - INFO - Application startup complete.
+2026-02-20 11:44:16,763 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)

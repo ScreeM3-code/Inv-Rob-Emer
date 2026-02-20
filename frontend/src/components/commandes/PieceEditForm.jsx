@@ -5,9 +5,13 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from '@/hooks/use-toast';
+import PieceFournisseursEditor from '@/components/pieces/PieceFournisseursEditor';
 
 export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave, onCancel }) {
-  const [formData, setFormData] = React.useState(piece);
+  const [formData, setFormData] = React.useState({
+    ...piece,
+    fournisseurs: piece.fournisseurs || [],
+  });
 
   // Debounce les mises à jour d'état pour les champs texte
   const debounce = (fn, delay) => {
@@ -55,8 +59,7 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
       Qtéminimum: isNaN(qMin) ? 0 : qMin,
       Qtémax: isNaN(qMax) ? 100 : qMax,
       Prix_unitaire: isNaN(prix) ? 0 : prix,
-      RéfFournisseur: formData.RéfFournisseur || null,
-      RéfAutreFournisseur: formData.RéfAutreFournisseur || null,
+      fournisseurs: formData.fournisseurs || [],
       RefFabricant: formData.RefFabricant || null,
       RTBS: formData.RTBS || null,
     };
@@ -115,56 +118,12 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
 
           {/* Fournisseurs */}
           <div className="border-t pt-4">
-            <h4 className="font-semibold text-gray-700 mb-3 dark:text-white ">Fournisseurs</h4>
-            <div className="grid grid-cols-2 gap-4">
-              <div>
-                <Label>Fournisseur principal</Label>
-                <Select
-                  value={formData.RéfFournisseur?.toString() || "none"}
-                  onValueChange={(value) => {
-                    if (value === "none") return handleChange('RéfFournisseur', null);
-                    const n = parseInt(value, 10);
-                    handleChange('RéfFournisseur', isNaN(n) ? null : n);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Aucun fournisseur</SelectItem>
-                    {fournisseurs?.map((f) => (
-                      <SelectItem key={f.RéfFournisseur} value={f.RéfFournisseur.toString()}>
-                        {f.NomFournisseur}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div>
-                <Label>Autre fournisseur</Label>
-                <Select
-                  value={formData.RéfAutreFournisseur?.toString() || "none"}
-                  onValueChange={(value) => {
-                    if (value === "none") return handleChange('RéfAutreFournisseur', null);
-                    const n = parseInt(value, 10);
-                    handleChange('RéfAutreFournisseur', isNaN(n) ? null : n);
-                  }}
-                >
-                  <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="none">Aucun fournisseur</SelectItem>
-                    {fournisseurs?.map((f) => (
-                      <SelectItem key={f.RéfFournisseur} value={f.RéfFournisseur.toString()}>
-                        {f.NomFournisseur}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-            </div>
+            <h4 className="font-semibold text-gray-700 mb-3 dark:text-white">Fournisseurs</h4>
+            <PieceFournisseursEditor
+              fournisseurs={formData.fournisseurs || []}
+              allFournisseurs={fournisseurs || []}
+              onChange={(newList) => handleChange('fournisseurs', newList)}
+            />
           </div>
 
           {/* Fabricant */}

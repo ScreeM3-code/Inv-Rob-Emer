@@ -11,6 +11,7 @@ import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { useNavigate } from 'react-router-dom';
 import { FileText } from 'lucide-react';
 import { Button } from "@/components/ui/button";
+import { usePermissions } from '@/hooks/usePermissions';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -25,6 +26,7 @@ function Commandes() {
   const [viewingHistoryFor, setViewingHistoryFor] = useState(null);
   const [historyData, setHistoryData] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const { can, isAdmin } = usePermissions();
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -311,14 +313,14 @@ function Commandes() {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Commandes à passer</h1>
           <p className="text-sm text-gray-600 dark:text-white">Pièces nécessitant une commande</p>
         </div>
-        <Button 
+        {can('soumissions_view') && <Button 
           variant="outline" 
           onClick={() => navigate("/soumissions-historique")}
           className="border-blue-600 text-blue-600 hover:bg-blue-50"
         >
           <FileText className="w-4 h-4 mr-2" />
           Historique des soumissions
-        </Button>
+        </Button>}
 
         {/* Liste des commandes */}
         <div className="grid gap-4">

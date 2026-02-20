@@ -1,6 +1,6 @@
 """Modèles Pydantic pour les pièces"""
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import datetime
 
 class PieceBase(BaseModel):
@@ -8,9 +8,6 @@ class PieceBase(BaseModel):
     NomPièce: Optional[str] = ""
     DescriptionPièce: Optional[str] = ""
     NumPièce: Optional[str] = ""
-    RéfFournisseur: Optional[int] = None
-    RéfAutreFournisseur: Optional[int] = None
-    NumPièceAutreFournisseur: Optional[str] = ""
     RefFabricant: Optional[int] = None
     Lieuentreposage: Optional[str] = ""
     QtéenInventaire: Optional[int] = 0
@@ -30,9 +27,6 @@ class PieceCreate(BaseModel):
     NomPièce: Optional[str] = ""
     DescriptionPièce: Optional[str] = ""
     NumPièce: Optional[str] = ""
-    RéfFournisseur: Optional[int] = None
-    RéfAutreFournisseur: Optional[int] = None
-    NumPièceAutreFournisseur: Optional[str] = ""
     RefFabricant: Optional[int] = None
     Lieuentreposage: Optional[str] = ""
     QtéenInventaire: Optional[int] = 0
@@ -50,10 +44,7 @@ class PieceUpdate(BaseModel):
     NomPièce: Optional[str] = None
     DescriptionPièce: Optional[str] = None
     NumPièce: Optional[str] = None
-    RéfFournisseur: Optional[int] = None
-    RéfAutreFournisseur: Optional[int] = None
     RefFabricant: Optional[int] = None
-    NumPièceAutreFournisseur: Optional[str] = None
     Lieuentreposage: Optional[str] = None
     QtéenInventaire: Optional[int] = None
     Qtéminimum: Optional[int] = None
@@ -66,10 +57,16 @@ class PieceUpdate(BaseModel):
     SoumDem: Optional[bool] = False
     RTBS: Optional[int] = None
     NoFESTO: Optional[str] = ""
+    Cmd_info: Optional[str] = None
+    Datecommande: Optional[str] = None
+
 class Piece(PieceBase):
     Created: Optional[datetime] = None
     Modified: Optional[datetime] = None
+    # Nouveau : liste unifiée des fournisseurs (principal en premier, EstPrincipal=True)
+    fournisseurs: Optional[List[dict]] = []
+    # Raccourcis pratiques calculés depuis fournisseurs
     fournisseur_principal: Optional[dict] = None
-    autre_fournisseur: Optional[dict] = None
     NomFabricant: Optional[str] = ""
     Qtéàcommander: Optional[int] = 0
+    Qtéarecevoir: Optional[int] = 0

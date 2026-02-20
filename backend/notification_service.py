@@ -1,8 +1,3 @@
-# backend/notification_service.py
-"""
-Dispatcher de notifications par email.
-Chaque fonction vérifie les prefs de chaque user avant d'envoyer.
-"""
 import logging
 import json as _json
 import asyncpg

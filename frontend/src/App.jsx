@@ -606,8 +606,8 @@ function Dashboard () {
         <>
           <div className="grid grid-cols-2 xl:grid-cols-3 gap-3 md:gap-5 w-full">
             {displayedItems.map((piece) => {
-              const fournisseur = fournisseurs.find(f => f.RéfFournisseur === piece.RéfFournisseur);
-              const autreFournisseur = piece.autre_fournisseur || fournisseurs.find(f => f.RéfFournisseur === piece.RéfAutreFournisseur) || null;
+              const fournisseur = piece.fournisseur_principal || null;
+              const autreFournisseur = (piece.fournisseurs || []).find(f => !f.EstPrincipal) || null;
               const fabricant = fabricants.find(f => f.RefFabricant === piece.RefFabricant);
               return (
                 <PieceCard

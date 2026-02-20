@@ -5,7 +5,7 @@ import { Factory, User, Mail, Edit, Trash2 } from "lucide-react";
 import { usePermissions } from '@/hooks/usePermissions';
 
 export default function FabricantCard({ fabricant, onEdit, onDelete }) {
-  const logoUrl = fabricant.Domaine ? `https://logo.clearbit.com/${fabricant.Domaine}` : '';
+  const logoUrl = fabricant.Domaine ? `https://img.logo.dev/${fabricant.Domaine}?token=pk_I3--EpsKQV-62K22jiWMbw` : '';
   const handleLogoError = (e) => { e.target.style.display = 'none'; e.target.nextSibling.style.display = 'flex'; };
   const { can, isAdmin } = usePermissions();
   

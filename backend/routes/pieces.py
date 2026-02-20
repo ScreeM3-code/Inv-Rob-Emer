@@ -24,15 +24,17 @@ async def get_pieces(
     try:
         base_query = '''
             SELECT p.*,
-                   f1."NomFournisseur" as fournisseur_principal_nom,
-                   f1."NomContact" as fournisseur_principal_contact,
-                   f1."NuméroTél" as fournisseur_principal_tel,
-                   f2."NomAutreFournisseur" as autre_fournisseur_nom,
-                   f3."NomFabricant"
+                   f3."NomFabricant",
+                   pf_principal."RéfFournisseur" as ref_four_principal,
+                   fp."NomFournisseur"           as fournisseur_principal_nom,
+                   fp."NuméroTél"               as fournisseur_principal_tel,
+                   fp."NumSap"                  as fournisseur_principal_numsap
             FROM "Pièce" p
-            LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
-            LEFT JOIN "Autre Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfAutreFournisseur"
             LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
+            LEFT JOIN "PieceFournisseur" pf_principal ON (
+                pf_principal."RéfPièce" = p."RéfPièce" AND pf_principal."EstPrincipal" = TRUE
+            )
+            LEFT JOIN "Fournisseurs" fp ON fp."RéfFournisseur" = pf_principal."RéfFournisseur"
             WHERE 1=1
         '''
 
@@ -83,17 +85,11 @@ async def get_pieces(
             fournisseur_principal = None
             if piece_dict.get("fournisseur_principal_nom"):
                 fournisseur_principal = {
-                    "RéfFournisseur": piece_dict.get("RéfFournisseur"),
+                    "RéfFournisseur": piece_dict.get("ref_four_principal"),
                     "NomFournisseur": safe_string(piece_dict.get("fournisseur_principal_nom", "")),
-                    "NomContact": safe_string(piece_dict.get("fournisseur_principal_contact", "")),
-                    "NuméroTél": safe_string(piece_dict.get("fournisseur_principal_tel", ""))
-                }
-
-            autre_fournisseur = None
-            if piece_dict.get("autre_fournisseur_nom"):
-                autre_fournisseur = {
-                    "RéfFournisseur": piece_dict.get("RéfAutreFournisseur"),
-                    "NomFournisseur": safe_string(piece_dict.get("autre_fournisseur_nom", ""))
+                    "NuméroTél": safe_string(piece_dict.get("fournisseur_principal_tel", "")),
+                    "NumSap": safe_string(piece_dict.get("fournisseur_principal_numsap", "")),
+                    "EstPrincipal": True,
                 }
 
             piece_response = Piece(
@@ -101,8 +97,6 @@ async def get_pieces(
                 NomPièce=nom_piece,
                 DescriptionPièce=safe_string(piece_dict.get("DescriptionPièce", "")),
                 NumPièce=safe_string(piece_dict.get("NumPièce", "")),
-                RéfFournisseur=piece_dict.get("RéfFournisseur"),
-                RéfAutreFournisseur=piece_dict.get("RéfAutreFournisseur"),
                 NumPièceAutreFournisseur=safe_string(piece_dict.get("NumPièceAutreFournisseur", "")),
                 Lieuentreposage=safe_string(piece_dict.get("Lieuentreposage", "")),
                 QtéenInventaire=qty_inventaire,
@@ -114,7 +108,7 @@ async def get_pieces(
                 Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
                 SoumDem=piece_dict.get("SoumDem", ""),
                 fournisseur_principal=fournisseur_principal,
-                autre_fournisseur=autre_fournisseur,
+                fournisseurs=[fournisseur_principal] if fournisseur_principal else [],
                 NomFabricant=safe_string(piece_dict.get("NomFabricant", "")),
                 RefFabricant=piece_dict.get("RefFabricant"),
                 statut_stock=statut_stock,
@@ -135,15 +129,8 @@ async def get_piece(piece_id: int, request: Request):
     conn = await request.app.state.pool.acquire()
     try:
         query = '''
-            SELECT p.*,
-                   f1."NomFournisseur" as fournisseur_principal_nom,
-                   f1."NomContact" as fournisseur_principal_contact,
-                   f1."NuméroTél" as fournisseur_principal_tel,
-                   f2."NomAutreFournisseur" as autre_fournisseur_nom,
-                   f3."NomFabricant"
+            SELECT p.*, f3."NomFabricant"
             FROM "Pièce" p
-            LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
-            LEFT JOIN "Autre Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfAutreFournisseur"
             LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
             WHERE p."RéfPièce" = $1
         '''
@@ -166,30 +153,43 @@ async def get_piece(piece_id: int, request: Request):
         qty_a_commander = calculate_qty_to_order(qty_inventaire, qty_minimum, qty_max)
         statut_stock = get_stock_status(qty_inventaire, qty_minimum)
 
-        # Fournisseurs
-        fournisseur_principal = None
-        if piece_dict.get("fournisseur_principal_nom"):
-            fournisseur_principal = {
-                "RéfFournisseur": piece_dict.get("RéfFournisseur"),
-                "NomFournisseur": safe_string(piece_dict.get("fournisseur_principal_nom", "")),
-                "NomContact": safe_string(piece_dict.get("fournisseur_principal_contact", "")),
-                "NuméroTél": safe_string(piece_dict.get("fournisseur_principal_tel", ""))
-            }
+        fournisseurs_rows = await conn.fetch('''
+            SELECT pf."id", pf."RéfFournisseur", pf."EstPrincipal",
+                   pf."NumPièceFournisseur", pf."PrixUnitaire", pf."DelaiLivraison",
+                   f."NomFournisseur", f."NuméroTél", f."Domaine", f."NumSap",
+                   (SELECT c."Email" FROM "Contact" c
+                    WHERE c."RéfFournisseur" = f."RéfFournisseur"
+                    ORDER BY c."RéfContact" LIMIT 1) as email_contact
+            FROM "PieceFournisseur" pf
+            JOIN "Fournisseurs" f ON f."RéfFournisseur" = pf."RéfFournisseur"
+            WHERE pf."RéfPièce" = $1
+            ORDER BY pf."EstPrincipal" DESC, pf."DateAjout" ASC
+        ''', piece_id)
 
-        autre_fournisseur = None
-        if piece_dict.get("autre_fournisseur_nom"):
-            autre_fournisseur = {
-                "RéfFournisseur": piece_dict.get("RéfAutreFournisseur"),
-                "NomFournisseur": safe_string(piece_dict.get("autre_fournisseur_nom", ""))
-             }
+        fournisseurs = [
+            {
+                "id": r["id"],
+                "RéfFournisseur": r["RéfFournisseur"],
+                "NomFournisseur": safe_string(r.get("NomFournisseur", "")),
+                "NuméroTél": safe_string(r.get("NuméroTél", "")),
+                "Domaine": safe_string(r.get("Domaine", "")),
+                "NumSap": safe_string(r.get("NumSap", "")),
+                "EstPrincipal": r["EstPrincipal"],
+                "NumPièceFournisseur": safe_string(r.get("NumPièceFournisseur", "")),
+                "PrixUnitaire": safe_float(r.get("PrixUnitaire", 0)),
+                "DelaiLivraison": safe_string(r.get("DelaiLivraison", "")),
+                "EmailContact": safe_string(r.get("email_contact", "")),
+            }
+            for r in fournisseurs_rows
+        ]
+
+        fournisseur_principal = next((f for f in fournisseurs if f["EstPrincipal"]), None)
 
         return Piece(
             RéfPièce=piece_dict["RéfPièce"],
             NomPièce=nom_piece,
             DescriptionPièce=safe_string(piece_dict.get("DescriptionPièce", "")),
             NumPièce=safe_string(piece_dict.get("NumPièce", "")),
-            RéfFournisseur=piece_dict.get("RéfFournisseur"),
-            RéfAutreFournisseur=piece_dict.get("RéfAutreFournisseur"),
             NumPièceAutreFournisseur=safe_string(piece_dict.get("NumPièceAutreFournisseur", "")),
             Lieuentreposage=safe_string(piece_dict.get("Lieuentreposage", "")),
             QtéenInventaire=qty_inventaire,
@@ -199,8 +199,8 @@ async def get_piece(piece_id: int, request: Request):
             Prix_unitaire=safe_float(piece_dict.get("Prix unitaire", 0)),
             Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
             SoumDem=piece_dict.get("SoumDem", ""),
+            fournisseurs=fournisseurs,
             fournisseur_principal=fournisseur_principal,
-            autre_fournisseur=autre_fournisseur,
             NomFabricant=safe_string(piece_dict.get("NomFabricant", "")),
             RefFabricant=piece_dict.get("RefFabricant"),
             statut_stock=statut_stock,
@@ -413,22 +413,33 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
 
     await conn.execute(query, *values)
 
-    # Récupérer la pièce mise à jour directement
-    query_get = '''
-            SELECT p.*,
-                   f1."NomFournisseur" as fournisseur_principal_nom,
-                   f1."NomContact" as fournisseur_principal_contact,
-                   f1."NuméroTél" as fournisseur_principal_tel,
-                   f2."NuméroTél" as autre_fournisseur_tel,
-                   f3."NomFabricant"
-            FROM "Pièce" p
-            LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
-            LEFT JOIN "Autre Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfAutreFournisseur"
-            LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
-            WHERE p."RéfPièce" = $1
-        '''
+    # Sauvegarder les fournisseurs si fournis dans la mise à jour
+    update_dict = piece_update.dict(exclude_unset=True)
+    if "fournisseurs" in update_dict and update_dict["fournisseurs"] is not None:
+        # Supprimer toutes les liaisons existantes
+        await conn.execute('DELETE FROM "PieceFournisseur" WHERE "RéfPièce" = $1', piece_id)
+        # Réinsérer
+        for f in update_dict["fournisseurs"]:
+            await conn.execute('''
+                INSERT INTO "PieceFournisseur"
+                    ("RéfPièce", "RéfFournisseur", "EstPrincipal", "NumPièceFournisseur", "PrixUnitaire", "DelaiLivraison")
+                VALUES ($1, $2, $3, $4, $5, $6)
+            ''',
+                piece_id,
+                f["RéfFournisseur"],
+                f.get("EstPrincipal", False),
+                f.get("NumPièceFournisseur", ""),
+                f.get("PrixUnitaire", 0),
+                f.get("DelaiLivraison", ""),
+            )
 
-    piece = await conn.fetchrow(query_get, piece_id)
+    # Récupérer la pièce mise à jour avec ses fournisseurs via PieceFournisseur
+    piece = await conn.fetchrow('''
+        SELECT p.*, f3."NomFabricant"
+        FROM "Pièce" p
+        LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
+        WHERE p."RéfPièce" = $1
+    ''', piece_id)
     if not piece:
         raise HTTPException(status_code=404, detail="Pièce non trouvée")
 
@@ -446,30 +457,39 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
     qty_a_commander = calculate_qty_to_order(qty_inventaire, qty_minimum, qty_max)
     statut_stock = get_stock_status(qty_inventaire, qty_minimum)
 
-    # Fournisseurs
-    fournisseur_principal = None
-    if piece_dict.get("fournisseur_principal_nom"):
-        fournisseur_principal = {
-            "RéfFournisseur": piece_dict.get("RéfFournisseur"),
-            "NomFournisseur": safe_string(piece_dict.get("fournisseur_principal_nom", "")),
-            "NomContact": safe_string(piece_dict.get("fournisseur_principal_contact", "")),
-            "NuméroTél": safe_string(piece_dict.get("fournisseur_principal_tel", ""))
-        }
+    # Charger les fournisseurs depuis PieceFournisseur
+    fournisseurs_rows = await conn.fetch('''
+        SELECT pf."id", pf."RéfFournisseur", pf."EstPrincipal",
+               pf."NumPièceFournisseur", pf."PrixUnitaire", pf."DelaiLivraison",
+               f."NomFournisseur", f."NuméroTél", f."Domaine", f."NumSap"
+        FROM "PieceFournisseur" pf
+        JOIN "Fournisseurs" f ON f."RéfFournisseur" = pf."RéfFournisseur"
+        WHERE pf."RéfPièce" = $1
+        ORDER BY pf."EstPrincipal" DESC, pf."DateAjout" ASC
+    ''', piece_id)
 
-    autre_fournisseur = None
-    if piece_dict.get("autre_fournisseur_nom"):
-        autre_fournisseur = {
-            "RéfFournisseur": piece_dict.get("RéfAutreFournisseur"),
-            "NomFournisseur": safe_string(piece_dict.get("autre_fournisseur_nom", ""))
+    fournisseurs_list = [
+        {
+            "id": r["id"],
+            "RéfFournisseur": r["RéfFournisseur"],
+            "NomFournisseur": safe_string(r.get("NomFournisseur", "")),
+            "NuméroTél": safe_string(r.get("NuméroTél", "")),
+            "Domaine": safe_string(r.get("Domaine", "")),
+            "NumSap": safe_string(r.get("NumSap", "")),
+            "EstPrincipal": r["EstPrincipal"],
+            "NumPièceFournisseur": safe_string(r.get("NumPièceFournisseur", "")),
+            "PrixUnitaire": safe_float(r.get("PrixUnitaire", 0)),
+            "DelaiLivraison": safe_string(r.get("DelaiLivraison", "")),
         }
+        for r in fournisseurs_rows
+    ]
+    fournisseur_principal = next((f for f in fournisseurs_list if f["EstPrincipal"]), None)
 
     return Piece(
         RéfPièce=piece_dict["RéfPièce"],
         NomPièce=nom_piece,
         DescriptionPièce=safe_string(piece_dict.get("DescriptionPièce", "")),
         NumPièce=safe_string(piece_dict.get("NumPièce", "")),
-        RéfFournisseur=piece_dict.get("RéfFournisseur"),
-        RéfAutreFournisseur=piece_dict.get("RéfAutreFournisseur"),
         NumPièceAutreFournisseur=safe_string(piece_dict.get("NumPièceAutreFournisseur", "")),
         Lieuentreposage=safe_string(piece_dict.get("Lieuentreposage", "")),
         QtéenInventaire=qty_inventaire,
@@ -481,8 +501,8 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
         Prix_unitaire=safe_float(piece_dict.get("Prix unitaire", 0)),
         Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
         SoumDem=piece_dict.get("SoumDem", ""),
+        fournisseurs=fournisseurs_list,
         fournisseur_principal=fournisseur_principal,
-        autre_fournisseur=autre_fournisseur,
         NomFabricant=safe_string(piece_dict.get("NomFabricant", "")),
         RefFabricant=piece_dict.get("RefFabricant"),
         statut_stock=statut_stock,
@@ -499,4 +519,3 @@ async def delete_piece(piece_id: int, conn: asyncpg.Connection = Depends(get_db_
     if result == "DELETE 0":
         raise HTTPException(status_code=404, detail="Pièce non trouvée")
     return {"message": "Pièce supprimée"}
-

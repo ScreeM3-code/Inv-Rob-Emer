@@ -6,6 +6,7 @@ from typing import List
 from database import get_db_connection
 from models import Fournisseur, FournisseurCreate, Contact, ContactCreate
 from utils.helpers import safe_string, extract_domain_from_email
+import httpx
 
 router = APIRouter(prefix="/fournisseurs", tags=["fournisseurs"])
 
@@ -272,3 +273,164 @@ async def delete_contact(
     except Exception as e:
         print(f"❌ Erreur delete_contact: {e}")
         raise HTTPException(status_code=500, detail="Erreur lors de la suppression du contact")
+
+@router.get("/sap/search")
+async def search_fournisseurs_sap(
+    query: str,
+    sap_cookies: str,
+):
+    """
+    Recherche des fournisseurs dans SAP eReq via GET direct sur VendorMasterSet.
+    Retourne seulement les actifs (DeletionFlag=false, BlockedFlag=false).
+    """
+    import urllib.parse, json as json_lib
+
+    EREQ_BASE = "https://fip.remote.riotinto.com/sap/opu/odata/rio/ZMPTP_EREQ_SRV"
+    SAP_CLIENT = "500"
+    COMPANY_CODE = "2600"
+
+    cookies = (
+        f"SAP_SESSIONID_FIP_500={sap_cookies}; "
+        f"sap-usercontext=sap-language=FR&sap-client={SAP_CLIENT}"
+    )
+
+    query_upper = query.upper()
+
+    # Même filtre qu'eReq natif
+    sap_filter = (
+        f"(substringof('{query}',Vendor)"
+        f" or substringof('{query_upper}',VendorDescUC)"
+        f" or substringof('{query}',ABN)"
+        f" or substringof('{query}',City))"
+        f" and CompanyCode eq '{COMPANY_CODE}'"
+    )
+
+    params = urllib.parse.urlencode({
+        "sap-client": SAP_CLIENT,
+        "$format": "json",
+        "$filter": sap_filter,
+        "$top": "100",
+    })
+
+    url = f"{EREQ_BASE}/VendorMasterSet?{params}"
+
+    try:
+        async with httpx.AsyncClient(verify=False, timeout=30.0) as client:
+            resp = await client.get(
+                url,
+                headers={
+                    "Accept": "application/json",
+                    "Accept-Language": "fr",
+                    "DataServiceVersion": "2.0",
+                    "MaxDataServiceVersion": "2.0",
+                    "sap-cancel-on-close": "true",
+                    "Cookie": cookies,
+                    "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36",
+                    "Referer": "https://fip.remote.riotinto.com/sap/bc/ui5_ui5/sap/zmptp_ereq/index.html",
+                }
+            )
+
+        print(f"🔍 SAP VendorMasterSet status: {resp.status_code}")
+
+        if resp.status_code == 401:
+            raise HTTPException(status_code=401, detail="Session SAP expirée — recopie le cookie SAP_SESSIONID_FIP_500")
+        if resp.status_code == 403:
+            raise HTTPException(status_code=403, detail="Accès refusé par SAP")
+        if not resp.is_success:
+            print(f"❌ SAP error body: {resp.text[:500]}")
+            raise HTTPException(status_code=502, detail=f"SAP a répondu {resp.status_code}")
+
+        data = resp.json()
+        results = data.get("d", {}).get("results", [])
+
+        # Filtrer les supprimés/bloqués (#REFER...)
+        actifs = [r for r in results if not r.get("DeletionFlag") and not r.get("BlockedFlag")]
+
+        return [
+            {
+                "NumSap": r["Vendor"],
+                "NomFournisseur": r["VendorDesc"],
+                "Adresse": r.get("Street", ""),
+                "Ville": r.get("City", ""),
+                "CodePostal": r.get("Postcode", ""),
+                "Province": r.get("State", ""),
+                "Pays": r.get("Country", ""),
+                "IsAribaVendor": r.get("IsAribaVendor", False),
+            }
+            for r in actifs
+        ]
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        print(f"❌ SAP VendorMasterSet error: {type(e).__name__}: {e}")
+        raise HTTPException(status_code=502, detail=f"Erreur SAP: {str(e)}")
+@router.post("/sap/import")
+async def import_fournisseurs_sap(
+    payload: dict,
+    conn: asyncpg.Connection = Depends(get_db_connection)
+):
+    """
+    Importe ou met à jour une liste de fournisseurs SAP dans la base locale.
+    Payload: { "fournisseurs": [ { NumSap, NomFournisseur, Adresse, Ville, CodePostal, Pays } ] }
+    - Si NumSap existe déjà -> met à jour le nom + infos vides seulement
+    - Sinon -> crée un nouveau fournisseur
+    """
+    fournisseurs = payload.get("fournisseurs", [])
+    created = 0
+    updated = 0
+    skipped = 0
+
+    for f in fournisseurs:
+        num_sap = str(f.get("NumSap", "")).strip()
+        nom = f.get("NomFournisseur", "").strip()
+        if not num_sap or not nom:
+            skipped += 1
+            continue
+
+        existing = await conn.fetchrow(
+            'SELECT "RéfFournisseur" FROM "Fournisseurs" WHERE "NumSap" = $1',
+            num_sap
+        )
+
+        if existing:
+            # Met à jour le nom, mais ne touche pas aux champs déjà remplis manuellement
+            await conn.execute(
+                '''UPDATE "Fournisseurs"
+                   SET "NomFournisseur" = $1,
+                       "Adresse"    = CASE WHEN COALESCE("Adresse", '')    = '' THEN $2 ELSE "Adresse"    END,
+                       "Ville"      = CASE WHEN COALESCE("Ville", '')      = '' THEN $3 ELSE "Ville"      END,
+                       "CodePostal" = CASE WHEN COALESCE("CodePostal", '') = '' THEN $4 ELSE "CodePostal" END,
+                       "Pays"       = CASE WHEN COALESCE("Pays", '')       = '' THEN $5 ELSE "Pays"       END
+                   WHERE "NumSap" = $6''',
+                nom,
+                f.get("Adresse", ""),
+                f.get("Ville", ""),
+                f.get("CodePostal", ""),
+                f.get("Pays", ""),
+                num_sap
+            )
+            updated += 1
+        else:
+            await conn.execute(
+                '''INSERT INTO "Fournisseurs"
+                   ("NomFournisseur", "Adresse", "Ville", "CodePostal", "Pays", "NumSap",
+                    "NuméroTél", "Domaine", "Produit", "Marque")
+                   VALUES ($1, $2, $3, $4, $5, $6, '', '', '', '')''',
+                nom,
+                f.get("Adresse", ""),
+                f.get("Ville", ""),
+                f.get("CodePostal", ""),
+                f.get("Pays", ""),
+                num_sap
+            )
+            created += 1
+
+    return {
+        "created": created,
+        "updated": updated,
+        "skipped": skipped,
+        "total": len(fournisseurs)
+    }
+
+
