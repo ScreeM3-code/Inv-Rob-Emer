@@ -1,8 +1,15 @@
-2026-02-20 11:44:16,536 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
-2026-02-20 11:44:16,536 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2026-02-20 11:44:16,614 - uvicorn.error - INFO - Started server process [45068]
-2026-02-20 11:44:16,614 - uvicorn.error - INFO - Waiting for application startup.
-2026-02-20 11:44:16,754 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2026-02-20 11:44:16,761 - Inventaire-Robot - INFO - \u2705 949 Pièce trouvés
-2026-02-20 11:44:16,763 - uvicorn.error - INFO - Application startup complete.
-2026-02-20 11:44:16,763 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
+2026-02-20 14:55:57,657 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
+2026-02-20 14:55:57,657 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2026-02-20 14:55:57,765 - uvicorn.error - INFO - Started server process [31084]
+2026-02-20 14:55:57,765 - uvicorn.error - INFO - Waiting for application startup.
+2026-02-20 14:55:57,904 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2026-02-20 14:55:57,909 - Inventaire-Robot - INFO - \u2705 948 Pièce trouvés
+2026-02-20 14:55:57,910 - uvicorn.error - INFO - Application startup complete.
+2026-02-20 14:55:57,910 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
+2026-02-20 15:14:34,937 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=INA%20KLM%20Germany%20NA6907%20INA&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2026-02-20 15:14:35,471 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=INA%20KLM%20Germany%20NA6907%20INA&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2026-02-20 15:14:46,927 - httpx - INFO - HTTP Request: GET https://img4.dhresource.com/webp/m/260x260/f3/albu/ys/m/14/527e66b3-d196-47f2-b405-733632f84c6c.jpg "HTTP/1.1 403 Forbidden"
+2026-02-20 15:14:52,929 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=INA%20KLM%20Germany%20NA6907%20INA&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2026-02-20 15:14:53,437 - httpx - INFO - HTTP Request: GET https://www.googleapis.com/customsearch/v1?q=INA%20KLM%20Germany%20NA6907%20INA&cx=073aa2bae5b884a4b&key=AIzaSyBExpKHh_wQrHFCRyDPo6fSRZg2HNB0cyg&searchType=image&imgSize=medium&num=5 "HTTP/1.1 200 OK"
+2026-02-20 15:14:54,563 - httpx - INFO - HTTP Request: GET https://www.dhresource.com/webp/m/260x260/f2/albu/g19/M00/87/57/rBNaN2G5VnyAPgx8ABqETUI9004057.jpg "HTTP/1.1 403 Forbidden"
+2026-02-20 15:15:01,076 - httpx - INFO - HTTP Request: GET https://www.cuscinettitop.com/677621-home_default/cuscinetto-k32x46x32-ina-32x46x32.jpg "HTTP/1.1 200 OK"

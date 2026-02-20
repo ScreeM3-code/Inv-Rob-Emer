@@ -215,14 +215,6 @@ export default function GroupeCard({ groupe, pieces, onEdit, onDelete, onSortirP
                     </div>
                     <div className="flex-1 min-w-0">
                       <div className="flex items-center gap-2 mb-1">
-                        {piece && (
-                          <img
-                            alt={piece.NomPièce}
-                            className="w-10 h-10 md:w-12 md:h-12 object-cover rounded flex-shrink-0"
-                            onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                          />
-                        )}
-
                         <h4 className="font-semibold text-xs md:text-sm truncate">
                           {piece?.NomPièce || 'Pièce inconnue'}
                         </h4>

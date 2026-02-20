@@ -3,6 +3,7 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List, Optional
 from datetime import datetime
+import httpx
 from database import get_db_connection
 from models import Piece, PieceCreate, PieceUpdate, Fournisseur, Contact
 from utils.helpers import (
@@ -25,10 +26,26 @@ async def get_pieces(
         base_query = '''
             SELECT p.*,
                    f3."NomFabricant",
-                   pf_principal."RéfFournisseur" as ref_four_principal,
-                   fp."NomFournisseur"           as fournisseur_principal_nom,
-                   fp."NuméroTél"               as fournisseur_principal_tel,
-                   fp."NumSap"                  as fournisseur_principal_numsap
+                   fp."RéfFournisseur"  as ref_four_principal,
+                   fp."NomFournisseur"  as fournisseur_principal_nom,
+                   fp."NuméroTél"       as fournisseur_principal_tel,
+                   fp."NumSap"          as fournisseur_principal_numsap,
+                   (
+                       SELECT json_agg(
+                           json_build_object(
+                               'RéfFournisseur',      fall."RéfFournisseur",
+                               'NomFournisseur',      fall."NomFournisseur",
+                               'NuméroTél',           fall."NuméroTél",
+                               'NumSap',              fall."NumSap",
+                               'EstPrincipal',        pfall."EstPrincipal",
+                               'NumPièceFournisseur', pfall."NumPièceFournisseur",
+                               'PrixUnitaire',        pfall."PrixUnitaire"
+                           ) ORDER BY pfall."EstPrincipal" DESC, pfall."DateAjout" ASC
+                       )
+                       FROM "PieceFournisseur" pfall
+                       JOIN "Fournisseurs" fall ON fall."RéfFournisseur" = pfall."RéfFournisseur"
+                       WHERE pfall."RéfPièce" = p."RéfPièce"
+                   ) as tous_fournisseurs
             FROM "Pièce" p
             LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
             LEFT JOIN "PieceFournisseur" pf_principal ON (
@@ -92,6 +109,17 @@ async def get_pieces(
                     "EstPrincipal": True,
                 }
 
+            # Charger tous les fournisseurs depuis la subquery JSON
+            import json as _json
+            tous_raw = piece_dict.get("tous_fournisseurs")
+            if tous_raw:
+                if isinstance(tous_raw, str):
+                    tous_fournisseurs = _json.loads(tous_raw)
+                else:
+                    tous_fournisseurs = list(tous_raw)
+            else:
+                tous_fournisseurs = [fournisseur_principal] if fournisseur_principal else []
+
             piece_response = Piece(
                 RéfPièce=piece_dict["RéfPièce"],
                 NomPièce=nom_piece,
@@ -108,7 +136,7 @@ async def get_pieces(
                 Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
                 SoumDem=piece_dict.get("SoumDem", ""),
                 fournisseur_principal=fournisseur_principal,
-                fournisseurs=[fournisseur_principal] if fournisseur_principal else [],
+                fournisseurs=tous_fournisseurs,
                 NomFabricant=safe_string(piece_dict.get("NomFabricant", "")),
                 RefFabricant=piece_dict.get("RefFabricant"),
                 statut_stock=statut_stock,
@@ -519,3 +547,104 @@ async def delete_piece(piece_id: int, conn: asyncpg.Connection = Depends(get_db_
     if result == "DELETE 0":
         raise HTTPException(status_code=404, detail="Pièce non trouvée")
     return {"message": "Pièce supprimée"}
+
+
+@router.get("/barcode/{code}")
+async def lookup_barcode(code: str):
+    """
+    Lookup d'un code barre via UPCitemdb (gratuit 100/jour).
+    Fallback sur Open Product Data si rien trouvé.
+    Retourne les infos de la pièce ou 404 si introuvable.
+    """
+    result = await _try_upcitemdb(code)
+
+    if not result:
+        result = await _try_open_product_data(code)
+
+    if not result:
+        raise HTTPException(
+            status_code=404,
+            detail=f"Aucune information trouvée pour le code: {code}"
+        )
+
+    return result
+
+
+async def _try_upcitemdb(code: str) -> dict | None:
+    """Cherche le produit sur UPCitemdb (gratuit, 100 req/jour)"""
+    url = f"https://api.upcitemdb.com/prod/trial/lookup"
+    params = {"upc": code}
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(url, params=params)
+
+            if resp.status_code != 200:
+                return None
+
+            data = resp.json()
+            items = data.get("items", [])
+
+            if not items:
+                return None
+
+            item = items[0]
+
+            # Extraire l'image si disponible
+            images = item.get("images", [])
+            image_url = images[0] if images else None
+
+            return {
+                "source": "upcitemdb",
+                "code": code,
+                "NomPièce": item.get("title", ""),
+                "DescriptionPièce": item.get("description", ""),
+                "NumPièce": item.get("model", "") or item.get("mpn", ""),
+                "NomFabricant": item.get("brand", ""),
+                "image_url": image_url,
+                "raw": {
+                    "category": item.get("category", ""),
+                    "ean": item.get("ean", ""),
+                    "isbn": item.get("isbn", ""),
+                }
+            }
+
+    except Exception as e:
+        print(f"⚠️ UPCitemdb erreur: {e}")
+        return None
+
+
+async def _try_open_product_data(code: str) -> dict | None:
+    """Fallback: Open Product Data (produits EAN européens)"""
+    url = f"https://world.openfoodfacts.org/api/v0/product/{code}.json"
+
+    try:
+        async with httpx.AsyncClient(timeout=5.0) as client:
+            resp = await client.get(url)
+
+            if resp.status_code != 200:
+                return None
+
+            data = resp.json()
+
+            if data.get("status") != 1:
+                return None
+
+            product = data.get("product", {})
+
+            return {
+                "source": "openfoodfacts",
+                "code": code,
+                "NomPièce": product.get("product_name", "") or product.get("product_name_fr", ""),
+                "DescriptionPièce": product.get("generic_name", ""),
+                "NumPièce": "",
+                "NomFabricant": product.get("brands", ""),
+                "image_url": product.get("image_url", None),
+                "raw": {}
+            }
+
+    except Exception as e:
+        print(f"⚠️ OpenFoodFacts erreur: {e}")
+        return None
+
+
