@@ -118,7 +118,6 @@ export default function CommandeCard({
           SubconWork: '', OffsiteWork: '', Overtime: '',
           ReferenceAddressNumber: '', RefCustomerforAddress: '', RefVendorforAddress: '',
           ManualAddressNumber: '',
-          PRItemDeliveryAddress: null,
           PRAccount: [{
             PRNum: '',
             PRItemNum: '00001',
@@ -133,11 +132,6 @@ export default function CommandeCard({
             Qty: '0.00',
           }],
           PRMaterialData: [],
-          MissingReptId: '', PrMismatchId: '', ServiceOnsite: false, Blkcode: '000',
-          EngagementType: '', Equipment: '', MaterialAllowed: '', MaterialValue: '0.00',
-          SubconWork: '', OffsiteWork: '', Overtime: '',
-          ReferenceAddressNumber: '', RefCustomerforAddress: '', RefVendorforAddress: '',
-          ManualAddressNumber: '',
           PRItemDeliveryAddress: {
             AddressNumber: '2406137', FormOfAddress: '', Name: 'Centre Recherche et Developpement Arvida',
             Name2: 'Rio Tinto Alcan', Name3: '', Name4: '', COName: '',

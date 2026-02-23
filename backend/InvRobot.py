@@ -37,8 +37,8 @@ from routes import (
     soumissions_router,
     uploads_router
 )
-from auth import router as auth_router, get_current_user
-
+from routes import auth_router
+from auth import get_current_user
 
 
 # Setup logging

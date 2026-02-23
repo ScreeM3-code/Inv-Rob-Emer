@@ -38,3 +38,6 @@ class StatsResponse(BaseModel):
     valeur_stock: float
     pieces_a_commander: int
 
+
+class ApprobationRequest(BaseModel):
+    note: Optional[str] = None

@@ -1,5 +1,6 @@
 """Export tous les routers"""
 from .pieces import router as pieces_router
+from .auth import router as auth_router
 from .fournisseurs import router as fournisseurs_router
 from .fabricants import router as fabricants_router
 from .commandes import router as commandes_router
@@ -10,6 +11,7 @@ from .piece_images import router as piece_images_router
 from .uploads import router as uploads_router
 
 __all__ = [
+    'auth_router',
     'pieces_router',
     'piece_images_router',
     'fournisseurs_router',

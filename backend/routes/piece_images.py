@@ -4,14 +4,12 @@ from pathlib import Path
 from fastapi import APIRouter, Depends, HTTPException, UploadFile, File
 from fastapi.responses import FileResponse
 import asyncpg
-from typing import Optional, List
-from pydantic import BaseModel
 from config import GOOGLE_API_KEY, GOOGLE_CSE_ID
 import httpx
 import aiofiles
-
 from database import get_db_connection
 from config import BASE_DIR
+from models import ImageUrlRequest
 
 router = APIRouter(prefix="/pieces", tags=["piece-images"])
 
@@ -21,10 +19,6 @@ UPLOADS_DIR.mkdir(parents=True, exist_ok=True)
 
 # Image placeholder par défaut
 PLACEHOLDER_PATH = BASE_DIR / "static" / "placeholder_piece.png"
-
-
-class ImageUrlRequest(BaseModel):
-    image_url: str
 
 
 async def search_images_google(search_term: str, num_results: int = 5):

@@ -70,3 +70,6 @@ class Piece(PieceBase):
     NomFabricant: Optional[str] = ""
     Qtéàcommander: Optional[int] = 0
     Qtéarecevoir: Optional[int] = 0
+
+class ImageUrlRequest(BaseModel):
+    image_url: str

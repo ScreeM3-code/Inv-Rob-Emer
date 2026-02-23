@@ -1,4 +1,10 @@
-bug dans groupe les photos sont biz
+nettoyer et vérifier
+département  avec filtre
+exporté pieces en excel
+
+
+pieces card prendre le meme tlt
+
 
 
 

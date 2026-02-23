@@ -5,11 +5,10 @@ from typing import List
 from datetime import datetime
 import httpx
 from database import get_db_connection
-from models import Commande, StatsResponse
 from utils.helpers import safe_string, safe_int, safe_float, calculate_qty_to_order
 from auth import require_admin, require_auth
-from pydantic import BaseModel as PydanticBaseModel
-from typing import Optional
+from models import Commande, StatsResponse, ApprobationRequest
+
 import asyncio
 from notification_service import (
     notify_demande_approbation,
@@ -19,8 +18,6 @@ from notification_service import (
 
 router = APIRouter(tags=["commandes"])
 
-class ApprobationRequest(PydanticBaseModel):
-    note: Optional[str] = None
 
 @router.get("/stats", response_model=StatsResponse)
 async def get_stats(conn: asyncpg.Connection = Depends(get_db_connection)):
