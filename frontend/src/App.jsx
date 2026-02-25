@@ -6,14 +6,14 @@ import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
-import { Plus, Package, Loader2, AlertTriangle, Search, DollarSign } from "lucide-react";
+import { Plus, Package, Loader2, AlertTriangle, Search, DollarSign, FileDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import PieceEditDialog from "@/components/inventaire/PieceEditDialog";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { Toaster } from "@/components/ui/toaster";
 import { toast } from "@/hooks/use-toast";
 import { usePermissions } from './hooks/usePermissions';
-
+import * as XLSX from 'xlsx';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -67,14 +67,10 @@ function Dashboard () {
   const [currentPage, setCurrentPage] = useState(1);
   const [groupes, setGroupes] = useState([]);
   const [categories, setCategories] = useState([]);
+  const [departements, setDepartements] = useState([]);
   const { can, isAdmin } = usePermissions();
-  const [filters, setFilters] = useState({
-    statut: "tous",
-    stock: "tous",
-    groupe: "tous",
-    commande: "tous"
-  });
-  // Note: quick-remove quantity is now per-card; removed global quickRemoveQty
+  const [filters, setFilters] = useState({ statut: 'tous', stock: 'tous', commande: 'tous', departement: 'tous' });
+
 
   // Filtrage des pièces
   let filteredPieces = pieces.filter(piece => {
@@ -84,6 +80,9 @@ function Dashboard () {
     }
     if (filters.commande === "sans_commande" && piece.Qtécommandée > 0) {
       return false;
+    }
+    if (filters.departement !== 'tous') {
+      if (String(piece.RefDepartement) !== filters.departement) return false;
     }
     return true;
   });
@@ -103,7 +102,9 @@ function Dashboard () {
 
       const groupes = await fetchJson(`${API}/groupes`);
         setGroupes(groupes || []);
-        setCategories(groupes.NomCategorie || []);
+        // Les catégories sont extraites via /groupes/categories séparément, ou déduite des groupes :
+        const cats = [...new Map((groupes || []).filter(g => g.NomCategorie).map(g => [g.RefCategorie, { RefCategorie: g.RefCategorie, NomCategorie: g.NomCategorie }])).values()];
+        setCategories(cats);
         
       
       
@@ -118,12 +119,13 @@ function Dashboard () {
       log('🔍 URL appelée:', piecesUrl);
 
       try {
-        const [pieces, fournisseurs, stats, fabricants, groupes] = await Promise.all([
+        const [pieces, fournisseurs, stats, fabricants, groupes, departements] = await Promise.all([
           fetchJson(piecesUrl),
           fetchJson(`${API}/fournisseurs`),
           fetchJson(`${API}/stats`),
           fetchJson(`${API}/fabricant`),
-          fetchJson(`${API}/groupes`)
+          fetchJson(`${API}/groupes`),
+          fetchJson(`${API}/departements`),
         ]);
 
         setPieces(Array.isArray(pieces) ? pieces : []);
@@ -131,6 +133,7 @@ function Dashboard () {
         setStats(stats || { total_pieces: 0, stock_critique: 0, valeur_stock: 0, pieces_a_commander: 0 });
         setFabricants(fabricants || []);
         setGroupes(groupes || []);
+        setDepartements(Array.isArray(departements) ? departements : []);
       } catch (error) {
         log("❌ Erreur lors du chargement:", error);
         // Reset states to safe defaults on error
@@ -138,9 +141,35 @@ function Dashboard () {
         setFournisseurs([]);
         setStats({ total_pieces: 0, stock_critique: 0, valeur_stock: 0, pieces_a_commander: 0 });
         setFabricants([]);
+        setGroupes([]);
+        setDepartements([]);
       }
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleUpdateDepartement = async (pieceId, refDepartement) => {
+    try {
+      await fetchJson(`${API}/pieces/${pieceId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ RefDepartement: refDepartement })
+      });
+      // Mettre à jour localement pour éviter un rechargement complet
+      setPieces(prev => prev.map(p =>
+        p.RéfPièce === pieceId
+          ? {
+              ...p,
+              RefDepartement: refDepartement,
+              NomDepartement: refDepartement
+                ? departements.find(d => d.RefDepartement === refDepartement)?.NomDepartement || null
+                : null
+            }
+          : p
+      ));
+    } catch (error) {
+      toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
     }
   };
 
@@ -435,6 +464,37 @@ function Dashboard () {
     }
   };
 
+  // Export Excel des pièces
+  const handleExportExcel = () => {
+    const data = filteredPieces.map(p => ({
+      'Réf Pièce':        p.RéfPièce,
+      'Nom':              p.NomPièce,
+      'Description':      p.DescriptionPièce || '',
+      'N° Pièce':         p.NumPièce || '',
+      'Fabricant':        p.NomFabricant || '',
+      'Fournisseur':      p.fournisseur_principal?.NomFournisseur || '',
+      'N° Fournisseur':   p.fournisseur_principal?.NumPièceFournisseur || '',
+      'Lieu entreposage': p.Lieuentreposage || '',
+      'Qté inventaire':   p.QtéenInventaire ?? 0,
+      'Qté minimum':      p.Qtéminimum ?? 0,
+      'Qté max':          p.Qtémax ?? 0,
+      'Qté à commander':  p.Qtéàcommander ?? 0,
+      'Qté commandée':    p.Qtécommandée ?? 0,
+      'Prix unitaire':    p.Prix_unitaire ?? 0,
+      'Statut stock':     p.statut_stock || '',
+    }));
+
+    const ws = XLSX.utils.json_to_sheet(data);
+    const wb = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(wb, ws, 'Pièces');
+
+    const cols = Object.keys(data[0] || {}).map(key => ({ wch: Math.max(key.length, 14) }));
+    ws['!cols'] = cols;
+
+    const date = new Date().toISOString().slice(0, 10);
+    XLSX.writeFile(wb, `inventaire_pieces_${date}.xlsx`);
+  };
+
  
    return (
     <div className="min-h-screen w-full p-2 from-slate-50 via-blue-50 to-indigo-50">
@@ -452,6 +512,15 @@ function Dashboard () {
               <p className="text-slate-600 dark:text-white">Gérez vos pièces et votre stock</p>
             </div>
           </div>
+          <Button
+            variant="outline"
+            onClick={handleExportExcel}
+            className="border-green-600 text-green-600 hover:bg-green-50"
+          >
+            <FileDown className="w-4 h-4 mr-2" />
+            Exporter Excel
+          </Button>
+
           {can('inventaire_create') && <Button 
             onClick={() => {
               setNewPiece({
@@ -568,7 +637,29 @@ function Dashboard () {
                     <SelectItem value="critique">Stock Critique</SelectItem>
                   </SelectContent>
                 </Select>
-                
+ 
+                <Select
+                  value={filters.departement}
+                  onValueChange={(value) => setFilters({...filters, departement: value})}
+                >
+                  <SelectTrigger className="w-full lg:w-[160px] h-9 text-xs md:text-sm">
+                    <SelectValue placeholder="Département" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="tous">Tous dépt.</SelectItem>
+                    {departements.map(d => (
+                      <SelectItem key={d.RefDepartement} value={d.RefDepartement.toString()}>
+                        <div className="flex items-center gap-2">
+                          <span
+                            className="w-2 h-2 rounded-full flex-shrink-0"
+                            style={{ backgroundColor: d.Couleur || '#6366f1' }}
+                          />
+                          {d.NomDepartement}
+                        </div>
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
                 <Select
                   value={filters.commande}
                   onValueChange={(value) => setFilters({...filters, commande: value})}
@@ -597,7 +688,7 @@ function Dashboard () {
           <Package className="mx-auto h-12 w-12 text-gray-400" />
           <h3 className="mt-2 text-sm font-medium text-gray-900">Aucune pièce trouvée</h3>
           <p className="mt-1 text-sm text-gray-500">
-            {searchTerm || filters.statut !== "tous" || filters.stock !== "tous" 
+            {searchTerm || filters.stock !== "tous" || filters.departement !== "tous" || filters.commande !== "tous"
               ? "Essayez de modifier vos filtres de recherche." 
               : "Commencez par ajouter une nouvelle pièce."}
           </p>
@@ -616,7 +707,9 @@ function Dashboard () {
                   fournisseur={fournisseur}
                   autreFournisseur={autreFournisseur}
                   fabricant={fabricant}
-                  groupes={groupes}
+                  groupes={groupes}                                  
+                  departements={departements}
+                  onUpdateDepartement={handleUpdateDepartement}
                   pieceGroupes={groupes.flatMap(g => g.pieces || []).filter(gp => gp.RéfPièce === piece.RéfPièce)}
                   onEdit={() => setEditingPiece(piece)}
                   onDelete={() => handleDeletePiece(piece.RéfPièce)}
@@ -640,28 +733,6 @@ function Dashboard () {
         </>
       )}
 
-        {/* Message si aucune pièce */}
-        {!loading && displayedItems.length === 0 && (
-          <div className="text-center py-12">
-            <Package className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Aucune pièce trouvée</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              {searchTerm || filters.statut !== "tous" || filters.stock !== "tous" 
-                ? "Essayez de modifier vos filtres de recherche." 
-                : "Commencez par ajouter une nouvelle pièce."}
-            </p>
-          </div>
-        )}
-
-        {pieces.length === 0 && (
-          <div className="text-center py-12">
-            <Package className="mx-auto h-12 w-12 text-gray-400" />
-            <h3 className="mt-2 text-sm font-medium text-gray-900">Aucune pièce trouvée</h3>
-            <p className="mt-1 text-sm text-gray-500">
-              {searchTerm ? "Essayez avec un autre terme de recherche." : "Votre inventaire sera affiché ici."}
-            </p>
-          </div>
-        )}
       </div>
       {/* Dialog d'édition */}
       {editingPiece && (
@@ -669,9 +740,11 @@ function Dashboard () {
           piece={editingPiece}
           fournisseurs={fournisseurs}
           fabricants={fabricants}
+          departements={departements}
+          onUpdateDepartement={handleUpdateDepartement}
           onSave={handleUpdatePiece}
           onCancel={() => setEditingPiece(null)}
-          onChange={(field, value) => setEditingPiece({...editingPiece, [field]: value})}
+          onChange={(field, value) => setEditingPiece(prev => ({...prev, [field]: value}))}
         />
       )}
 
@@ -681,9 +754,11 @@ function Dashboard () {
           piece={newPiece}
           fournisseurs={fournisseurs}
           fabricants={fabricants}
+          departements={departements}
+          onUpdateDepartement={handleUpdateDepartement}
           onSave={handleAddPiece}
           onCancel={() => setIsAddDialogOpen(false)}
-          onChange={(field, value) => setNewPiece({...newPiece, [field]: value})}
+          onChange={(field, value) => setNewPiece(prev => ({...prev, [field]: value}))}
         />
       )}
     </div>

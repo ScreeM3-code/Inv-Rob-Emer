@@ -7,7 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from '@/hooks/use-toast';
 import PieceFournisseursEditor from '@/components/pieces/PieceFournisseursEditor';
 
-export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave, onCancel }) {
+export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave, onCancel, departements = [] }) {
   const [formData, setFormData] = React.useState({
     ...piece,
     fournisseurs: piece.fournisseurs || [],
@@ -61,6 +61,7 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
       Prix_unitaire: isNaN(prix) ? 0 : prix,
       fournisseurs: formData.fournisseurs || [],
       RefFabricant: formData.RefFabricant || null,
+      RefDepartement: formData.RefDepartement !== undefined ? formData.RefDepartement : null,
       RTBS: formData.RTBS || null,
     };
 
@@ -145,6 +146,37 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
                 {fabricants?.map((fab) => (
                   <SelectItem key={fab.RefFabricant} value={fab.RefFabricant.toString()}>
                     {fab.NomFabricant}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          
+          <div className="border-t pt-4">
+            <Label>Département</Label>
+            <Select
+              value={formData.RefDepartement?.toString() || "none"}
+              onValueChange={(value) => {
+                if (value === "none") return handleChange('RefDepartement', null);
+                const n = parseInt(value, 10);
+                handleChange('RefDepartement', isNaN(n) ? null : n);
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un département" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">— Aucun département</SelectItem>
+                {departements.map((dept) => (
+                  <SelectItem key={dept.RefDepartement} value={dept.RefDepartement.toString()}>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: dept.Couleur || '#6366f1' }}
+                      />
+                      {dept.NomDepartement}
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>

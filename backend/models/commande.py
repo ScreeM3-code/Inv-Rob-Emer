@@ -1,6 +1,6 @@
 """Modèles Pydantic pour les commandes et stats"""
 from pydantic import BaseModel
-from typing import Optional
+from typing import Optional, List
 from datetime import date
 
 class Commande(BaseModel):
@@ -8,8 +8,8 @@ class Commande(BaseModel):
     NomPièce: Optional[str] = ""
     DescriptionPièce: Optional[str] = ""
     NumPièce: Optional[str] = ""
-    RéfFournisseur: Optional[int] = None
-    RéfAutreFournisseur: Optional[int] = None
+    fournisseurs: Optional[List[dict]] = []
+    fournisseur_principal: Optional[dict] = None
     RefFabricant: Optional[int] = None
     NumPièceAutreFournisseur: Optional[str] = ""
     Lieuentreposage: Optional[str] = ""

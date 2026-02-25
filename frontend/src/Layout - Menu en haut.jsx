@@ -29,28 +29,26 @@ export default function Layout() {
     navigate('/login');
   };
 
-  // Items standalone
-  const standaloneNavItems = [
-    { path: '/inventaire',   label: 'Inventaire',  icon: Package, permission: 'inventaire_view' },
-    { path: '/groupes',      label: 'Groupes',     icon: Layers,  permission: 'groupes_view' },
-    { path: '/fournisseurs', label: 'Fournisseurs',icon: Store,   permission: 'fournisseur_view' },
-    { path: '/fabricant',    label: 'Fabricant',   icon: Cog,     permission: 'fabricant_view' },
-  ].filter(item => !item.permission || can(item.permission));
+  // Chaque item a une permission requise (null = toujours visible si connecté)
+  const allNavItems = [
+    { path: '/inventaire',            label: 'Inventaire',  icon: Package,      permission: 'inventaire_view' },
+    { path: '/groupes',               label: 'Groupes',     icon: Layers,       permission: 'groupes_view' },
+    { path: '/fournisseurs',          label: 'Fournisseurs',icon: Store,        permission: 'fournisseur_view' },
+    { path: '/fabricant',             label: 'Fabricant',   icon: Cog,          permission: 'fabricant_view' },
+    { path: '/commandes',             label: 'Commander',   icon: ShoppingCart, permission: 'commandes_view' },
+    { path: '/approbation',           label: 'Approbations', icon: CheckCircle, permission: 'can_approve_orders'},
+    { path: '/departements',          label: 'Départements', icon: Building2, permission: 'departements_view' },
+    { path: '/receptions',            label: 'Réceptions',  icon: Inbox,        permission: 'receptions_view' },
+    { path: '/historique',            label: 'Historique',  icon: History,      permission: 'historique_view' },
+    { path: '/soumissions-historique',label: 'Soumissions', icon: FileText,     permission: 'soumissions_view' },
 
-  // Groupe Commandes
-  const commandesItems = [
-    { path: '/commandes',              label: 'Commander',  icon: ShoppingCart, permission: 'commandes_view' },
-    { path: '/receptions',             label: 'Réceptions', icon: Inbox,        permission: 'receptions_view' },
-    { path: '/soumissions-historique', label: 'Soumissions',icon: FileText,     permission: 'soumissions_view' },
-    { path: '/historique',             label: 'Historique', icon: History,      permission: 'historique_view' },
-  ].filter(item => !item.permission || can(item.permission));
+    
+  ];
 
-  // Groupe Admin
-  const adminItems = [
-    { path: '/approbation',  label: 'Approbations', icon: CheckCircle, permission: 'can_approve_orders' },
-    { path: '/departements', label: 'Départements', icon: Building2,   permission: 'departements_view' },
-    ...(isAdmin ? [{ path: '/users', label: 'Utilisateurs', icon: Shield }] : []),
-  ].filter(item => !item.permission || can(item.permission));
+  // Filtrer selon les permissions de l'utilisateur connecté
+  const mainNavItems = allNavItems.filter(item =>
+    !item.permission || can(item.permission)
+  );
 
   const isActive = (path) => location.pathname === path;
 
@@ -100,8 +98,7 @@ export default function Layout() {
 
             {/* Navigation Desktop */}
             <nav className="hidden lg:flex items-center space-x-1">
-              {/* Items standalone */}
-              {standaloneNavItems.map((item) => {
+              {mainNavItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
@@ -109,89 +106,23 @@ export default function Layout() {
                     to={item.path}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
                       isActive(item.path)
-                        ? 'bg-gradient-to-r from-rio-red to-red-600 text-white shadow-lg'
+                        ? 'bg-gradient-to-r from-rio-red to-red-600 text-white shadow-lg dar'
                         : 'text-gray-600 dark:text-gray-300 hover:text-rio-red hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                   >
                     <Icon className="h-4 w-4" />
                     <span className="hidden xl:inline">{item.label}</span>
-                  </Link>
-                );
-              })}
 
-              {/* Dropdown Commandes */}
-              {commandesItems.length > 0 && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
-                      commandesItems.some(i => isActive(i.path))
-                        ? 'bg-gradient-to-r from-rio-red to-red-600 text-white shadow-lg'
-                        : 'text-gray-600 dark:text-gray-300 hover:text-rio-red hover:bg-gray-100 dark:hover:bg-gray-800'
-                    }`}>
-                      <ShoppingCart className="h-4 w-4" />
-                      <span className="hidden xl:inline">Commandes</span>
-                      <svg className="h-3 w-3 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-48">
-                    <DropdownMenuLabel>Commandes</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {commandesItems.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <DropdownMenuItem key={item.path} asChild>
-                          <Link to={item.path} className={`cursor-pointer flex items-center gap-2 ${isActive(item.path) ? 'text-rio-red font-medium' : 'text-gray-700 dark:text-gray-200'}`}>
-                            <Icon className="h-4 w-4" />
-                            {item.label}
-                          </Link>
-                        </DropdownMenuItem>
-                      );
-                    })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
-
-              {/* Dropdown Admin */}
-              {adminItems.length > 0 && (
-                <DropdownMenu>
-                  <DropdownMenuTrigger asChild>
-                    <button className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
-                      adminItems.some(i => isActive(i.path))
-                        ? 'bg-gradient-to-r from-rio-red to-red-600 text-white shadow-lg'
-                        : 'text-gray-600 dark:text-gray-300 hover:text-rio-red hover:bg-gray-100 dark:hover:bg-gray-800'
-                    }`}>
-                      <Shield className="h-4 w-4" />
-                      <span className="hidden xl:inline">Admin</span>
-                      {pendingCount > 0 && (
-                        <span className="inline-flex items-center justify-center h-4 w-4 rounded-full bg-red-500 text-white text-xs font-bold">
+                      {item.path === '/approbation' && pendingCount > 0 && (
+                        <span className="ml-1 inline-flex items-center justify-center h-4 w-4 rounded-full bg-red-500 text-white text-xs font-bold">
                           {pendingCount}
                         </span>
                       )}
-                      <svg className="h-3 w-3 opacity-60" fill="none" viewBox="0 0 24 24" stroke="currentColor"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 9l-7 7-7-7" /></svg>
-                    </button>
-                  </DropdownMenuTrigger>
-                  <DropdownMenuContent align="start" className="w-52">
-                    <DropdownMenuLabel>Administration</DropdownMenuLabel>
-                    <DropdownMenuSeparator />
-                    {adminItems.map((item) => {
-                      const Icon = item.icon;
-                      return (
-                        <DropdownMenuItem key={item.path} asChild>
-                          <Link to={item.path} className={`cursor-pointer flex items-center gap-2 ${isActive(item.path) ? 'text-rio-red font-medium' : 'text-gray-700 dark:text-gray-200'}`}>
-                            <Icon className="h-4 w-4" />
-                            {item.label}
-                            {item.path === '/approbation' && pendingCount > 0 && (
-                              <span className="ml-auto inline-flex items-center justify-center h-4 w-4 rounded-full bg-red-500 text-white text-xs font-bold">
-                                {pendingCount}
-                              </span>
-                            )}
-                          </Link>
-                        </DropdownMenuItem>
-                      );
-                    })}
-                  </DropdownMenuContent>
-                </DropdownMenu>
-              )}
+
+
+                  </Link>
+                );
+              })}
             </nav>
 
             {/* Actions droite */}
@@ -263,8 +194,7 @@ export default function Layout() {
           {/* Menu mobile */}
           {mobileMenuOpen && (
             <div className="lg:hidden pb-4 space-y-1 border-t border-gray-200 dark:border-gray-700 pt-4">
-              {/* Items standalone */}
-              {standaloneNavItems.map((item) => {
+              {mainNavItems.map((item) => {
                 const Icon = item.icon;
                 return (
                   <Link
@@ -279,64 +209,14 @@ export default function Layout() {
                   >
                     <Icon className="h-5 w-5" />
                     {item.label}
+                      {item.path === '/approbation' && pendingCount > 0 && (
+                      <span className="ml-1 inline-flex items-center justify-center h-4 w-4 rounded-full bg-red-500 text-white text-xs font-bold">
+                        {pendingCount}
+                      </span>
+                    )}
                   </Link>
                 );
               })}
-
-              {/* Groupe Commandes mobile */}
-              {commandesItems.length > 0 && (
-                <div className="pt-2">
-                  <p className="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Commandes</p>
-                  {commandesItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all ${
-                          isActive(item.path)
-                            ? 'bg-gradient-to-r from-rio-red to-red-600 text-white shadow-lg'
-                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                        }`}
-                      >
-                        <Icon className="h-5 w-5" />
-                        {item.label}
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
-
-              {/* Groupe Admin mobile */}
-              {adminItems.length > 0 && (
-                <div className="pt-2">
-                  <p className="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Administration</p>
-                  {adminItems.map((item) => {
-                    const Icon = item.icon;
-                    return (
-                      <Link
-                        key={item.path}
-                        to={item.path}
-                        onClick={() => setMobileMenuOpen(false)}
-                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all ${
-                          isActive(item.path)
-                            ? 'bg-gradient-to-r from-rio-red to-red-600 text-white shadow-lg'
-                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
-                        }`}
-                      >
-                        <Icon className="h-5 w-5" />
-                        {item.label}
-                        {item.path === '/approbation' && pendingCount > 0 && (
-                          <span className="ml-1 inline-flex items-center justify-center h-4 w-4 rounded-full bg-red-500 text-white text-xs font-bold">
-                            {pendingCount}
-                          </span>
-                        )}
-                      </Link>
-                    );
-                  })}
-                </div>
-              )}
 
               <div className="pt-4 mt-4 border-t border-gray-200 dark:border-gray-700">
                 {auth && auth.user ? (
@@ -357,7 +237,14 @@ export default function Layout() {
                     </div>
 
                     {isAdmin && (
-                      <></>
+                      <Link
+                        to="/users"
+                        onClick={() => setMobileMenuOpen(false)}
+                        className="flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+                      >
+                        <Shield className="h-5 w-5" />
+                        Gestion des utilisateurs
+                      </Link>
                     )}
 
                     <Link

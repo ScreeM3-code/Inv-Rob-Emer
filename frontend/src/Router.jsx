@@ -16,6 +16,7 @@ import ForgotPassword from "./ForgotPassword";
 import ResetPassword from "./ResetPassword";
 import Approbation from "./Approbation";
 import Profile from "./Profile";
+import Departements from "./Departements";
 
 export default function AppRouter() {
   const auth = useAuth();
@@ -45,6 +46,7 @@ export default function AppRouter() {
         <Route path="receptions" element={<Receptions />} />
         <Route path="historique" element={<Historique />} />
         <Route path="groupes" element={<Groupes />} />
+        <Route path="departements" element={<Departements />} />
         <Route path="soumissions-historique" element={<SoumissionsHistorique />} />
         <Route path="users" element={<UsersPage />} />
         <Route path="profile" element={<Profile />} />

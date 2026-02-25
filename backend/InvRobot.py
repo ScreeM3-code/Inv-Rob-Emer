@@ -35,7 +35,8 @@ from routes import (
     historique_router,
     groupes_router,
     soumissions_router,
-    uploads_router
+    uploads_router,
+    departements_router,
 )
 from routes import auth_router
 from auth import get_current_user
@@ -85,6 +86,7 @@ app.include_router(groupes_router, prefix="/api")
 app.include_router(soumissions_router, prefix="/api")
 app.include_router(piece_images_router, prefix="/api")
 app.include_router(uploads_router, prefix="/api")
+app.include_router(departements_router, prefix="/api")
 
 # Configuration du frontend (si build existe)
 if BUILD_DIR.exists():

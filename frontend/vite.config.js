@@ -28,6 +28,8 @@ export default defineConfig({
             '**/public/**',
           ],
         },
+    host: true,
+    
     hmr: !disableHotReload, // Désactive HMR si demandé
     proxy: {
       '/api': {

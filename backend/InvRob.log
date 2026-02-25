@@ -1,8 +1,21 @@
-2026-02-22 09:42:22,612 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
-2026-02-22 09:42:22,612 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2026-02-22 09:42:22,723 - uvicorn.error - INFO - Started server process [48992]
-2026-02-22 09:42:22,723 - uvicorn.error - INFO - Waiting for application startup.
-2026-02-22 09:42:22,870 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2026-02-22 09:42:22,900 - Inventaire-Robot - INFO - \u2705 947 Pièce trouvés
-2026-02-22 09:42:22,901 - uvicorn.error - INFO - Application startup complete.
-2026-02-22 09:42:22,901 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
+2026-02-24 14:51:48,246 - Inventaire-Robot - INFO - \u2705 Frontend SPA configuré
+2026-02-24 14:51:48,246 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2026-02-24 14:51:48,334 - uvicorn.error - INFO - Started server process [18444]
+2026-02-24 14:51:48,334 - uvicorn.error - INFO - Waiting for application startup.
+2026-02-24 14:51:48,473 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2026-02-24 14:51:48,482 - Inventaire-Robot - INFO - \u2705 947 Pièce trouvés
+2026-02-24 14:51:48,484 - uvicorn.error - INFO - Application startup complete.
+2026-02-24 14:51:48,485 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
+2026-02-25 07:53:34,142 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] Une connexion existante a dû être fermée par l’hôte distant
+2026-02-25 08:25:26,659 - uvicorn.error - INFO - Shutting down
+2026-02-25 08:25:26,767 - uvicorn.error - INFO - Waiting for application shutdown.
+2026-02-25 08:25:26,782 - Inventaire-Robot - INFO - Pool PostgreSQL fermé.
+2026-02-25 08:25:26,782 - uvicorn.error - INFO - Application shutdown complete.
+2026-02-25 08:25:26,782 - uvicorn.error - INFO - Finished server process [18444]

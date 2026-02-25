@@ -3,7 +3,6 @@ import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request
 from typing import List, Optional
 from datetime import datetime
-import httpx
 from database import get_db_connection
 from models import Piece, PieceCreate, PieceUpdate, Fournisseur, Contact
 from utils.helpers import (
@@ -335,25 +334,25 @@ async def create_piece(
     piece: PieceCreate,
     conn: asyncpg.Connection = Depends(get_db_connection)
 ):
-    """Crée une nouvelle pièce"""
-    query = '''
-        INSERT INTO "Pièce" (
-            "NomPièce", "DescriptionPièce", "NumPièce", "RéfFournisseur",
-            "RéfAutreFournisseur", "NumPièceAutreFournisseur", "RefFabricant",
-            "Lieuentreposage", "QtéenInventaire", "Qtéminimum", "Qtémax",
-            "Prix unitaire", "Soumission LD", "SoumDem", "Created", "Modified", "NoFESTO", "RTBS"
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
-        RETURNING *
-    '''
+    """Crée une nouvelle pièce puis insère les fournisseurs dans PieceFournisseur"""
 
     now = datetime.utcnow()
+
+    # 1. Insérer la pièce (sans fournisseurs — c'est dans PieceFournisseur)
     row = await conn.fetchrow(
-        query,
+        '''
+        INSERT INTO "Pièce" (
+            "NomPièce", "DescriptionPièce", "NumPièce",
+            "NumPièceAutreFournisseur", "RefFabricant",
+            "Lieuentreposage", "QtéenInventaire", "Qtéminimum", "Qtémax",
+            "Prix unitaire", "Soumission LD", "SoumDem",
+            "Created", "Modified", "NoFESTO", "RTBS"
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+        RETURNING *
+        ''',
         piece.NomPièce,
         piece.DescriptionPièce or "",
         piece.NumPièce or "",
-        piece.RéfFournisseur,
-        piece.RéfAutreFournisseur,
         piece.NumPièceAutreFournisseur or "",
         piece.RefFabricant,
         piece.Lieuentreposage or "",
@@ -369,6 +368,69 @@ async def create_piece(
         piece.RTBS
     )
 
+    piece_id = row["RéfPièce"]
+
+    # 2. Insérer les fournisseurs dans PieceFournisseur
+    fournisseurs_input = piece.fournisseurs or []
+
+    # Si pas de fournisseurs dans le nouveau format mais ancien champ présent
+    if not fournisseurs_input and hasattr(piece, 'RéfFournisseur') and piece.RéfFournisseur:
+        fournisseurs_input = [{"RéfFournisseur": piece.RéfFournisseur, "EstPrincipal": True}]
+
+    for i, f in enumerate(fournisseurs_input):
+        ref = f.get("RéfFournisseur") if isinstance(f, dict) else getattr(f, "RéfFournisseur", None)
+        if not ref:
+            continue
+        est_principal = f.get("EstPrincipal", i == 0) if isinstance(f, dict) else getattr(f, "EstPrincipal", i == 0)
+        num_piece_fourn = f.get("NumPièceFournisseur", "") if isinstance(f, dict) else getattr(f, "NumPièceFournisseur", "")
+        prix = f.get("PrixUnitaire", 0) if isinstance(f, dict) else getattr(f, "PrixUnitaire", 0)
+        delai = f.get("DelaiLivraison", "") if isinstance(f, dict) else getattr(f, "DelaiLivraison", "")
+
+        # Si déjà un principal, forcer les suivants à False
+        if est_principal:
+            await conn.execute(
+                'UPDATE "PieceFournisseur" SET "EstPrincipal" = FALSE WHERE "RéfPièce" = $1',
+                piece_id
+            )
+
+        await conn.execute(
+            '''
+            INSERT INTO "PieceFournisseur"
+                ("RéfPièce", "RéfFournisseur", "EstPrincipal",
+                 "NumPièceFournisseur", "PrixUnitaire", "DelaiLivraison", "DateAjout")
+            VALUES ($1, $2, $3, $4, $5, $6, NOW())
+            ''',
+            piece_id, ref, est_principal,
+            num_piece_fourn or "", prix or 0, delai or ""
+        )
+
+    # 3. Recharger les fournisseurs pour la réponse
+    fournisseurs_rows = await conn.fetch(
+        '''
+        SELECT pf."id", pf."RéfFournisseur", pf."EstPrincipal",
+               pf."NumPièceFournisseur", pf."PrixUnitaire", pf."DelaiLivraison",
+               f."NomFournisseur", f."NuméroTél", f."NumSap"
+        FROM "PieceFournisseur" pf
+        JOIN "Fournisseurs" f ON f."RéfFournisseur" = pf."RéfFournisseur"
+        WHERE pf."RéfPièce" = $1
+        ORDER BY pf."EstPrincipal" DESC, pf."DateAjout" ASC
+        ''',
+        piece_id
+    )
+    fournisseurs_list = [
+        {
+            "RéfFournisseur": r["RéfFournisseur"],
+            "NomFournisseur": safe_string(r.get("NomFournisseur", "")),
+            "NuméroTél": safe_string(r.get("NuméroTél", "")),
+            "NumSap": safe_string(r.get("NumSap", "")),
+            "EstPrincipal": r["EstPrincipal"],
+            "NumPièceFournisseur": safe_string(r.get("NumPièceFournisseur", "")),
+            "PrixUnitaire": safe_float(r.get("PrixUnitaire", 0)),
+        }
+        for r in fournisseurs_rows
+    ]
+    fournisseur_principal = next((f for f in fournisseurs_list if f["EstPrincipal"]), None)
+
     piece_dict = dict(row)
     qty_a_commander = calculate_qty_to_order(
         piece_dict.get("QtéenInventaire", 0),
@@ -377,12 +439,10 @@ async def create_piece(
     )
 
     return Piece(
-        RéfPièce=piece_dict["RéfPièce"],
+        RéfPièce=piece_id,
         NomPièce=safe_string(piece_dict.get("NomPièce", "")),
         DescriptionPièce=safe_string(piece_dict.get("DescriptionPièce", "")),
         NumPièce=safe_string(piece_dict.get("NumPièce", "")),
-        RéfFournisseur=piece_dict.get("RéfFournisseur"),
-        RéfAutreFournisseur=piece_dict.get("RéfAutreFournisseur"),
         NumPièceAutreFournisseur=safe_string(piece_dict.get("NumPièceAutreFournisseur", "")),
         Lieuentreposage=safe_string(piece_dict.get("Lieuentreposage", "")),
         QtéenInventaire=safe_int(piece_dict.get("QtéenInventaire", 0)),
@@ -392,6 +452,8 @@ async def create_piece(
         Prix_unitaire=safe_float(piece_dict.get("Prix unitaire", 0)),
         Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
         SoumDem=piece_dict.get("SoumDem", ""),
+        fournisseurs=fournisseurs_list,
+        fournisseur_principal=fournisseur_principal,
         statut_stock=get_stock_status(
             safe_int(piece_dict.get("QtéenInventaire", 0)),
             safe_int(piece_dict.get("Qtéminimum", 0))
@@ -547,104 +609,3 @@ async def delete_piece(piece_id: int, conn: asyncpg.Connection = Depends(get_db_
     if result == "DELETE 0":
         raise HTTPException(status_code=404, detail="Pièce non trouvée")
     return {"message": "Pièce supprimée"}
-
-
-@router.get("/barcode/{code}")
-async def lookup_barcode(code: str):
-    """
-    Lookup d'un code barre via UPCitemdb (gratuit 100/jour).
-    Fallback sur Open Product Data si rien trouvé.
-    Retourne les infos de la pièce ou 404 si introuvable.
-    """
-    result = await _try_upcitemdb(code)
-
-    if not result:
-        result = await _try_open_product_data(code)
-
-    if not result:
-        raise HTTPException(
-            status_code=404,
-            detail=f"Aucune information trouvée pour le code: {code}"
-        )
-
-    return result
-
-
-async def _try_upcitemdb(code: str) -> dict | None:
-    """Cherche le produit sur UPCitemdb (gratuit, 100 req/jour)"""
-    url = f"https://api.upcitemdb.com/prod/trial/lookup"
-    params = {"upc": code}
-
-    try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            resp = await client.get(url, params=params)
-
-            if resp.status_code != 200:
-                return None
-
-            data = resp.json()
-            items = data.get("items", [])
-
-            if not items:
-                return None
-
-            item = items[0]
-
-            # Extraire l'image si disponible
-            images = item.get("images", [])
-            image_url = images[0] if images else None
-
-            return {
-                "source": "upcitemdb",
-                "code": code,
-                "NomPièce": item.get("title", ""),
-                "DescriptionPièce": item.get("description", ""),
-                "NumPièce": item.get("model", "") or item.get("mpn", ""),
-                "NomFabricant": item.get("brand", ""),
-                "image_url": image_url,
-                "raw": {
-                    "category": item.get("category", ""),
-                    "ean": item.get("ean", ""),
-                    "isbn": item.get("isbn", ""),
-                }
-            }
-
-    except Exception as e:
-        print(f"⚠️ UPCitemdb erreur: {e}")
-        return None
-
-
-async def _try_open_product_data(code: str) -> dict | None:
-    """Fallback: Open Product Data (produits EAN européens)"""
-    url = f"https://world.openfoodfacts.org/api/v0/product/{code}.json"
-
-    try:
-        async with httpx.AsyncClient(timeout=5.0) as client:
-            resp = await client.get(url)
-
-            if resp.status_code != 200:
-                return None
-
-            data = resp.json()
-
-            if data.get("status") != 1:
-                return None
-
-            product = data.get("product", {})
-
-            return {
-                "source": "openfoodfacts",
-                "code": code,
-                "NomPièce": product.get("product_name", "") or product.get("product_name_fr", ""),
-                "DescriptionPièce": product.get("generic_name", ""),
-                "NumPièce": "",
-                "NomFabricant": product.get("brands", ""),
-                "image_url": product.get("image_url", None),
-                "raw": {}
-            }
-
-    except Exception as e:
-        print(f"⚠️ OpenFoodFacts erreur: {e}")
-        return None
-
-

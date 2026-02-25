@@ -1,10 +1,11 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PieceFournisseursEditor from '@/components/pieces/PieceFournisseursEditor';
+import BarcodeScanner from "./BarcodeScanner";
 
 
 export default function PieceEditDialog({ 
@@ -13,17 +14,18 @@ export default function PieceEditDialog({
   fabricants, 
   onSave, 
   onCancel,
-  onChange 
+  onChange,
+  departements = [] 
 }) {
   if (!piece) return null;
 
-  // Debounce les mises à jour pour les champs texte
+  const [pendingImageUrl, setPendingImageUrl] = useState(null);
+
   const debouncedOnChange = React.useCallback(
     (fn => {
       let timeoutId;
       return (field, value) => {
         if (['QtéenInventaire', 'Qtéminimum', 'Qtémax', 'Prix_unitaire'].includes(field)) {
-          // Mise à jour immédiate pour les champs numériques
           fn(field, value);
           return;
         }
@@ -34,19 +36,17 @@ export default function PieceEditDialog({
     [onChange]
   );
 
-  // Mémoiser les valeurs du formulaire
-  const memoizedValues = React.useMemo(() => ({
-    NomPièce: piece.NomPièce || "",
-    DescriptionPièce: piece.DescriptionPièce || "",
-    NumPièce: piece.NumPièce || "",
-    NumPièceAutreFournisseur: piece.NumPièceAutreFournisseur || "",
-    RéfFournisseur: piece.RéfFournisseur?.toString() || "none",
-    RéfAutreFournisseur: piece.RéfAutreFournisseur?.toString() || "none",
-    RefFabricant: piece.RefFabricant?.toString() || "none",
-    Lieuentreposage: piece.Lieuentreposage || "",
-    NoFESTO: piece.NoFESTO || "",
-    RTBS: piece.RTBS || ""
-  }), [piece]);
+  const handleBarcodeResult = (data) => {
+    if (data.NomPièce)                onChange('NomPièce', data.NomPièce);
+    if (data.DescriptionPièce)        onChange('DescriptionPièce', data.DescriptionPièce);
+    if (data.NumPièce)                onChange('NumPièce', data.NumPièce);
+    if (data.QtéenInventaire != null) onChange('QtéenInventaire', data.QtéenInventaire);
+    if (data.image_url)               setPendingImageUrl(data.image_url);
+  };
+
+  const handleBarcodeNotFound = (code) => {
+    onChange('NumPièce', code);
+  };
 
   return (
     <Dialog open={true} onOpenChange={onCancel}>
@@ -56,22 +56,29 @@ export default function PieceEditDialog({
         </DialogHeader>
         
         <div className="grid gap-3 md:gap-4 py-3 md:py-4">
+
+          {/* Scanner code barre */}
+          <BarcodeScanner
+            onResult={handleBarcodeResult}
+            onNotFound={handleBarcodeNotFound}
+          />
+
           {/* Nom et Description */}
           <div>
             <Label className="text-xs md:text-sm">Nom de la pièce *</Label>
             <Input
-                defaultValue={memoizedValues.NomPièce}
-                onChange={(e) => debouncedOnChange('NomPièce', e.target.value)}
-                className="h-9 md:h-10 text-sm"
+              value={piece.NomPièce || ""}
+              onChange={(e) => debouncedOnChange('NomPièce', e.target.value)}
+              className="h-9 md:h-10 text-sm"
             />
           </div>
 
           <div>
             <Label className="text-xs md:text-sm">Description</Label>
             <Input
-                defaultValue={memoizedValues.DescriptionPièce}
-                onChange={(e) => debouncedOnChange('DescriptionPièce', e.target.value)}
-                className="h-9 md:h-10 text-sm"
+              value={piece.DescriptionPièce || ""}
+              onChange={(e) => debouncedOnChange('DescriptionPièce', e.target.value)}
+              className="h-9 md:h-10 text-sm"
             />
           </div>
 
@@ -80,17 +87,17 @@ export default function PieceEditDialog({
             <div>
               <Label className="text-xs md:text-sm">N° de pièce</Label>
               <Input
-                  defaultValue={memoizedValues.NumPièce}
-                  onChange={(e) => debouncedOnChange('NumPièce', e.target.value)}
-                  className="h-9 md:h-10 text-sm"
+                value={piece.NumPièce || ""}
+                onChange={(e) => debouncedOnChange('NumPièce', e.target.value)}
+                className="h-9 md:h-10 text-sm"
               />
             </div>
             <div>
               <Label className="text-xs md:text-sm">N° pièce fournisseur</Label>
               <Input
-                  defaultValue={memoizedValues.NumPièceAutreFournisseur}
-                  onChange={(e) => debouncedOnChange('NumPièceAutreFournisseur', e.target.value)}
-                  className="h-9 md:h-10 text-sm"
+                value={piece.NumPièceAutreFournisseur || ""}
+                onChange={(e) => debouncedOnChange('NumPièceAutreFournisseur', e.target.value)}
+                className="h-9 md:h-10 text-sm"
               />
             </div>
           </div>
@@ -100,17 +107,17 @@ export default function PieceEditDialog({
             <div>
               <Label className="text-sm">N° SAP</Label>
               <Input
-                  defaultValue={memoizedValues.RTBS}
-                  onChange={(e) => debouncedOnChange('RTBS', e.target.value)}
-                  className="h-10 text-sm"
+                value={piece.RTBS || ""}
+                onChange={(e) => debouncedOnChange('RTBS', e.target.value)}
+                className="h-10 text-sm"
               />
             </div>
             <div>
               <Label className="text-sm">N° Festo</Label>
               <Input
-                  defaultValue={memoizedValues.NoFESTO}
-                  onChange={(e) => debouncedOnChange('NoFESTO', e.target.value)}
-                  className="h-10 text-sm"
+                value={piece.NoFESTO || ""}
+                onChange={(e) => debouncedOnChange('NoFESTO', e.target.value)}
+                className="h-10 text-sm"
               />
             </div>
           </div>
@@ -144,6 +151,36 @@ export default function PieceEditDialog({
                 {fabricants.map((fab) => (
                   <SelectItem key={fab.RefFabricant} value={fab.RefFabricant.toString()}>
                     {fab.NomFabricant}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
+
+          {/* Département */}
+          <div>
+            <Label>Département</Label>
+            <Select
+              value={piece.RefDepartement?.toString() || "none"}
+              onValueChange={(value) => {
+                const n = value === "none" ? null : parseInt(value, 10);
+                onChange('RefDepartement', isNaN(n) ? null : n);
+              }}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder="Sélectionner un département" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="none">— Aucun département</SelectItem>
+                {departements.map((dept) => (
+                  <SelectItem key={dept.RefDepartement} value={dept.RefDepartement.toString()}>
+                    <div className="flex items-center gap-2">
+                      <span
+                        className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: dept.Couleur || '#6366f1' }}
+                      />
+                      {dept.NomDepartement}
+                    </div>
                   </SelectItem>
                 ))}
               </SelectContent>

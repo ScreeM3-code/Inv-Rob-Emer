@@ -64,17 +64,30 @@ async def get_commande(conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
         rows = await conn.fetch('''
             SELECT p.*,
-                   f1."NomFournisseur" AS fournisseur_principal_nom,
-                   f1."NumSap" AS fournisseur_principal_num_sap,
-                   f2."NomAutreFournisseur" AS autre_fournisseur_nom,
-                   f3."NomFabricant"
+                   f3."NomFabricant",
+                   fp."NomFournisseur"  AS fournisseur_principal_nom,
+                   fp."NumSap"          AS fournisseur_principal_num_sap,
+                   fp."RéfFournisseur"  AS ref_four_principal,
+                   (
+                       SELECT json_agg(json_build_object(
+                           'RéfFournisseur',      fall."RéfFournisseur",
+                           'NomFournisseur',      fall."NomFournisseur",
+                           'NumSap',              fall."NumSap",
+                           'EstPrincipal',        pfall."EstPrincipal",
+                           'NumPièceFournisseur', pfall."NumPièceFournisseur"
+                       ) ORDER BY pfall."EstPrincipal" DESC)
+                       FROM "PieceFournisseur" pfall
+                       JOIN "Fournisseurs" fall ON fall."RéfFournisseur" = pfall."RéfFournisseur"
+                       WHERE pfall."RéfPièce" = p."RéfPièce"
+                   ) AS tous_fournisseurs
             FROM "Pièce" p
-            LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
-            LEFT JOIN "Autre Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfAutreFournisseur"
+            LEFT JOIN "PieceFournisseur" pf_p ON pf_p."RéfPièce" = p."RéfPièce" AND pf_p."EstPrincipal" = TRUE
+            LEFT JOIN "Fournisseurs" fp ON fp."RéfFournisseur" = pf_p."RéfFournisseur"
             LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
             WHERE COALESCE(p."Qtécommandée", 0) > 0
         ''')
 
+        import json as _json
         result = []
         for row in rows:
             piece_dict = dict(row)
@@ -82,17 +95,17 @@ async def get_commande(conn: asyncpg.Connection = Depends(get_db_connection)):
             fournisseur_principal = None
             if piece_dict.get("fournisseur_principal_nom"):
                 fournisseur_principal = {
-                    "RéfFournisseur": piece_dict.get("RéfFournisseur"),
+                    "RéfFournisseur": piece_dict.get("ref_four_principal"),
                     "NomFournisseur": safe_string(piece_dict.get("fournisseur_principal_nom", "")),
                     "NumSap": safe_string(piece_dict.get("fournisseur_principal_num_sap", "")),
+                    "EstPrincipal": True,
                 }
 
-            autre_fournisseur = None
-            if piece_dict.get("autre_fournisseur_nom"):
-                autre_fournisseur = {
-                    "RéfFournisseur": piece_dict.get("RéfAutreFournisseur"),
-                    "NomAutreFournisseur": safe_string(piece_dict.get("autre_fournisseur_nom", "")),
-                }
+            tous_raw = piece_dict.get("tous_fournisseurs")
+            if tous_raw:
+                fournisseurs = _json.loads(tous_raw) if isinstance(tous_raw, str) else list(tous_raw)
+            else:
+                fournisseurs = [fournisseur_principal] if fournisseur_principal else []
 
             commande = Commande(
                 RéfPièce=piece_dict["RéfPièce"],
@@ -105,14 +118,12 @@ async def get_commande(conn: asyncpg.Connection = Depends(get_db_connection)):
                 Cmd_info=safe_string(piece_dict.get("Cmd_info", "")),
                 NumPièceAutreFournisseur=safe_string(piece_dict.get("NumPièceAutreFournisseur", "")),
                 DescriptionPièce=safe_string(piece_dict.get("DescriptionPièce", "")),
-                RéfFournisseur=piece_dict.get("RéfFournisseur"),
-                RéfAutreFournisseur=piece_dict.get("RéfAutreFournisseur"),
                 QtéenInventaire=safe_int(piece_dict.get("QtéenInventaire", 0)),
                 Qtéminimum=safe_int(piece_dict.get("Qtéminimum", 0)),
                 Qtéàcommander=safe_int(piece_dict.get("Qtéàcommander", 0)),
                 Prix_unitaire=safe_float(piece_dict.get("Prix unitaire", 0)),
                 fournisseur_principal=fournisseur_principal,
-                autre_fournisseur=autre_fournisseur,
+                fournisseurs=fournisseurs,
                 NomFabricant=safe_string(piece_dict.get("NomFabricant", "")),
                 Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
                 SoumDem=bool(piece_dict.get("SoumDem", False))
@@ -132,13 +143,25 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
     try:
         rows = await conn.fetch('''
             SELECT p.*,
-                    f1."NomFournisseur" AS fournisseur_principal_nom,
-                    f1."NumSap" AS fournisseur_principal_num_sap,
-                    f2."NomAutreFournisseur" AS autre_fournisseur_nom,
-                    f3."NomFabricant"
+                   f3."NomFabricant",
+                   fp."NomFournisseur"  AS fournisseur_principal_nom,
+                   fp."NumSap"          AS fournisseur_principal_num_sap,
+                   fp."RéfFournisseur"  AS ref_four_principal,
+                   (
+                       SELECT json_agg(json_build_object(
+                           'RéfFournisseur',      fall."RéfFournisseur",
+                           'NomFournisseur',      fall."NomFournisseur",
+                           'NumSap',              fall."NumSap",
+                           'EstPrincipal',        pfall."EstPrincipal",
+                           'NumPièceFournisseur', pfall."NumPièceFournisseur"
+                       ) ORDER BY pfall."EstPrincipal" DESC)
+                       FROM "PieceFournisseur" pfall
+                       JOIN "Fournisseurs" fall ON fall."RéfFournisseur" = pfall."RéfFournisseur"
+                       WHERE pfall."RéfPièce" = p."RéfPièce"
+                   ) AS tous_fournisseurs
             FROM "Pièce" p
-            LEFT JOIN "Fournisseurs" f1 ON p."RéfFournisseur" = f1."RéfFournisseur"
-            LEFT JOIN "Autre Fournisseurs" f2 ON p."RéfAutreFournisseur" = f2."RéfAutreFournisseur"
+            LEFT JOIN "PieceFournisseur" pf_p ON pf_p."RéfPièce" = p."RéfPièce" AND pf_p."EstPrincipal" = TRUE
+            LEFT JOIN "Fournisseurs" fp ON fp."RéfFournisseur" = pf_p."RéfFournisseur"
             LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
             WHERE COALESCE(p."Qtécommandée", 0) <= 0
              AND p."QtéenInventaire" < p."Qtéminimum"
@@ -146,6 +169,7 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
              AND p.approbation_statut = 'approuvee'
         ''')
 
+        import json as _json
         result = []
         for row in rows:
             piece_dict = dict(row)
@@ -153,17 +177,17 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
             fournisseur_principal = None
             if piece_dict.get("fournisseur_principal_nom"):
                 fournisseur_principal = {
-                    "RéfFournisseur": piece_dict.get("RéfFournisseur"),
+                    "RéfFournisseur": piece_dict.get("ref_four_principal"),
                     "NomFournisseur": safe_string(piece_dict.get("fournisseur_principal_nom", "")),
                     "NumSap": safe_string(piece_dict.get("fournisseur_principal_num_sap", "")),
+                    "EstPrincipal": True,
                 }
 
-            autre_fournisseur = None
-            if piece_dict.get("autre_fournisseur_nom"):
-                autre_fournisseur = {
-                    "RéfFournisseur": piece_dict.get("RéfAutreFournisseur"),
-                    "NomFournisseur": safe_string(piece_dict.get("autre_fournisseur_nom", "")),
-                }
+            tous_raw = piece_dict.get("tous_fournisseurs")
+            if tous_raw:
+                fournisseurs = _json.loads(tous_raw) if isinstance(tous_raw, str) else list(tous_raw)
+            else:
+                fournisseurs = [fournisseur_principal] if fournisseur_principal else []
 
             qty_a_commander = calculate_qty_to_order(
                 piece_dict.get("QtéenInventaire", 0),
@@ -179,14 +203,12 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
                 RTBS=piece_dict.get("RTBS", None),
                 NumPièceAutreFournisseur=safe_string(piece_dict.get("NumPièceAutreFournisseur", "")),
                 DescriptionPièce=safe_string(piece_dict.get("DescriptionPièce", "")),
-                RéfFournisseur=piece_dict.get("RéfFournisseur"),
-                RéfAutreFournisseur=piece_dict.get("RéfAutreFournisseur"),
                 QtéenInventaire=safe_int(piece_dict.get("QtéenInventaire", 0)),
                 Qtéminimum=safe_int(piece_dict.get("Qtéminimum", 0)),
                 Qtéàcommander=qty_a_commander,
                 Prix_unitaire=safe_float(piece_dict.get("Prix unitaire", 0)),
                 fournisseur_principal=fournisseur_principal,
-                autre_fournisseur=autre_fournisseur,
+                fournisseurs=fournisseurs,
                 NomFabricant=safe_string(piece_dict.get("NomFabricant", "")),
                 Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
                 SoumDem=bool(piece_dict.get("SoumDem", False)),
@@ -285,13 +307,11 @@ async def receive_all_order(
         raise HTTPException(status_code=500, detail=f"Erreur lors de la réception: {str(e)}")
 
 
-
-
 @router.put("/orderspar/{piece_id}")
 async def receive_partial_order(
-    piece_id: int,
-    quantity_received: int,
-    conn: asyncpg.Connection = Depends(get_db_connection)
+        piece_id: int,
+        quantity_received: int,
+        conn: asyncpg.Connection = Depends(get_db_connection)
 ):
     """Réception partielle d'une commande"""
     try:
@@ -330,7 +350,8 @@ async def receive_partial_order(
     except Exception as e:
         print(f"❌ Erreur receive_partial_order: {e}")
         raise HTTPException(status_code=500, detail="Erreur lors de la réception partielle")
-    
+
+
 @router.post("/ereq/submit")
 async def submit_ereq(payload: dict, request: Request):
     """Proxy vers SAP eReq — relaie les cookies de session Windows du navigateur"""
@@ -341,7 +362,8 @@ async def submit_ereq(payload: dict, request: Request):
     body_json = payload.get("body_json", "")
 
     if not sap_cookies:
-        raise HTTPException(status_code=400, detail="Cookies SAP manquants. Assurez-vous d'être connecté à eReq dans ce navigateur.")
+        raise HTTPException(status_code=400,
+                            detail="Cookies SAP manquants. Assurez-vous d'être connecté à eReq dans ce navigateur.")
 
     try:
         async with httpx.AsyncClient(verify=False, timeout=60.0) as client:
@@ -361,7 +383,8 @@ async def submit_ereq(payload: dict, request: Request):
             print(f"🔑 Token response headers: {dict(token_resp.headers)}")
             csrf_token = token_resp.headers.get("x-csrf-token")
             if not csrf_token:
-                raise HTTPException(status_code=401, detail=f"Session SAP expirée ou invalide (HTTP {token_resp.status_code}). Reconnectez-vous à eReq.")
+                raise HTTPException(status_code=401,
+                                    detail=f"Session SAP expirée ou invalide (HTTP {token_resp.status_code}). Reconnectez-vous à eReq.")
 
             # Étape 2 : construire et envoyer le batch
             ts = int(datetime.now().timestamp())
@@ -429,10 +452,11 @@ async def submit_ereq(payload: dict, request: Request):
         traceback.print_exc()
         raise HTTPException(status_code=502, detail=f"Erreur: {type(e).__name__}: {str(e)}")
 
+
 @router.get("/toorders/en-attente")
 async def get_pieces_en_attente(
-    conn: asyncpg.Connection = Depends(get_db_connection),
-    user: dict = Depends(require_admin)
+        conn: asyncpg.Connection = Depends(get_db_connection),
+        user: dict = Depends(require_admin)
 ):
     """
     Retourne les pièces soumises pour approbation (admin seulement).
@@ -446,13 +470,12 @@ async def get_pieces_en_attente(
                p.approbation_par,
                p.approbation_date,
                p.approbation_note,
-               f1."NomFournisseur"      AS fournisseur_principal_nom,
-               f2."NomAutreFournisseur" AS autre_fournisseur_nom,
+               fp."NomFournisseur"  AS fournisseur_principal_nom,
                f3."NomFabricant"
         FROM "Pièce" p
-        LEFT JOIN "Fournisseurs" f1        ON p."RéfFournisseur"      = f1."RéfFournisseur"
-        LEFT JOIN "Autre Fournisseurs" f2  ON p."RéfAutreFournisseur" = f2."RéfAutreFournisseur"
-        LEFT JOIN "Fabricant" f3           ON p."RefFabricant"        = f3."RefFabricant"
+        LEFT JOIN "PieceFournisseur" pf_p ON pf_p."RéfPièce" = p."RéfPièce" AND pf_p."EstPrincipal" = TRUE
+        LEFT JOIN "Fournisseurs" fp       ON fp."RéfFournisseur" = pf_p."RéfFournisseur"
+        LEFT JOIN "Fabricant" f3          ON p."RefFabricant" = f3."RefFabricant"
         WHERE COALESCE(p."Qtécommandée", 0) <= 0
           AND p."QtéenInventaire" < p."Qtéminimum"
           AND p."Qtéminimum" > 0
@@ -469,10 +492,10 @@ async def get_pieces_en_attente(
 
 @router.post("/toorders/{piece_id}/soumettre")
 async def soumettre_approbation(
-    piece_id: int,
-    piece_nom: str,
-    conn: asyncpg.Connection = Depends(get_db_connection),
-    user: dict = Depends(require_auth)
+        piece_id: int,
+        piece_nom: str,
+        conn: asyncpg.Connection = Depends(get_db_connection),
+        user: dict = Depends(require_auth)
 ):
     """
     L'acheteur soumet une pièce pour approbation par l'admin.
@@ -481,7 +504,7 @@ async def soumettre_approbation(
 
     # Notifier les admins
     piece_info = await conn.fetchrow(
-        'SELECT "RéfPièce", "NomPièce" FROM "Pièce" WHERE "RéfPièce" = $1, $2', piece_id, piece_nom
+        'SELECT "RéfPièce", "NomPièce" FROM "Pièce" WHERE "RéfPièce" = $1', piece_id
     )
     piece_nom = piece_info['NomPièce'] if piece_info else f"Pièce #{piece_id}"
     asyncio.create_task(
@@ -512,17 +535,17 @@ async def soumettre_approbation(
 
 @router.post("/toorders/{piece_id}/approuver")
 async def approuver_piece(
-    piece_id: int,
-    piece_nom: str,
-    data: ApprobationRequest,
-    conn: asyncpg.Connection = Depends(get_db_connection),
-    user: dict = Depends(require_admin)
+        piece_id: int,
+        piece_nom: str,
+        data: ApprobationRequest,
+        conn: asyncpg.Connection = Depends(get_db_connection),
+        user: dict = Depends(require_admin)
 ):
     """
     Admin approuve une pièce — elle devient visible dans la liste de commande.
     """
     piece = await conn.fetchrow(
-        'SELECT "RéfPièce", "NomPièce" FROM "Pièce" WHERE "RéfPièce" = $1, $2', piece_id, piece_nom
+        'SELECT "RéfPièce", "NomPièce" FROM "Pièce" WHERE "RéfPièce" = $1', piece_id
     )
     if not piece:
         raise HTTPException(status_code=404, detail="Pièce introuvable")
@@ -544,17 +567,17 @@ async def approuver_piece(
 
 @router.post("/toorders/{piece_id}/refuser")
 async def refuser_piece(
-    piece_id: int,
-    piece_nom: str,
-    data: ApprobationRequest,
-    conn: asyncpg.Connection = Depends(get_db_connection),
-    user: dict = Depends(require_admin)
+        piece_id: int,
+        piece_nom: str,
+        data: ApprobationRequest,
+        conn: asyncpg.Connection = Depends(get_db_connection),
+        user: dict = Depends(require_admin)
 ):
     """
     Admin refuse une pièce — elle reste visible avec statut 'refusee'.
     """
     piece = await conn.fetchrow(
-        'SELECT "RéfPièce", "NomPièce" FROM "Pièce" WHERE "RéfPièce" = $1, $2', piece_id, piece_nom
+        'SELECT "RéfPièce", "NomPièce" FROM "Pièce" WHERE "RéfPièce" = $1', piece_id
     )
     if not piece:
         raise HTTPException(status_code=404, detail="Pièce introuvable")
@@ -576,9 +599,9 @@ async def refuser_piece(
 
 @router.post("/toorders/{piece_id}/reset-approbation")
 async def reset_approbation(
-    piece_id: int,
-    conn: asyncpg.Connection = Depends(get_db_connection),
-    user: dict = Depends(require_admin)
+        piece_id: int,
+        conn: asyncpg.Connection = Depends(get_db_connection),
+        user: dict = Depends(require_admin)
 ):
     """
     Admin remet une pièce à NULL (retire l'approbation/refus).
@@ -593,5 +616,3 @@ async def reset_approbation(
         piece_id
     )
     return {"msg": "Approbation réinitialisée"}
-
-
