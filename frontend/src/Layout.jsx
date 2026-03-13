@@ -49,7 +49,7 @@ export default function Layout() {
   const adminItems = [
     { path: '/approbation',  label: 'Approbations', icon: CheckCircle, permission: 'can_approve_orders' },
     { path: '/departements', label: 'Départements', icon: Building2,   permission: 'departements_view' },
-    ...(isAdmin ? [{ path: '/users', label: 'Utilisateurs', icon: Shield }] : []),
+    ...(isAdmin ? [{ path: '/users', label: 'Gestion des Utilisateurs', icon: Shield }] : []),
   ].filter(item => !item.permission || can(item.permission));
 
   const isActive = (path) => location.pathname === path;
@@ -228,15 +228,6 @@ export default function Layout() {
                         Mon profil & notifications
                       </Link>
                     </DropdownMenuItem>
-                    {isAdmin && (
-                      <>
-                        <DropdownMenuItem onClick={() => navigate('/users')} className="cursor-pointer">
-                          <Shield className="mr-2 h-4 w-4" />
-                          <span>Gestion des utilisateurs</span>
-                        </DropdownMenuItem>
-                        <DropdownMenuSeparator />
-                      </>
-                    )}
                     <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600">
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Se déconnecter</span>

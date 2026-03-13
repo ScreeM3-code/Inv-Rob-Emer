@@ -31,6 +31,7 @@ class Commande(BaseModel):
     RTBS: Optional[int] = None
     NoFESTO: Optional[str] = ""
     NumSap: Optional[str] = ""
+    devise: Optional[str] = 'CAD'
 
 class StatsResponse(BaseModel):
     total_pieces: int

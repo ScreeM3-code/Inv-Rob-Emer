@@ -1,3 +1,5 @@
+CAD USD...
+
 nettoyer et vérifier
 département  avec filtre
 exporté pieces en excel

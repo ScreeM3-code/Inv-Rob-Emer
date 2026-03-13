@@ -142,6 +142,7 @@ async def get_pieces(
                 Created=piece_dict.get("Created"),
                 Modified=piece_dict.get("Modified"),
                 RTBS=piece_dict.get("RTBS"),
+                devise=safe_string(piece_dict.get("devise", "CAD")) or "CAD",
                 NoFESTO=safe_string(piece_dict.get("NoFESTO"))
             )
             result.append(piece_response)
@@ -235,7 +236,8 @@ async def get_piece(piece_id: int, request: Request):
             Modified=piece_dict.get("Modified"),
             Discontinué=safe_string(piece_dict.get("Discontinué", "")),
             RTBS=piece_dict.get("RTBS"),
-            NoFESTO=safe_string(piece_dict.get("NoFESTO"))
+            NoFESTO=safe_string(piece_dict.get("NoFESTO")),
+            devise=safe_string(piece_dict.get("devise", "CAD")) or "CAD"
 
         )
     except HTTPException:
@@ -346,8 +348,8 @@ async def create_piece(
             "NumPièceAutreFournisseur", "RefFabricant",
             "Lieuentreposage", "QtéenInventaire", "Qtéminimum", "Qtémax",
             "Prix unitaire", "Soumission LD", "SoumDem",
-            "Created", "Modified", "NoFESTO", "RTBS"
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16)
+            "Created", "Modified", "NoFESTO", "RTBS", "devise"
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
         RETURNING *
         ''',
         piece.NomPièce,
@@ -365,7 +367,8 @@ async def create_piece(
         now,
         now,
         piece.NoFESTO or "",
-        piece.RTBS
+        piece.RTBS,
+        piece.devise or "CAD"
     )
 
     piece_id = row["RéfPièce"]
@@ -461,7 +464,8 @@ async def create_piece(
         Created=piece_dict.get("Created"),
         Modified=piece_dict.get("Modified"),
         RTBS=piece_dict.get("RTBS"),
-        NoFESTO=safe_string(piece_dict.get("NoFESTO"))
+        NoFESTO=safe_string(piece_dict.get("NoFESTO")),
+        devise=safe_string(piece_dict.get("devise", "CAD")) or "CAD",
     )
 
 
@@ -473,6 +477,19 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
     param_count = 0
 
     for field, value in piece_update.dict(exclude_unset=True).items():
+        # Traitement spécial pour Datecommande : convertir string → date ou ignorer si vide
+        if field == "Datecommande":
+            if value and value != "":
+                try:
+                    from datetime import date
+                    parsed_date = date.fromisoformat(str(value)[:10])
+                    param_count += 1
+                    update_fields.append(f'"Datecommande" = ${param_count}')
+                    values.append(parsed_date)
+                except (ValueError, TypeError):
+                    pass  # Date invalide, on ignore
+            continue  # Saute le traitement générique ci-dessous
+
         if value is not None:
             param_count += 1
             if field == "Lieuentreposage":
@@ -599,7 +616,8 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
         Created=piece_dict.get("Created"),
         Modified=piece_dict.get("Modified"),
         RTBS=piece_dict.get("RTBS"),
-        NoFESTO=safe_string(piece_dict.get("NoFESTO"))
+        NoFESTO=safe_string(piece_dict.get("NoFESTO")),
+        devise=safe_string(piece_dict.get("devise", "CAD")) or "CAD"
     )
 
 

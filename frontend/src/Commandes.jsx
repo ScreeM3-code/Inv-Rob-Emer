@@ -26,6 +26,7 @@ function Commandes() {
   const [viewingHistoryFor, setViewingHistoryFor] = useState(null);
   const [historyData, setHistoryData] = useState([]);
   const [historyLoading, setHistoryLoading] = useState(false);
+  const [departements, setDepartements] = useState([]);
   const { can, isAdmin } = usePermissions();
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
@@ -39,7 +40,8 @@ function Commandes() {
       const [toorders, fournisseurs, fabricants] = await Promise.all([
         fetchJson(`${API}/toorders`),
         fetchJson(`${API}/fournisseurs`),
-        fetchJson(`${API}/fabricant`)
+        fetchJson(`${API}/fabricant`),
+        fetchJson(`${API}/departements`),
       ]);
     
       const fabricantsList = fabricants || [];
@@ -56,6 +58,7 @@ function Commandes() {
       setToOrders(commandesAvecRefFabricant);
       setFournisseurs(fournisseurs || []);
       setFabricants(fabricantsList);
+      setDepartements(Array.isArray(departements) ? departements : []);
     } catch (error) {
       console.error("Erreur lors du chargement:", error);
     }
@@ -77,6 +80,30 @@ function Commandes() {
       setHistoryLoading(false);
     }
   };
+
+    const handleUpdateDepartement = async (pieceId, refDepartement) => {
+      try {
+        await fetchJson(`${API}/pieces/${pieceId}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ RefDepartement: refDepartement })
+        });
+        // Mettre à jour localement pour éviter un rechargement complet
+        setPieces(prev => prev.map(p =>
+          p.RéfPièce === pieceId
+            ? {
+                ...p,
+                RefDepartement: refDepartement,
+                NomDepartement: refDepartement
+                  ? departements.find(d => d.RefDepartement === refDepartement)?.NomDepartement || null
+                  : null
+              }
+            : p
+        ));
+      } catch (error) {
+        toast({ title: 'Erreur', description: error.message, variant: 'destructive' });
+      }
+    };
 
   const handleUpdateOrder = async (updatedPiece, isNewOrder = false) => {
     try {
@@ -104,6 +131,7 @@ function Commandes() {
         Qtéarecevoir: updatedPiece.Qtéarecevoir ?? 0,
         Cmd_info: updatedPiece.Cmd_info || "",
         Qtéàcommander: updatedPiece.Qtéàcommander ?? 0,
+        devise: updatedPiece.devise || 'CAD',
       };
       
       delete cleanedOrder.NomFabricant;
@@ -339,6 +367,8 @@ function Commandes() {
                   isInCart={isInCart}
                   onAddToCart={addToCart}
                   onViewHistory={handleViewHistory}
+                  departements={departements}
+                  onUpdateDepartement={handleUpdateDepartement}
                   onEdit={() => setEditingOrder(order)}
                   onOrder={() => setGoOrder(order)}
                   onRefresh={() => loadData(currentPage)}
@@ -368,6 +398,8 @@ function Commandes() {
           piece={editingOrder}
           fournisseurs={fournisseurs}
           fabricants={fabricants}
+          departements={departements}
+          onUpdateDepartement={handleUpdateDepartement}
           onSave={(updatedPiece) => handleUpdateOrder(updatedPiece, false)}
           onCancel={() => setEditingOrder(null)}
         />

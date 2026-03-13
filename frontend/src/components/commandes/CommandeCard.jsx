@@ -98,7 +98,7 @@ export default function CommandeCard({
           ItemCategory: '0',
           Vendor: vendorCode,
           PRItemDesc: `${order.NumPièce || order.VendorMaterialNum || ''} ${order.NomPièce || ''}`.trim(),
-          Material: '', Plant: '2605', Currency: 'CAD',
+          Material: '', Plant: '2605', Currency: ['CAD','USD'].includes(order.devise) ? order.devise : 'CAD',
           Price: parseFloat(ereqForm.price).toFixed(2),
           Qty: parseFloat(ereqForm.qty).toFixed(2),
           UoM: 'CHA', OANum: '', LeadTime: '0', OAItemNum: '00000',
@@ -361,10 +361,7 @@ export default function CommandeCard({
               <div>
                 <span className="text-gray-500 dark:text-gray-200">Prix unitaire:</span>
                 <div className="font-semibold">
-                  {order.Prix_unitaire.toLocaleString("fr-CA", {
-                    style: "currency",
-                    currency: "CAD",
-                  })}
+                  {order.Prix_unitaire.toLocaleString("fr-CA", { style: "currency", currency: ["CAD","USD"].includes(order.devise) ? order.devise : "CAD" })}
                 </div>
               </div>
             </div>
@@ -514,7 +511,7 @@ export default function CommandeCard({
                     className="w-full mt-1 border rounded px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600" />
                 </div>
                 <div>
-                  <label className="text-sm font-medium">Prix unitaire (CAD)</label>
+                  <label className="text-sm font-medium">Prix unitaire ({order.devise || 'CAD'})</label>
                   <input type="number" min="0" step="0.01" value={ereqForm.price}
                     onChange={e => setEreqForm(f => ({ ...f, price: e.target.value }))}
                     className="w-full mt-1 border rounded px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600" />

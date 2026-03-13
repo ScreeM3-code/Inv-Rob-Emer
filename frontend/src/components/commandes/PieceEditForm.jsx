@@ -7,10 +7,43 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { toast } from '@/hooks/use-toast';
 import PieceFournisseursEditor from '@/components/pieces/PieceFournisseursEditor';
 
+
+function DeviseSelect({ value, onChange }) {
+  const DEVISES = ['CAD', 'USD'];
+  const isAutre = value && !DEVISES.includes(value);
+  return (
+    <div className="flex gap-2">
+      <Select
+        value={isAutre ? 'autre' : (value || 'CAD')}
+        onValueChange={v => onChange(v === 'autre' ? '' : v)}
+      >
+        <SelectTrigger className="w-28">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="CAD">CAD</SelectItem>
+          <SelectItem value="USD">USD</SelectItem>
+          <SelectItem value="autre">Autre…</SelectItem>
+        </SelectContent>
+      </Select>
+      {isAutre || value === '' ? (
+        <Input
+          placeholder="ex: EUR"
+          className="w-24"
+          defaultValue={isAutre ? value : ''}
+          onChange={e => onChange(e.target.value)}
+        />
+      ) : null}
+    </div>
+  );
+}
+
 export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave, onCancel, departements = [] }) {
   const [formData, setFormData] = React.useState({
     ...piece,
     fournisseurs: piece.fournisseurs || [],
+    devise: piece?.devise || 'CAD',
+
   });
 
   // Debounce les mises à jour d'état pour les champs texte
@@ -59,6 +92,7 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
       Qtéminimum: isNaN(qMin) ? 0 : qMin,
       Qtémax: isNaN(qMax) ? 100 : qMax,
       Prix_unitaire: isNaN(prix) ? 0 : prix,
+      devise: formData.devise || 'CAD',
       fournisseurs: formData.fournisseurs || [],
       RefFabricant: formData.RefFabricant || null,
       RefDepartement: formData.RefDepartement !== undefined ? formData.RefDepartement : null,
@@ -218,7 +252,7 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
           </div>
 
           {/* Stockage et prix */}
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <Label>Emplacement</Label>
               <Input
@@ -234,6 +268,13 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
                 min="0"
                 value={formData.Prix_unitaire ?? ""}
                 onChange={(e) => handleChange('Prix_unitaire', e.target.value)}
+              />
+            </div>
+            <div>
+              <Label>Devise</Label>
+              <DeviseSelect
+                value={formData.devise || 'CAD'}
+                onChange={v => handleChange('devise', v)}
               />
             </div>
           </div>

@@ -36,6 +36,45 @@ export default function PieceEditDialog({
     [onChange]
   );
 
+
+  const DEVISES = ['CAD', 'USD'];
+
+  function DeviseSelect({ value, onChange }) {
+    const [custom, setCustom] = React.useState(
+      value && !DEVISES.includes(value) ? value : ''
+    );
+    const isAutre = value && !DEVISES.includes(value);
+
+    return (
+      <div className="flex gap-2">
+        <Select
+          value={isAutre ? 'autre' : (value || 'CAD')}
+          onValueChange={v => {
+            if (v === 'autre') onChange('');
+            else onChange(v);
+          }}
+        >
+          <SelectTrigger className="w-28">
+            <SelectValue />
+          </SelectTrigger>
+          <SelectContent>
+            <SelectItem value="CAD">CAD</SelectItem>
+            <SelectItem value="USD">USD</SelectItem>
+            <SelectItem value="autre">Autre…</SelectItem>
+          </SelectContent>
+        </Select>
+        {isAutre || (value === '' && custom !== null) ? (
+          <Input
+            placeholder="ex: EUR"
+            className="w-24"
+            value={custom}
+            onChange={e => { setCustom(e.target.value); onChange(e.target.value); }}
+          />
+        ) : null}
+      </div>
+    );
+  }
+
   const handleBarcodeResult = (data) => {
     if (data.NomPièce)                onChange('NomPièce', data.NomPièce);
     if (data.DescriptionPièce)        onChange('DescriptionPièce', data.DescriptionPièce);
@@ -52,7 +91,7 @@ export default function PieceEditDialog({
     <Dialog open={true} onOpenChange={onCancel}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-base md:text-lg">Modifier la pièce</DialogTitle>
+          <DialogTitle className="text-base md:text-lg">Ajouter / Modifier la pièce</DialogTitle>
         </DialogHeader>
         
         <div className="grid gap-3 md:gap-4 py-3 md:py-4">
@@ -240,7 +279,7 @@ export default function PieceEditDialog({
           </div>
 
           {/* Emplacement et Prix */}
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-3 md:gap-4">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-3 md:gap-4">
             <div>
               <Label className="text-xs md:text-sm">Emplacement</Label>
               <Input
@@ -250,7 +289,7 @@ export default function PieceEditDialog({
               />
             </div>
             <div>
-              <Label className="text-xs md:text-sm">Prix unitaire (CAD $) *</Label>
+              <Label className="text-xs md:text-sm">Prix unitaire ({piece.devise || 'CAD'}) *</Label>
               <Input
                 type="number"
                 step="0.01"
@@ -261,6 +300,13 @@ export default function PieceEditDialog({
                   onChange('Prix_unitaire', v === "" ? 0 : Math.max(0, parseFloat(v) || 0));
                 }}
                 className="h-9 md:h-10 text-sm"
+              />
+            </div>
+            <div>
+              <Label>Devise</Label>
+              <DeviseSelect
+                value={piece.devise || 'CAD'}
+                onChange={v => handleChange('devise', v)}
               />
             </div>
           </div>

@@ -4,7 +4,38 @@ import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from "
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from '@/hooks/use-toast';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+
+function DeviseSelect({ value, onChange }) {
+  const DEVISES = ['CAD', 'USD'];
+  const isAutre = value && !DEVISES.includes(value);
+  return (
+    <div className="flex gap-2">
+      <Select
+        value={isAutre ? 'autre' : (value || 'CAD')}
+        onValueChange={v => onChange(v === 'autre' ? '' : v)}
+      >
+        <SelectTrigger className="w-28">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="CAD">CAD</SelectItem>
+          <SelectItem value="USD">USD</SelectItem>
+          <SelectItem value="autre">Autre…</SelectItem>
+        </SelectContent>
+      </Select>
+      {isAutre || value === '' ? (
+        <Input
+          placeholder="ex: EUR"
+          className="w-24"
+          defaultValue={isAutre ? value : ''}
+          onChange={e => onChange(e.target.value)}
+        />
+      ) : null}
+    </div>
+  );
+}
 
 export default function CommandeForm({ piece, onSave, onCancel }) {
   const [formData, setFormData] = React.useState({
@@ -13,7 +44,8 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
     Datecommande: new Date().toISOString().split('T')[0],
     Cmd_info: "",
     soumission_LD: "",
-    delai_livraison: "" // ← NOUVEAU
+    delai_livraison: "",
+    devise: piece?.devise || 'CAD',
   });
 
   const [pdfFile, setPdfFile] = React.useState(null);
@@ -83,7 +115,7 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
             <Input value={piece?.NomPièce || ""} disabled />
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-3 gap-4">
             <div>
               <Label>Quantité commander *</Label>
               <Input
@@ -106,6 +138,13 @@ export default function CommandeForm({ piece, onSave, onCancel }) {
                   onChange={(e) => debouncedSetFormData('Prix_unitaire', parseFloat(e.target.value) || 0)}
               />
             </div>
+            <div>
+            <Label>Devise</Label>
+            <DeviseSelect
+              value={formData.devise || 'CAD'}
+              onChange={v => handleChange('devise', v)}
+            />
+          </div>
           </div>
           <div>
             <Label>Bon de commande / PDF (optionnel)</Label>

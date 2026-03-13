@@ -22,6 +22,7 @@ class PieceBase(BaseModel):
     RTBS: Optional[int] = None
     NoFESTO: Optional[str] = ""
     Discontinué: Optional[str] = ""
+    devise: Optional[str] = 'CAD'
     RefDepartement: Optional[int] = None
     NomDepartement: Optional[str] = None
 
@@ -41,6 +42,7 @@ class PieceCreate(BaseModel):
     SoumDem: Optional[bool] = False
     RTBS: Optional[int] = None
     NoFESTO: Optional[str] = ""
+    devise: Optional[str] = 'CAD'
     RefDepartement: Optional[int] = None
     fournisseurs: Optional[List[dict]] = []
     fournisseur_principal: Optional[dict] = None
@@ -65,6 +67,7 @@ class PieceUpdate(BaseModel):
     NoFESTO: Optional[str] = ""
     Cmd_info: Optional[str] = None
     Datecommande: Optional[str] = None
+    devise: Optional[str] = None
     RefDepartement: Optional[int] = None
 
 class Piece(PieceBase):

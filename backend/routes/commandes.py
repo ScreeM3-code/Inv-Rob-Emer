@@ -126,7 +126,8 @@ async def get_commande(conn: asyncpg.Connection = Depends(get_db_connection)):
                 fournisseurs=fournisseurs,
                 NomFabricant=safe_string(piece_dict.get("NomFabricant", "")),
                 Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
-                SoumDem=bool(piece_dict.get("SoumDem", False))
+                SoumDem=bool(piece_dict.get("SoumDem", False)),
+                devise=safe_string(piece_dict.get("devise", "CAD")) or "CAD"
             )
 
             result.append(commande)
@@ -212,7 +213,8 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
                 NomFabricant=safe_string(piece_dict.get("NomFabricant", "")),
                 Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
                 SoumDem=bool(piece_dict.get("SoumDem", False)),
-                NoFESTO=safe_string(piece_dict.get("NoFESTO"))
+                NoFESTO=safe_string(piece_dict.get("NoFESTO")),
+                devise=safe_string(piece_dict.get("devise", "CAD")) or "CAD"
             )
 
             result.append(commande)
