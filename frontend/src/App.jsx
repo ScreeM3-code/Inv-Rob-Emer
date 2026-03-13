@@ -409,7 +409,7 @@ function Dashboard () {
         Lieuentreposage: editingPiece.Lieuentreposage || "",
         QtéenInventaire: isNaN(qInv) ? 0 : qInv,
         Qtéminimum: isNaN(qMin) ? 0 : qMin,
-        Qtémax: isNaN(qMax) ? 100 : qMax,
+        Qtémax: isNaN(qMax) ? 10 : qMax,
         Prix_unitaire: isNaN(prixVal) ? 0 : prixVal,
         Soumission_LD: editingPiece.Soumission_LD || "",
         SoumDem: editingPiece.SoumDem || false,

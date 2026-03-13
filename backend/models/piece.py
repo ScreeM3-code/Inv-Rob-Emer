@@ -69,6 +69,7 @@ class PieceUpdate(BaseModel):
     Datecommande: Optional[str] = None
     devise: Optional[str] = None
     RefDepartement: Optional[int] = None
+    Modified: Optional[datetime] = None
 
 class Piece(PieceBase):
     Created: Optional[datetime] = None

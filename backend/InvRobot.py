@@ -44,7 +44,7 @@ from auth import get_current_user
 
 # Setup logging
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s - %(name)s - %(levelname)s - %(message)s",
     filename="InvRob.log",
     filemode="w"

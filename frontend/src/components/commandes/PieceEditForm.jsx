@@ -38,7 +38,7 @@ function DeviseSelect({ value, onChange }) {
   );
 }
 
-export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave, onCancel, departements = [] }) {
+export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave, onCancel, departements, onUpdateDepartement = [] }) {
   const [formData, setFormData] = React.useState({
     ...piece,
     fournisseurs: piece.fournisseurs || [],
@@ -192,9 +192,9 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
             <Select
               value={formData.RefDepartement?.toString() || "none"}
               onValueChange={(value) => {
-                if (value === "none") return handleChange('RefDepartement', null);
+                if (value === "none") return onUpdateDepartement('RefDepartement', null);
                 const n = parseInt(value, 10);
-                handleChange('RefDepartement', isNaN(n) ? null : n);
+                onUpdateDepartement('RefDepartement', isNaN(n) ? null : n);
               }}
             >
               <SelectTrigger>

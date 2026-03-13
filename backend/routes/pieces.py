@@ -18,7 +18,8 @@ async def get_pieces(
         conn: asyncpg.Connection = Depends(get_db_connection),
         search: Optional[str] = None,
         statut: Optional[str] = None,
-        stock: Optional[str] = None
+        stock: Optional[str] = None,
+        departement: Optional[int] = None
 ):
     """Récupère toutes les pièces avec filtrage optionnel"""
     try:
@@ -29,6 +30,7 @@ async def get_pieces(
                    fp."NomFournisseur"  as fournisseur_principal_nom,
                    fp."NuméroTél"       as fournisseur_principal_tel,
                    fp."NumSap"          as fournisseur_principal_numsap,
+                   d."NomDepartement",
                    (
                        SELECT json_agg(
                            json_build_object(
@@ -47,6 +49,7 @@ async def get_pieces(
                    ) as tous_fournisseurs
             FROM "Pièce" p
             LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
+             LEFT JOIN "Departement" d ON p."RefDepartement" = d."RefDepartement"
             LEFT JOIN "PieceFournisseur" pf_principal ON (
                 pf_principal."RéfPièce" = p."RéfPièce" AND pf_principal."EstPrincipal" = TRUE
             )
@@ -77,6 +80,12 @@ async def get_pieces(
                 base_query += ' AND p."QtéenInventaire" = p."Qtéminimum"'
             elif stock == "ok":
                 base_query += ' AND p."QtéenInventaire" > p."Qtéminimum"'
+
+        # Filtre Dep :
+        if departement:
+            base_query += f' AND p."RefDepartement" = ${param_idx}'
+            params.append(departement)
+            param_idx += 1
 
         pieces = await conn.fetch(base_query, *params)
 
@@ -143,6 +152,8 @@ async def get_pieces(
                 Modified=piece_dict.get("Modified"),
                 RTBS=piece_dict.get("RTBS"),
                 devise=safe_string(piece_dict.get("devise", "CAD")) or "CAD",
+                RefDepartement=piece_dict.get("RefDepartement"),
+                NomDepartement=safe_string(piece_dict.get("NomDepartement", "")),
                 NoFESTO=safe_string(piece_dict.get("NoFESTO"))
             )
             result.append(piece_response)
@@ -237,6 +248,8 @@ async def get_piece(piece_id: int, request: Request):
             Discontinué=safe_string(piece_dict.get("Discontinué", "")),
             RTBS=piece_dict.get("RTBS"),
             NoFESTO=safe_string(piece_dict.get("NoFESTO")),
+            RefDepartement=piece_dict.get("RefDepartement"),
+            NomDepartement=safe_string(piece_dict.get("NomDepartement", "")),
             devise=safe_string(piece_dict.get("devise", "CAD")) or "CAD"
 
         )
@@ -249,7 +262,6 @@ async def get_piece(piece_id: int, request: Request):
         await request.app.state.pool.release(conn)
 
 
-# Après la route GET /pieces/{piece_id}
 @router.get("/{piece_id}/fournisseurs")
 async def get_piece_fournisseurs(
         piece_id: int,
@@ -465,6 +477,8 @@ async def create_piece(
         Modified=piece_dict.get("Modified"),
         RTBS=piece_dict.get("RTBS"),
         NoFESTO=safe_string(piece_dict.get("NoFESTO")),
+        RefDepartement=piece_dict.get("RefDepartement"),
+        NomDepartement=safe_string(piece_dict.get("NomDepartement", "")),
         devise=safe_string(piece_dict.get("devise", "CAD")) or "CAD",
     )
 
@@ -498,6 +512,10 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
                 update_fields.append(f'"Prix unitaire" = ${param_count}')
             elif field == "Soumission_LD":
                 update_fields.append(f'"Soumission LD" = ${param_count}')
+            elif field == "RefDepartement":
+                param_count += 1
+                update_fields.append(f'"RefDepartement" = ${param_count}')
+                values.append(value)  # peut être None pour effacer
             else:
                 update_fields.append(f'"{field}" = ${param_count}')
             values.append(value)
@@ -517,7 +535,7 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
             SET {", ".join(update_fields)}
             WHERE "RéfPièce" = ${param_count}
         '''
-
+    print(query)
     await conn.execute(query, *values)
 
     # Sauvegarder les fournisseurs si fournis dans la mise à jour
@@ -617,6 +635,8 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
         Modified=piece_dict.get("Modified"),
         RTBS=piece_dict.get("RTBS"),
         NoFESTO=safe_string(piece_dict.get("NoFESTO")),
+        RefDepartement=piece_dict.get("RefDepartement"),
+        NomDepartement=safe_string(piece_dict.get("NomDepartement", "")),
         devise=safe_string(piece_dict.get("devise", "CAD")) or "CAD"
     )
 

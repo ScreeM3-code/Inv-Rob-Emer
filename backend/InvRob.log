@@ -1,13 +1,75 @@
-2026-03-13 09:14:03,438 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
-2026-03-13 09:14:03,439 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2026-03-13 09:14:03,508 - uvicorn.error - INFO - Started server process [39792]
-2026-03-13 09:14:03,509 - uvicorn.error - INFO - Waiting for application startup.
-2026-03-13 09:14:03,628 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2026-03-13 09:14:03,634 - Inventaire-Robot - INFO - \u2705 947 Pièce trouvés
-2026-03-13 09:14:03,635 - uvicorn.error - INFO - Application startup complete.
-2026-03-13 09:14:03,635 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
-2026-03-13 11:51:59,498 - uvicorn.error - INFO - Shutting down
-2026-03-13 11:51:59,604 - uvicorn.error - INFO - Waiting for application shutdown.
-2026-03-13 11:51:59,605 - Inventaire-Robot - INFO - Pool PostgreSQL fermé.
-2026-03-13 11:51:59,605 - uvicorn.error - INFO - Application shutdown complete.
-2026-03-13 11:51:59,605 - uvicorn.error - INFO - Finished server process [39792]
+2026-03-13 15:30:48,588 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
+2026-03-13 15:30:48,588 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2026-03-13 15:30:48,597 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-13 15:30:48,669 - uvicorn.error - INFO - Started server process [33604]
+2026-03-13 15:30:48,669 - uvicorn.error - INFO - Waiting for application startup.
+2026-03-13 15:30:48,799 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2026-03-13 15:30:48,815 - Inventaire-Robot - INFO - \u2705 947 Pièce trouvés
+2026-03-13 15:30:48,816 - uvicorn.error - INFO - Application startup complete.
+2026-03-13 15:30:48,816 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
+2026-03-13 15:31:04,808 - uvicorn.error - ERROR - Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\uvicorn\protocols\http\httptools_impl.py", line 401, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\applications.py", line 1134, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\applications.py", line 107, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\errors.py", line 186, in __call__
+    raise exc
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\errors.py", line 164, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\cors.py", line 95, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\cors.py", line 153, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\middleware\exceptions.py", line 63, in __call__
+    await wrap_app_handling_exceptions(self.app, conn)(scope, receive, send)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\middleware\asyncexitstack.py", line 18, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 716, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 736, in app
+    await route.handle(scope, receive, send)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\routing.py", line 290, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 119, in app
+    await wrap_app_handling_exceptions(app, request)(scope, receive, send)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 53, in wrapped_app
+    raise exc
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\starlette\_exception_handler.py", line 42, in wrapped_app
+    await app(scope, receive, sender)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 105, in app
+    response = await f(request)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 424, in app
+    raw_response = await run_endpoint_function(
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\fastapi\routing.py", line 312, in run_endpoint_function
+    return await dependant.call(**values)
+  File "C:\Users\simon.dechamplain\Desktop\Python\app\Inv-Rob-Emer\backend\routes\pieces.py", line 539, in update_piece
+    await conn.execute(query, *values)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\asyncpg\connection.py", line 352, in execute
+    _, status, _ = await self._execute(
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\asyncpg\connection.py", line 1864, in _execute
+    result, _ = await self.__execute(
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\asyncpg\connection.py", line 1961, in __execute
+    result, stmt = await self._do_execute(
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\asyncpg\connection.py", line 2004, in _do_execute
+    stmt = await self._get_statement(
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\site-packages\asyncpg\connection.py", line 432, in _get_statement
+    statement = await self._protocol.prepare(
+  File "asyncpg\\protocol\\protocol.pyx", line 165, in prepare
+asyncpg.exceptions.IndeterminateDatatypeError: n'a pas pu déterminer le type de données du paramètre $12
+2026-03-13 15:45:10,072 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
+handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
+Traceback (most recent call last):
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
+    self._context.run(self._callback, *self._args)
+  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
+    self._sock.shutdown(socket.SHUT_RDWR)
+ConnectionResetError: [WinError 10054] Une connexion existante a dû être fermée par l’hôte distant
