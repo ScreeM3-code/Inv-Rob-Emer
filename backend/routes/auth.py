@@ -431,13 +431,14 @@ async def get_notif_prefs(request: Request, user: dict = Depends(require_auth)):
     pool = request.app.state.pool
     async with pool.acquire() as conn:
         row = await conn.fetchrow(
-            "SELECT notification_prefs FROM users WHERE username = $1",
+            "SELECT notification_prefs, email FROM users WHERE username = $1",
             user['username']
         )
 
     raw = row['notification_prefs'] if row else None
     prefs = json.loads(raw) if raw else {}
-    return {"prefs": prefs}
+    email = row['email'] if row else None
+    return {"prefs": prefs, "email": email or '', "has_email": bool(email)}
 
 
 @router.put('/me/notification-prefs')
@@ -484,7 +485,7 @@ async def update_my_email(
             email.lower().strip() if email else None,
             user['username']
         )
-    return {"msg": "Email mis à jour"}
+    return {"msg": "Email mis à jour", "has_email": bool(email)}
 
 
 @router.post('/test-email')

@@ -37,7 +37,7 @@ function Commandes() {
 
   const loadData = async (page = 1) => {
     try {
-      const [toorders, fournisseurs, fabricants] = await Promise.all([
+      const [toorders, fournisseurs, fabricants, departements] = await Promise.all([
         fetchJson(`${API}/toorders`),
         fetchJson(`${API}/fournisseurs`),
         fetchJson(`${API}/fabricant`),
@@ -367,8 +367,6 @@ function Commandes() {
                   isInCart={isInCart}
                   onAddToCart={addToCart}
                   onViewHistory={handleViewHistory}
-                  departements={departements}
-                  onUpdateDepartement={handleUpdateDepartement}
                   onEdit={() => setEditingOrder(order)}
                   onOrder={() => setGoOrder(order)}
                   onRefresh={() => loadData(currentPage)}

@@ -504,7 +504,7 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
                     pass  # Date invalide, on ignore
             continue  # Saute le traitement générique ci-dessous
 
-        if value is not None:
+        if value is not None or field == "RefDepartement":
             param_count += 1
             if field == "Lieuentreposage":
                 update_fields.append(f'"Lieuentreposage" = ${param_count}')
@@ -513,9 +513,7 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
             elif field == "Soumission_LD":
                 update_fields.append(f'"Soumission LD" = ${param_count}')
             elif field == "RefDepartement":
-                param_count += 1
                 update_fields.append(f'"RefDepartement" = ${param_count}')
-                values.append(value)  # peut être None pour effacer
             else:
                 update_fields.append(f'"{field}" = ${param_count}')
             values.append(value)
@@ -535,7 +533,6 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
             SET {", ".join(update_fields)}
             WHERE "RéfPièce" = ${param_count}
         '''
-    print(query)
     await conn.execute(query, *values)
 
     # Sauvegarder les fournisseurs si fournis dans la mise à jour
@@ -560,9 +557,10 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
 
     # Récupérer la pièce mise à jour avec ses fournisseurs via PieceFournisseur
     piece = await conn.fetchrow('''
-        SELECT p.*, f3."NomFabricant"
+        SELECT p.*, f3."NomFabricant", d."NomDepartement"
         FROM "Pièce" p
         LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
+        LEFT JOIN "Departement" d ON p."RefDepartement" = d."RefDepartement"
         WHERE p."RéfPièce" = $1
     ''', piece_id)
     if not piece:

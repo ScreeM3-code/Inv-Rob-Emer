@@ -8,8 +8,8 @@ class Commande(BaseModel):
     NomPièce: Optional[str] = ""
     DescriptionPièce: Optional[str] = ""
     NumPièce: Optional[str] = ""
-    fournisseurs: Optional[List[dict]] = []
-    fournisseur_principal: Optional[dict] = None
+    RéfFournisseur: Optional[int] = None
+    RéfAutreFournisseur: Optional[int] = None
     RefFabricant: Optional[int] = None
     NumPièceAutreFournisseur: Optional[str] = ""
     Lieuentreposage: Optional[str] = ""
@@ -23,6 +23,7 @@ class Commande(BaseModel):
     Cmd_info: Optional[str] = ""
     Qtéàcommander: Optional[int] = 0
     Prix_unitaire: float = 0.0
+    fournisseurs: Optional[List[dict]] = []
     fournisseur_principal: Optional[dict] = None
     autre_fournisseur: Optional[dict] = None
     NomFabricant: Optional[str] = ""
@@ -31,14 +32,15 @@ class Commande(BaseModel):
     RTBS: Optional[int] = None
     NoFESTO: Optional[str] = ""
     NumSap: Optional[str] = ""
-    devise: Optional[str] = 'CAD'
+    devise: Optional[str] = "CAD"
+    RefDepartement: Optional[int] = None      # ← NOUVEAU
+    NomDepartement: Optional[str] = None      # ← NOUVEAU
 
 class StatsResponse(BaseModel):
     total_pieces: int
     stock_critique: int
     valeur_stock: float
     pieces_a_commander: int
-
 
 class ApprobationRequest(BaseModel):
     note: Optional[str] = None

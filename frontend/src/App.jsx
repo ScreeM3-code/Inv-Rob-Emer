@@ -414,7 +414,9 @@ function Dashboard () {
         Soumission_LD: editingPiece.Soumission_LD || "",
         SoumDem: editingPiece.SoumDem || false,
         NoFESTO: editingPiece.NoFESTO?.trim() || "",
-        RTBS: (editingPiece.RTBS === "" || editingPiece.RTBS == null) ? null : parseFloat(editingPiece.RTBS)
+        RTBS: (editingPiece.RTBS === "" || editingPiece.RTBS == null) ? null : parseFloat(editingPiece.RTBS),
+        RefDepartement: editingPiece.RefDepartement ?? null,
+        devise: editingPiece.devise || 'CAD',
       };
 
       // ✅ Mise à jour optimiste

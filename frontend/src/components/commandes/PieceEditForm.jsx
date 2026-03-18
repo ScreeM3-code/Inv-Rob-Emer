@@ -38,7 +38,7 @@ function DeviseSelect({ value, onChange }) {
   );
 }
 
-export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave, onCancel, departements, onUpdateDepartement = [] }) {
+export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave, onCancel, departements}) {
   const [formData, setFormData] = React.useState({
     ...piece,
     fournisseurs: piece.fournisseurs || [],
@@ -65,7 +65,7 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
 
   const handleChange = React.useCallback((field, value) => {
     // Pour les champs numériques, mettre à jour immédiatement
-    if (['QtéenInventaire', 'Qtéminimum', 'Qtémax', 'Prix_unitaire'].includes(field)) {
+    if (['QtéenInventaire', 'Qtéminimum', 'Qtémax', 'Prix_unitaire', 'RefDepartement', 'RefFabricant'].includes(field)) {
       setFormData(prev => ({ ...prev, [field]: value }));
       return;
     }
@@ -192,9 +192,9 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
             <Select
               value={formData.RefDepartement?.toString() || "none"}
               onValueChange={(value) => {
-                if (value === "none") return onUpdateDepartement('RefDepartement', null);
+                if (value === "none") return handleChange('RefDepartement', null);
                 const n = parseInt(value, 10);
-                onUpdateDepartement('RefDepartement', isNaN(n) ? null : n);
+                handleChange('RefDepartement', isNaN(n) ? null : n);
               }}
             >
               <SelectTrigger>
@@ -261,7 +261,7 @@ export default function PieceEditForm({ piece, fournisseurs, fabricants, onSave,
               />
             </div>
             <div>
-              <Label>Prix unitaire (CAD $)</Label>
+              <Label>Prix unitaire</Label>
               <Input
                 type="number"
                 step="0.01"

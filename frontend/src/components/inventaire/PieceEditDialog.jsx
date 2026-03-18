@@ -306,7 +306,7 @@ export default function PieceEditDialog({
               <Label>Devise</Label>
               <DeviseSelect
                 value={piece.devise || 'CAD'}
-                onChange={v => handleChange('devise', v)}
+                onChange={v => onChange('devise', v)}
               />
             </div>
           </div>

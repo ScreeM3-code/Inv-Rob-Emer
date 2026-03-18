@@ -84,6 +84,7 @@ async def get_commande(conn: asyncpg.Connection = Depends(get_db_connection)):
             LEFT JOIN "PieceFournisseur" pf_p ON pf_p."RéfPièce" = p."RéfPièce" AND pf_p."EstPrincipal" = TRUE
             LEFT JOIN "Fournisseurs" fp ON fp."RéfFournisseur" = pf_p."RéfFournisseur"
             LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
+            LEFT JOIN "Departement" d ON p."RefDepartement" = d."RefDepartement"
             WHERE COALESCE(p."Qtécommandée", 0) > 0
         ''')
 
@@ -127,7 +128,9 @@ async def get_commande(conn: asyncpg.Connection = Depends(get_db_connection)):
                 NomFabricant=safe_string(piece_dict.get("NomFabricant", "")),
                 Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
                 SoumDem=bool(piece_dict.get("SoumDem", False)),
-                devise=safe_string(piece_dict.get("devise", "CAD")) or "CAD"
+                devise=safe_string(piece_dict.get("devise", "CAD")) or "CAD",
+                RefDepartement=piece_dict.get("RefDepartement"),
+                NomDepartement=safe_string(piece_dict.get("NomDepartement", ""))
             )
 
             result.append(commande)
@@ -164,6 +167,7 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
             LEFT JOIN "PieceFournisseur" pf_p ON pf_p."RéfPièce" = p."RéfPièce" AND pf_p."EstPrincipal" = TRUE
             LEFT JOIN "Fournisseurs" fp ON fp."RéfFournisseur" = pf_p."RéfFournisseur"
             LEFT JOIN "Fabricant" f3 ON p."RefFabricant" = f3."RefFabricant"
+            LEFT JOIN "Departement" d ON p."RefDepartement" = d."RefDepartement"
             WHERE COALESCE(p."Qtécommandée", 0) <= 0
              AND p."QtéenInventaire" < p."Qtéminimum"
              AND p."Qtéminimum" > 0
@@ -214,7 +218,9 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
                 Soumission_LD=safe_string(piece_dict.get("Soumission LD", "")),
                 SoumDem=bool(piece_dict.get("SoumDem", False)),
                 NoFESTO=safe_string(piece_dict.get("NoFESTO")),
-                devise=safe_string(piece_dict.get("devise", "CAD")) or "CAD"
+                devise=safe_string(piece_dict.get("devise", "CAD")) or "CAD",
+                RefDepartement=piece_dict.get("RefDepartement"),
+                NomDepartement=safe_string(piece_dict.get("NomDepartement", ""))
             )
 
             result.append(commande)
