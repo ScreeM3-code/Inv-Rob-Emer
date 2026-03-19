@@ -227,7 +227,7 @@ function Receptions() {
                           </div>
                           <div>
                             <span className="text-gray-500 dark:text-white">Prix unitaire:</span>
-                            <div className="font-semibold">{piece.Prix_unitaire.toLocaleString('fr-CA', {style: 'currency', currency: 'CAD'})}</div>
+                            <div className="font-semibold">{piece.Prix_unitaire.toLocaleString('fr-CA', {style: 'currency', currency: ["CAD","USD"].includes(piece.devise) ? piece.devise : "CAD"})}</div>
                           </div>
                         </div>
 
