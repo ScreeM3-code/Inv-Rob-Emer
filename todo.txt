@@ -1,5 +1,5 @@
 
-joindre soumission sap ?
+bug entre historique quand on crée une commandes (pas Ereq)
 
 
 

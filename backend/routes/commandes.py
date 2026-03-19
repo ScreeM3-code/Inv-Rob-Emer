@@ -1,7 +1,7 @@
 """Routes pour la gestion des commandes"""
 import asyncpg
 from fastapi import APIRouter, Depends, HTTPException, Request
-from typing import List
+from typing import List, Optional
 from datetime import datetime
 import httpx
 from database import get_db_connection
@@ -544,8 +544,8 @@ async def soumettre_approbation(
 @router.post("/toorders/{piece_id}/approuver")
 async def approuver_piece(
         piece_id: int,
-        piece_nom: str,
         data: ApprobationRequest,
+        piece_nom: Optional[str] = None,
         conn: asyncpg.Connection = Depends(get_db_connection),
         user: dict = Depends(require_admin)
 ):
@@ -568,7 +568,7 @@ async def approuver_piece(
         user['username'], data.note, piece_id
     )
     asyncio.create_task(
-        notify_approbation_result(conn, piece_nom, "approuvee", data.note or "")
+        notify_approbation_result(conn, piece['NomPièce'], "approuvee", data.note or "")
     )
     return {"msg": "Pièce approuvée", "statut": "approuvee"}
 
@@ -576,8 +576,8 @@ async def approuver_piece(
 @router.post("/toorders/{piece_id}/refuser")
 async def refuser_piece(
         piece_id: int,
-        piece_nom: str,
         data: ApprobationRequest,
+        piece_nom: Optional[str] = None,
         conn: asyncpg.Connection = Depends(get_db_connection),
         user: dict = Depends(require_admin)
 ):
@@ -600,7 +600,7 @@ async def refuser_piece(
         user['username'], data.note, piece_id
     )
     asyncio.create_task(
-        notify_approbation_result(conn, piece_nom, "refusee", data.note or "")
+        notify_approbation_result(conn, piece['NomPièce'], "refusee", data.note or "")
     )
     return {"msg": "Pièce refusée", "statut": "refusee"}
 

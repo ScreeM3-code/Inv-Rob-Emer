@@ -170,7 +170,7 @@ export default function CartPanel({ children }) {
             Quantite: i.cartQty,
             Prix_unitaire: i.Prix_unitaire || 0
           })),
-          User: userData.user || 'Système',
+          User: userData.user?.username || 'Système',
           Notes: ''
         })
       });

@@ -508,9 +508,9 @@ async def test_email(
 
     try:
         send_email(
-            to_email=row['email'],
+            to=row['email'],
             subject="Test Email - Inventaire Robot",
-            body="Ceci est un email de test envoyé depuis Inventaire Robot. La configuration SMTP fonctionne correctement."
+            body_html="Ceci est un email de test envoyé depuis Inventaire Robot. La configuration SMTP fonctionne correctement."
         )
         return {"msg": f"Email de test envoyé à {row['email']}"}
     except Exception as e:
