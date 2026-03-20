@@ -125,23 +125,22 @@ export default function CommandeCard({
             </div>
 
             {/* Fournisseurs */}
-            {(order.fournisseur_principal || order.autre_fournisseur || order.NomFabricant) && (
+            {((order.fournisseurs?.length > 0) || order.NomFabricant) && (
               <div className="mt-4 pt-4 border-t border-gray-200">
                 <h4 className="text-sm font-semibold text-gray-700 mb-2 flex items-center dark:text-gray-200">
                   <Users className="h-4 w-4 mr-2" />
                   Fournisseurs
                 </h4>
                 <div className="flex flex-wrap gap-2">
-                  {order.fournisseur_principal && (
-                    <Badge variant="outline" className="text-rio-red border-rio-red">
-                      Principal: {order.fournisseur_principal.NomFournisseur}
+                  {(order.fournisseurs || []).map((f, i) => (
+                    <Badge
+                      key={f.RéfFournisseur ?? i}
+                      variant="outline"
+                      className={f.EstPrincipal ? "text-rio-red border-rio-red" : "text-blue-600 border-blue-600"}
+                    >
+                      {f.EstPrincipal ? "Principal" : "Secondaire"}: {f.NomFournisseur}
                     </Badge>
-                  )}
-                  {order.autre_fournisseur && (
-                    <Badge variant="outline" className="text-blue-600 border-blue-600">
-                      Autre: {order.autre_fournisseur.NomFournisseur}
-                    </Badge>
-                  )}
+                  ))}
                   {order.NomFabricant && (
                     <Badge variant="outline" className="bg-indigo-600 text-white">
                       Fabricant: {order.NomFabricant}

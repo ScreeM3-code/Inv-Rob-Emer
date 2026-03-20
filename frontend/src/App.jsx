@@ -402,8 +402,6 @@ function Dashboard () {
         NomPièce: editingPiece.NomPièce || "",
         DescriptionPièce: editingPiece.DescriptionPièce || "",
         NumPièce: editingPiece.NumPièce || "",
-        RéfFournisseur: editingPiece.RéfFournisseur || null,
-        RéfAutreFournisseur: editingPiece.RéfAutreFournisseur || null,
         NumPièceAutreFournisseur: editingPiece.NumPièceAutreFournisseur || "",
         RefFabricant: editingPiece.RefFabricant || null,
         Lieuentreposage: editingPiece.Lieuentreposage || "",
@@ -417,6 +415,7 @@ function Dashboard () {
         RTBS: (editingPiece.RTBS === "" || editingPiece.RTBS == null) ? null : parseFloat(editingPiece.RTBS),
         RefDepartement: editingPiece.RefDepartement ?? null,
         devise: editingPiece.devise || 'CAD',
+        fournisseurs: editingPiece.fournisseurs || [],
       };
 
       // ✅ Mise à jour optimiste

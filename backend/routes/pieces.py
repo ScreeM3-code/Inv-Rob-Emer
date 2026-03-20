@@ -491,6 +491,8 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
     param_count = 0
 
     for field, value in piece_update.dict(exclude_unset=True).items():
+        if field == "fournisseurs":
+            continue
         # Traitement spécial pour Datecommande : convertir string → date ou ignorer si vide
         if field == "Datecommande":
             if value and value != "":

@@ -115,8 +115,6 @@ function Commandes() {
         NomPièce: updatedPiece.NomPièce || "",
         DescriptionPièce: updatedPiece.DescriptionPièce || "",
         NumPièce: updatedPiece.NumPièce || "",
-        RéfFournisseur: updatedPiece.RéfFournisseur || null,
-        RéfAutreFournisseur: updatedPiece.RéfAutreFournisseur || null,
         NumPièceAutreFournisseur: updatedPiece.NumPièceAutreFournisseur || "",
         RefFabricant: updatedPiece.RefFabricant || null,
         Lieuentreposage: updatedPiece.Lieuentreposage || "",
@@ -132,6 +130,7 @@ function Commandes() {
         Cmd_info: updatedPiece.Cmd_info || "",
         Qtéàcommander: updatedPiece.Qtéàcommander ?? 0,
         devise: updatedPiece.devise || 'CAD',
+        fournisseurs: updatedPiece.fournisseurs || []
       };
       
       delete cleanedOrder.NomFabricant;
