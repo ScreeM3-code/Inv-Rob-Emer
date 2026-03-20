@@ -59,17 +59,24 @@ export default function Layout() {
 
   useEffect(() => {
     if (!isAdmin) return;
-    fetch(`${import.meta.env.VITE_BACKEND_URL}/api/toorders/en-attente`, {
-      credentials: 'include'
-    })
-      .then(r => r.ok ? r.json() : [])
-      .then(data => {
-        const count = Array.isArray(data)
-          ? data.filter(p => p.approbation_statut === 'en_attente' || p.approbation_statut === null ).length
-          : 0;
-        setPendingCount(count);
+
+    const fetchPending = () => {
+      fetch(`${import.meta.env.VITE_BACKEND_URL}/api/toorders/en-attente`, {
+        credentials: 'include'
       })
-      .catch(() => {});
+        .then(r => r.ok ? r.json() : [])
+        .then(data => {
+          const count = Array.isArray(data)
+            ? data.filter(p => p.approbation_statut === 'en_attente' || p.approbation_statut === null).length
+            : 0;
+          setPendingCount(count);
+        })
+        .catch(() => {});
+    };
+
+    fetchPending();
+    window.addEventListener('approbation-updated', fetchPending);
+    return () => window.removeEventListener('approbation-updated', fetchPending);
   }, [isAdmin]);
   
   // Label du rôle affiché

@@ -151,7 +151,7 @@ function Commandes() {
       // 2. Si c'est une NOUVELLE commande, mettre à jour la soumission
       if (isNewOrder) {
         const userData = await fetchJson(`${API}/current-user`);
-        const userName = userData.user || "Système";
+        const userName = userData.user?.username || "Système";  
         
         // Ajouter à l'historique de mouvements (existant)
         const historiqueEntry = {

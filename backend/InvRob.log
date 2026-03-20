@@ -1,9 +1,9 @@
-2026-03-19 09:06:11,480 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
-2026-03-19 09:06:11,480 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2026-03-19 09:06:11,485 - asyncio - DEBUG - Using proactor: IocpProactor
-2026-03-19 09:06:11,542 - uvicorn.error - INFO - Started server process [30808]
-2026-03-19 09:06:11,542 - uvicorn.error - INFO - Waiting for application startup.
-2026-03-19 09:06:11,665 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2026-03-19 09:06:11,671 - Inventaire-Robot - INFO - \u2705 948 Pièce trouvés
-2026-03-19 09:06:11,672 - uvicorn.error - INFO - Application startup complete.
-2026-03-19 09:06:11,673 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
+2026-03-20 11:38:45,511 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
+2026-03-20 11:38:45,512 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2026-03-20 11:38:45,519 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-20 11:38:45,627 - uvicorn.error - INFO - Started server process [34904]
+2026-03-20 11:38:45,627 - uvicorn.error - INFO - Waiting for application startup.
+2026-03-20 11:38:45,750 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2026-03-20 11:38:45,756 - Inventaire-Robot - INFO - \u2705 948 Pièce trouvés
+2026-03-20 11:38:45,758 - uvicorn.error - INFO - Application startup complete.
+2026-03-20 11:38:45,758 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)

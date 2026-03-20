@@ -212,7 +212,7 @@ export default function Groupes() {
     try {
       // 1. Récupérer l'utilisateur
   const userData = await fetchJson(`${API}/current-user`);
-  const userName = userData.user || "Système";
+  const userName = userData.user?.username || "Système";
 
       // 2. Pour chaque pièce, faire la sortie
       for (const sortie of sorties) {

@@ -7,84 +7,98 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import PieceFournisseursEditor from '@/components/pieces/PieceFournisseursEditor';
 import BarcodeScanner from "./BarcodeScanner";
 
+function DeviseSelect({ value, onChange }) {
+  const DEVISES = ['CAD', 'USD'];
+  const [custom, setCustom] = React.useState(
+    value && !DEVISES.includes(value) ? value : ''
+  );
+  const isAutre = value && !DEVISES.includes(value);
 
-export default function PieceEditDialog({ 
-  piece, 
-  fournisseurs, 
-  fabricants, 
-  onSave, 
+  return (
+    <div className="flex gap-2">
+      <Select
+        value={isAutre ? 'autre' : (value || 'CAD')}
+        onValueChange={v => {
+          if (v === 'autre') onChange('');
+          else onChange(v);
+        }}
+      >
+        <SelectTrigger className="w-28">
+          <SelectValue />
+        </SelectTrigger>
+        <SelectContent>
+          <SelectItem value="CAD">CAD</SelectItem>
+          <SelectItem value="USD">USD</SelectItem>
+          <SelectItem value="autre">Autre…</SelectItem>
+        </SelectContent>
+      </Select>
+      {(isAutre || value === '') && (
+        <Input
+          placeholder="ex: EUR"
+          className="w-24"
+          value={custom}
+          onChange={e => { setCustom(e.target.value); onChange(e.target.value); }}
+        />
+      )}
+    </div>
+  );
+}
+
+export default function PieceEditDialog({
+  piece,
+  fournisseurs,
+  fabricants,
+  onSave,
   onCancel,
   onChange,
-  departements = [] 
+  departements = []
 }) {
   if (!piece) return null;
 
+  // State local pour tous les champs texte — pas de debounce, mise à jour immédiate
+  const [local, setLocal] = useState({
+    NomPièce:                   piece.NomPièce                   || '',
+    DescriptionPièce:           piece.DescriptionPièce           || '',
+    NumPièce:                   piece.NumPièce                   || '',
+    NumPièceAutreFournisseur:   piece.NumPièceAutreFournisseur   || '',
+    RTBS:                       piece.RTBS                       || '',
+    NoFESTO:                    piece.NoFESTO                    || '',
+    Lieuentreposage:            piece.Lieuentreposage            || '',
+  });
+
   const [pendingImageUrl, setPendingImageUrl] = useState(null);
 
-  const debouncedOnChange = React.useCallback(
-    (fn => {
-      let timeoutId;
-      return (field, value) => {
-        if (['QtéenInventaire', 'Qtéminimum', 'Qtémax', 'Prix_unitaire'].includes(field)) {
-          fn(field, value);
-          return;
-        }
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => fn(field, value), 100);
-      };
-    })(onChange),
-    [onChange]
-  );
+  // Met à jour le state local ET notifie le parent immédiatement
+  const handleText = (field, value) => {
+    setLocal(prev => ({ ...prev, [field]: value }));
+    onChange(field, value);
+  };
 
-
-  const DEVISES = ['CAD', 'USD'];
-
-  function DeviseSelect({ value, onChange }) {
-    const [custom, setCustom] = React.useState(
-      value && !DEVISES.includes(value) ? value : ''
-    );
-    const isAutre = value && !DEVISES.includes(value);
-
-    return (
-      <div className="flex gap-2">
-        <Select
-          value={isAutre ? 'autre' : (value || 'CAD')}
-          onValueChange={v => {
-            if (v === 'autre') onChange('');
-            else onChange(v);
-          }}
-        >
-          <SelectTrigger className="w-28">
-            <SelectValue />
-          </SelectTrigger>
-          <SelectContent>
-            <SelectItem value="CAD">CAD</SelectItem>
-            <SelectItem value="USD">USD</SelectItem>
-            <SelectItem value="autre">Autre…</SelectItem>
-          </SelectContent>
-        </Select>
-        {isAutre || (value === '' && custom !== null) ? (
-          <Input
-            placeholder="ex: EUR"
-            className="w-24"
-            value={custom}
-            onChange={e => { setCustom(e.target.value); onChange(e.target.value); }}
-          />
-        ) : null}
-      </div>
-    );
-  }
+  // Pour les champs non-texte (select, number) on notifie directement le parent
+  const handleOther = (field, value) => {
+    onChange(field, value);
+  };
 
   const handleBarcodeResult = (data) => {
-    if (data.NomPièce)                onChange('NomPièce', data.NomPièce);
-    if (data.DescriptionPièce)        onChange('DescriptionPièce', data.DescriptionPièce);
-    if (data.NumPièce)                onChange('NumPièce', data.NumPièce);
-    if (data.QtéenInventaire != null) onChange('QtéenInventaire', data.QtéenInventaire);
-    if (data.image_url)               setPendingImageUrl(data.image_url);
+    if (data.NomPièce) {
+      handleText('NomPièce', data.NomPièce);
+    }
+    if (data.DescriptionPièce) {
+      handleText('DescriptionPièce', data.DescriptionPièce);
+    }
+    if (data.NumPièce) {
+      handleText('NumPièce', data.NumPièce);
+    }
+    if (data.QtéenInventaire != null) {
+      handleOther('QtéenInventaire', data.QtéenInventaire);
+    }
+    if (data.image_url) {
+      setPendingImageUrl(data.image_url);
+    }
   };
 
   const handleBarcodeNotFound = (code) => {
-    onChange('NumPièce', code);
+    handleText('NumPièce', code);
   };
 
   return (
@@ -93,7 +107,7 @@ export default function PieceEditDialog({
         <DialogHeader>
           <DialogTitle className="text-base md:text-lg">Ajouter / Modifier la pièce</DialogTitle>
         </DialogHeader>
-        
+
         <div className="grid gap-3 md:gap-4 py-3 md:py-4">
 
           {/* Scanner code barre */}
@@ -102,21 +116,22 @@ export default function PieceEditDialog({
             onNotFound={handleBarcodeNotFound}
           />
 
-          {/* Nom et Description */}
+          {/* Nom */}
           <div>
             <Label className="text-xs md:text-sm">Nom de la pièce *</Label>
             <Input
-              value={piece.NomPièce || ""}
-              onChange={(e) => debouncedOnChange('NomPièce', e.target.value)}
+              value={local.NomPièce}
+              onChange={e => handleText('NomPièce', e.target.value)}
               className="h-9 md:h-10 text-sm"
             />
           </div>
 
+          {/* Description */}
           <div>
             <Label className="text-xs md:text-sm">Description</Label>
             <Input
-              value={piece.DescriptionPièce || ""}
-              onChange={(e) => debouncedOnChange('DescriptionPièce', e.target.value)}
+              value={local.DescriptionPièce}
+              onChange={e => handleText('DescriptionPièce', e.target.value)}
               className="h-9 md:h-10 text-sm"
             />
           </div>
@@ -126,36 +141,36 @@ export default function PieceEditDialog({
             <div>
               <Label className="text-xs md:text-sm">N° de pièce</Label>
               <Input
-                value={piece.NumPièce || ""}
-                onChange={(e) => debouncedOnChange('NumPièce', e.target.value)}
+                value={local.NumPièce}
+                onChange={e => handleText('NumPièce', e.target.value)}
                 className="h-9 md:h-10 text-sm"
               />
             </div>
             <div>
               <Label className="text-xs md:text-sm">N° pièce fournisseur</Label>
               <Input
-                value={piece.NumPièceAutreFournisseur || ""}
-                onChange={(e) => debouncedOnChange('NumPièceAutreFournisseur', e.target.value)}
+                value={local.NumPièceAutreFournisseur}
+                onChange={e => handleText('NumPièceAutreFournisseur', e.target.value)}
                 className="h-9 md:h-10 text-sm"
               />
             </div>
           </div>
 
-          {/* Numéros SAP et FESTO - masqués sur mobile */}
+          {/* N° SAP et FESTO */}
           <div className="hidden md:grid grid-cols-2 gap-4">
             <div>
               <Label className="text-sm">N° SAP</Label>
               <Input
-                value={piece.RTBS || ""}
-                onChange={(e) => debouncedOnChange('RTBS', e.target.value)}
+                value={local.RTBS}
+                onChange={e => handleText('RTBS', e.target.value)}
                 className="h-10 text-sm"
               />
             </div>
             <div>
               <Label className="text-sm">N° Festo</Label>
               <Input
-                value={piece.NoFESTO || ""}
-                onChange={(e) => debouncedOnChange('NoFESTO', e.target.value)}
+                value={local.NoFESTO}
+                onChange={e => handleText('NoFESTO', e.target.value)}
                 className="h-10 text-sm"
               />
             </div>
@@ -167,7 +182,7 @@ export default function PieceEditDialog({
             <PieceFournisseursEditor
               fournisseurs={piece.fournisseurs || []}
               allFournisseurs={fournisseurs || []}
-              onChange={(newList) => onChange('fournisseurs', newList)}
+              onChange={newList => handleOther('fournisseurs', newList)}
             />
           </div>
 
@@ -175,11 +190,11 @@ export default function PieceEditDialog({
           <div className="border-t pt-3 md:pt-4">
             <Label className="text-xs md:text-sm">Fabricant</Label>
             <Select
-              value={piece.RefFabricant?.toString() || "none"}
-              onValueChange={(value) => {
-                if (value === "none") return onChange('RefFabricant', null);
+              value={piece.RefFabricant?.toString() || 'none'}
+              onValueChange={value => {
+                if (value === 'none') return handleOther('RefFabricant', null);
                 const n = parseInt(value, 10);
-                onChange('RefFabricant', isNaN(n) ? null : n);
+                handleOther('RefFabricant', isNaN(n) ? null : n);
               }}
             >
               <SelectTrigger className="h-9 md:h-10 text-sm">
@@ -187,7 +202,7 @@ export default function PieceEditDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">Aucun</SelectItem>
-                {fabricants.map((fab) => (
+                {fabricants.map(fab => (
                   <SelectItem key={fab.RefFabricant} value={fab.RefFabricant.toString()}>
                     {fab.NomFabricant}
                   </SelectItem>
@@ -200,10 +215,10 @@ export default function PieceEditDialog({
           <div>
             <Label>Département</Label>
             <Select
-              value={piece.RefDepartement?.toString() || "none"}
-              onValueChange={(value) => {
-                const n = value === "none" ? null : parseInt(value, 10);
-                onChange('RefDepartement', isNaN(n) ? null : n);
+              value={piece.RefDepartement?.toString() || 'none'}
+              onValueChange={value => {
+                const n = value === 'none' ? null : parseInt(value, 10);
+                handleOther('RefDepartement', isNaN(n) ? null : n);
               }}
             >
               <SelectTrigger>
@@ -211,7 +226,7 @@ export default function PieceEditDialog({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="none">— Aucun département</SelectItem>
-                {departements.map((dept) => (
+                {departements.map(dept => (
                   <SelectItem key={dept.RefDepartement} value={dept.RefDepartement.toString()}>
                     <div className="flex items-center gap-2">
                       <span
@@ -236,11 +251,11 @@ export default function PieceEditDialog({
                   type="number"
                   min={0}
                   value={piece.QtéenInventaire ?? 0}
-                  onChange={(e) => {
+                  onChange={e => {
                     const v = e.target.value;
-                    if (v === "") return onChange('QtéenInventaire', 0);
+                    if (v === '') return handleOther('QtéenInventaire', 0);
                     const n = parseInt(v, 10);
-                    onChange('QtéenInventaire', Math.max(0, isNaN(n) ? 0 : n));
+                    handleOther('QtéenInventaire', Math.max(0, isNaN(n) ? 0 : n));
                   }}
                   className="h-9 md:h-10 text-sm"
                 />
@@ -251,11 +266,11 @@ export default function PieceEditDialog({
                   type="number"
                   min={0}
                   value={piece.Qtéminimum ?? 0}
-                  onChange={(e) => {
+                  onChange={e => {
                     const v = e.target.value;
-                    if (v === "") return onChange('Qtéminimum', 0);
+                    if (v === '') return handleOther('Qtéminimum', 0);
                     const n = parseInt(v, 10);
-                    onChange('Qtéminimum', Math.max(0, isNaN(n) ? 0 : n));
+                    handleOther('Qtéminimum', Math.max(0, isNaN(n) ? 0 : n));
                   }}
                   className="h-9 md:h-10 text-sm"
                 />
@@ -266,11 +281,11 @@ export default function PieceEditDialog({
                   type="number"
                   min={0}
                   value={piece.Qtémax ?? 100}
-                  onChange={(e) => {
+                  onChange={e => {
                     const v = e.target.value;
-                    if (v === "") return onChange('Qtémax', 100);
+                    if (v === '') return handleOther('Qtémax', 100);
                     const n = parseInt(v, 10);
-                    onChange('Qtémax', Math.max(0, isNaN(n) ? 0 : n));
+                    handleOther('Qtémax', Math.max(0, isNaN(n) ? 0 : n));
                   }}
                   className="h-9 md:h-10 text-sm"
                 />
@@ -283,8 +298,8 @@ export default function PieceEditDialog({
             <div>
               <Label className="text-xs md:text-sm">Emplacement</Label>
               <Input
-                value={piece.Lieuentreposage || ""}
-                onChange={(e) => onChange('Lieuentreposage', e.target.value)}
+                value={local.Lieuentreposage}
+                onChange={e => handleText('Lieuentreposage', e.target.value)}
                 className="h-9 md:h-10 text-sm"
               />
             </div>
@@ -295,9 +310,9 @@ export default function PieceEditDialog({
                 step="0.01"
                 min={0}
                 value={piece.Prix_unitaire ?? 0}
-                onChange={(e) => {
+                onChange={e => {
                   const v = e.target.value;
-                  onChange('Prix_unitaire', v === "" ? 0 : Math.max(0, parseFloat(v) || 0));
+                  handleOther('Prix_unitaire', v === '' ? 0 : Math.max(0, parseFloat(v) || 0));
                 }}
                 className="h-9 md:h-10 text-sm"
               />
@@ -306,10 +321,11 @@ export default function PieceEditDialog({
               <Label>Devise</Label>
               <DeviseSelect
                 value={piece.devise || 'CAD'}
-                onChange={v => onChange('devise', v)}
+                onChange={v => handleOther('devise', v)}
               />
             </div>
           </div>
+
         </div>
 
         <DialogFooter className="gap-2">
@@ -318,7 +334,7 @@ export default function PieceEditDialog({
           </Button>
           <Button
             onClick={onSave}
-            disabled={!piece.NomPièce?.trim()}
+            disabled={!local.NomPièce?.trim()}
             className="bg-rio-red hover:bg-rio-red-dark h-9 text-sm"
           >
             Sauvegarder

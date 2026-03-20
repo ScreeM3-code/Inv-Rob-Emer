@@ -66,6 +66,7 @@ function PieceCard({ piece, onAction }) {
       setNote('');
       onAction();
     } catch (e) {
+      window.dispatchEvent(new Event('approbation-updated'));
       toast({ title: 'Erreur', description: e.message, variant: 'destructive' });
     } finally {
       setLoading(false);

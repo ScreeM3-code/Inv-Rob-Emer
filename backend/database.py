@@ -42,5 +42,14 @@ async def lifespan(app):
 async def get_db_connection(request: Request) -> AsyncGenerator[asyncpg.Connection, None]:
     """Dependency pour obtenir une connexion DB"""
     pool = request.app.state.pool
-    async with pool.acquire() as conn:
+    conn = await pool.acquire()
+    try:
         yield conn
+    except Exception:
+        try:
+            await conn.execute("ROLLBACK")
+        except Exception:
+            pass
+        raise
+    finally:
+        await pool.release(conn)
