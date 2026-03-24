@@ -1,70 +1,24 @@
 
-bug entre historique quand on crée une commandes (pas Ereq)
-bug envoie e-mail soumission
+e-mail regarde quand envoyer les e-mail et ajusté le tout avec la page de pref
 
+
+bug entre historique quand on crée une commandes (pas Ereq)
 
 a commandé le chiffre s'update pas bien
 
 
-inventaire
-effacer la recherche facilement
-
-créé pieces
-numéro pieces fournisseur pas saver
-fournisseur pas saver
-département save pas
-titre crée/modifier
-
-update pieces
-numero pieces frournisseur
-
 Commande
 historique installHook.js:1 Each child in a list should have a unique "key" prop. Check the render method of `TableBody`. It was passed a child from HistoriqueDialog. See https://react.dev/link/warning-keys for more information.
-e-mail marche pas
 
-editform 
-pieces fournisseur save pas
-emplacement affiche pas / save pas?
 
-commandeform
-cad/usd pas capabel de changer
 na pas crée la soumission
 
-réception
-reception total bug PUT http://10.5.2.159:2549/api/ordersall/1021 500 (Internal Server Error)
-fetchJson @ utils.js:25
-handleReceiveTotal @ Receptions.jsx:50
-onClick @ Receptions.jsx:253
-executeDispatch @ react-dom_client.js?v=e3b61e96:13622
-runWithFiberInDEV @ react-dom_client.js?v=e3b61e96:997
-processDispatchQueue @ react-dom_client.js?v=e3b61e96:13658
-(anonyme) @ react-dom_client.js?v=e3b61e96:14071
-batchedUpdates$1 @ react-dom_client.js?v=e3b61e96:2626
-dispatchEventForPluginEventSystem @ react-dom_client.js?v=e3b61e96:13763
-dispatchEvent @ react-dom_client.js?v=e3b61e96:16784
-dispatchDiscreteEvent @ react-dom_client.js?v=e3b61e96:16765Comprenez cette erreur
-utils.js:12 Erreur réception totale: Error: Erreur lors de la réception: la nouvelle ligne de la relation « Pièce » viole la contrainte de vérification « chk_approbation_statut »
-DETAIL:  La ligne en échec contient (1021, null, null, null, 78, test23, blablabla244, 111, 2, , 444, null, 679, 666, null, 0, null, 0, null, 0, null, null, null, null, null, null, null, null, null, null, null, null, 9999, null, null, null, 333, , null, 100, null, 2026-03-23 13:06:02.568748, 2026-03-23 12:14:07.162778, null, null, f, null, false, SimonDC, 2026-03-23 12:58:27.018646+00, null, 1, CAD).
-    at fetchJson (utils.js:37:11)
-    at async handleReceiveTotal (Receptions.jsx:50:7)
 
-
-historique est-ce que je supprimer l'historique quand je supprimer une pieces ?
 amélioré ? avec une def pour chaque modif de pieces
-
-
-
-
-user create 
-e-mail save pas a la création mais a l'edit oui 
-
-
-vériier les notification car j'ai eu aucun e-mail
 
 
 role 
 simple user enelver les notification
-
 
 
 

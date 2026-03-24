@@ -257,8 +257,14 @@ function Dashboard () {
       return;
     }
 
+    const originalStock = piece.QtéenInventaire;
+    const newStock = originalStock - amount;
+    const minQty = parseInt(piece.Qtéminimum, 10) || 0;
+    const wasToOrder = originalStock < minQty;
+    const isToOrder = newStock < minQty;
+
     const originalPiece = pieces.find((p) => p.RéfPièce === piece.RéfPièce);
-    const updatedPiece = { ...piece, QtéenInventaire: piece.QtéenInventaire - amount };
+    const updatedPiece = { ...piece, QtéenInventaire: newStock };
 
     setPieces((prev) =>
       prev.map((p) => (p.RéfPièce === piece.RéfPièce ? updatedPiece : p))
@@ -272,8 +278,14 @@ function Dashboard () {
       await fetchJson(`${API}/pieces/${piece.RéfPièce}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ QtéenInventaire: updatedPiece.QtéenInventaire }),
+        body: JSON.stringify({ QtéenInventaire: newStock }),
       });
+
+      // Update stats locally
+      setStats(prev => ({
+        ...prev,
+        pieces_a_commander: prev.pieces_a_commander + (isToOrder ? 1 : 0) - (wasToOrder ? 1 : 0)
+      }));
 
       const historyEntry = {
         Opération: "Sortie rapide",
