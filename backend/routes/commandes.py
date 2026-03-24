@@ -208,6 +208,7 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
                 RTBS=piece_dict.get("RTBS", None),
                 NumPièceAutreFournisseur=safe_string(piece_dict.get("NumPièceAutreFournisseur", "")),
                 DescriptionPièce=safe_string(piece_dict.get("DescriptionPièce", "")),
+                Lieuentreposage=safe_string(piece_dict.get("Lieuentreposage", "")),
                 QtéenInventaire=safe_int(piece_dict.get("QtéenInventaire", 0)),
                 Qtéminimum=safe_int(piece_dict.get("Qtéminimum", 0)),
                 Qtéàcommander=qty_a_commander,
@@ -264,7 +265,10 @@ async def receive_all_order(
                 "Datecommande" = NULL,
                 "Cmd_info" = NULL,
                 "SoumDem" = FALSE,
-                "approbation_statut" = FALSE,
+                "approbation_statut" = NULL,
+                "approbation_par" = NULL,
+                "approbation_date" = NULL,
+                "approbation_note" = NULL,
                 "Modified" = $3
             WHERE "RéfPièce" = $1
         '''

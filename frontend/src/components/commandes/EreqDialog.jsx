@@ -14,6 +14,7 @@ export default function EreqDialog({ order, onClose, onRefresh }) {
     needByDate: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0],
     qty: String(order.Qtéàcommander || order.Qtécommandée || 1),
     price: String(order.Prix_unitaire || '0'),
+    currency: order.devise || 'CAD',
     recipient: '',
     refSoumission: '',
     pdfFile: null,
@@ -52,7 +53,7 @@ export default function EreqDialog({ order, onClose, onRefresh }) {
           ItemCategory: '0',
           Vendor: vendorCode,
           PRItemDesc: `${order.NumPièce || order.VendorMaterialNum || ''} ${order.NomPièce || ''}`.trim(),
-          Material: '', Plant: '2605', Currency: ['CAD', 'USD'].includes(order.devise) ? order.devise : 'CAD',
+          Material: '', Plant: '2605', Currency: ereqForm.currency,
           Price: parseFloat(ereqForm.price).toFixed(2),
           Qty: parseFloat(ereqForm.qty).toFixed(2),
           UoM: 'CHA', OANum: '', LeadTime: '0', OAItemNum: '00000',
@@ -235,7 +236,7 @@ export default function EreqDialog({ order, onClose, onRefresh }) {
           </div>
 
           <div className="space-y-3">
-            <div className="grid grid-cols-2 gap-3">
+            <div className="grid grid-cols-3 gap-3">
               <div>
                 <label className="text-sm font-medium">Quantité</label>
                 <input type="number" min="1" value={ereqForm.qty}
@@ -243,10 +244,19 @@ export default function EreqDialog({ order, onClose, onRefresh }) {
                   className="w-full mt-1 border rounded px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600" />
               </div>
               <div>
-                <label className="text-sm font-medium">Prix unitaire ({order.devise || 'CAD'})</label>
+                <label className="text-sm font-medium">Prix unitaire ({ereqForm.currency})</label>
                 <input type="number" min="0" step="0.01" value={ereqForm.price}
                   onChange={e => setEreqForm(f => ({ ...f, price: e.target.value }))}
                   className="w-full mt-1 border rounded px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600" />
+              </div>
+              <div>
+                <label className="text-sm font-medium">Devise</label>
+                <select value={ereqForm.currency}
+                  onChange={e => setEreqForm(f => ({ ...f, currency: e.target.value }))}
+                  className="w-full mt-1 border rounded px-3 py-2 text-sm dark:bg-gray-700 dark:border-gray-600">
+                  <option value="CAD">CAD</option>
+                  <option value="USD">USD</option>
+                </select>
               </div>
             </div>
             <div>

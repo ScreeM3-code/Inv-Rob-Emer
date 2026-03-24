@@ -45,7 +45,15 @@ export default function CartPanel({ children }) {
   const [customMessage, setCustomMessage] = useState('');
 
   const groupedBySupplier = cartItems.reduce((acc, item) => {
-    const supplierId = item.RéfFournisseur;
+    // Utiliser le fournisseur principal de la pièce
+    const fournisseurPrincipal = item.fournisseurs?.find(f => f.EstPrincipal);
+    const supplierId = fournisseurPrincipal?.RéfFournisseur;
+
+    // Ignorer les pièces sans fournisseur principal
+    if (!supplierId) {
+      return acc;
+    }
+
     if (!acc[supplierId]) {
       acc[supplierId] = [];
     }
@@ -199,7 +207,9 @@ export default function CartPanel({ children }) {
           </SheetHeader>
           <div className="flex-grow overflow-y-auto pr-4 space-y-6">
             {Object.entries(groupedBySupplier).map(([supplierId, items]) => {
-              const supplierName = items[0]?.fournisseur_principal?.NomFournisseur || `Fournisseur #${supplierId}`;
+              // Le nom du fournisseur vient du premier item du groupe (tous ont le même fournisseur principal)
+              const fournisseurPrincipal = items[0].fournisseurs?.find(f => f.EstPrincipal);
+              const supplierName = fournisseurPrincipal?.NomFournisseur || `Fournisseur #${supplierId}`;
               return (
                 <div key={supplierId} className="border p-4 rounded-lg">
                   <h3 className="font-bold mb-3">{supplierName}</h3>

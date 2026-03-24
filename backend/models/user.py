@@ -12,6 +12,7 @@ class LoginRequest(BaseModel):
 class CreateUserRequest(BaseModel):
     username: str
     password: str
+    email: Optional[str] = None
     role: Optional[str] = 'user'
 
 

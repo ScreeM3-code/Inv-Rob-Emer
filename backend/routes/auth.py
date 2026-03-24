@@ -254,9 +254,9 @@ async def create_user(data: CreateUserRequest, request: Request, user: dict = De
         group_id = group['id'] if group else None
 
         await conn.execute(
-            """INSERT INTO users (id, username, password_hash, role, group_id, created_at)
-               VALUES ($1, $2, $3, $4, $5, NOW())""",
-            user_id, data.username, hashed, data.role or 'user', group_id
+            """INSERT INTO users (id, username, password_hash, email, role, group_id, created_at)
+               VALUES ($1, $2, $3, $4, $5, $6, NOW())""",
+            user_id, data.username, hashed, data.email.lower().strip() if data.email else None, data.role or 'user', group_id
         )
     return {"msg": "Utilisateur créé", "user": {"username": data.username, "role": data.role}}
 
