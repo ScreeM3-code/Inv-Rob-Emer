@@ -51,7 +51,8 @@ export default function PieceEditDialog({
   onSave,
   onCancel,
   onChange,
-  departements = []
+  departements = [],
+  isEditing = false
 }) {
   if (!piece) return null;
 
@@ -65,7 +66,7 @@ export default function PieceEditDialog({
     NoFESTO:                    piece.NoFESTO                    || '',
     Lieuentreposage:            piece.Lieuentreposage            || '',
   });
-
+  
   const [pendingImageUrl, setPendingImageUrl] = useState(null);
 
   // Met à jour le state local ET notifie le parent immédiatement
@@ -105,7 +106,7 @@ export default function PieceEditDialog({
     <Dialog open={true} onOpenChange={onCancel}>
       <DialogContent className="max-w-2xl max-h-[90vh] overflow-y-auto">
         <DialogHeader>
-          <DialogTitle className="text-base md:text-lg">Ajouter / Modifier la pièce</DialogTitle>
+          <DialogTitle className="text-base md:text-lg"> {isEditing ? 'Modifier' : 'Ajouter'} la pièce</DialogTitle>
         </DialogHeader>
 
         <div className="grid gap-3 md:gap-4 py-3 md:py-4">

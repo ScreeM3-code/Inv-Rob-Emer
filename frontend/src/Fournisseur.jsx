@@ -29,7 +29,6 @@ export default function FournisseursPage() {
     setError(null);
     try {
   const data = await fetchJson(`${API}/fournisseurs`);
-  log("🏢 Fournisseurs chargés:", data);
   setFournisseurs(data || []);
     } catch (err) {
       log("❌ Erreur chargement fournisseurs:", err);

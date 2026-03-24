@@ -46,7 +46,7 @@ export default function HistoriqueDialog({ piece, history, isLoading, onOpenChan
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {history.map((m) => {
+                {history.map((m, index) => {
                   // Déterminer la quantité et sa couleur
                   const quantite = m.qtécommande && m.qtécommande !== "0" 
                     ? `+${m.qtécommande}` 
@@ -60,8 +60,10 @@ export default function HistoriqueDialog({ piece, history, isLoading, onOpenChan
                     ? "text-red-600"
                     : "text-slate-400";
 
+                  const historyKey = m.id || m.RefHistorique || `${m.DateCMD || m.DateRecu || ''}_${m.Opération || ''}_${index}`;
+
                   return (
-                    <TableRow key={m.id}>
+                    <TableRow key={historyKey}>
                       <TableCell className="font-medium whitespace-nowrap">
                         {m.DateRecu ? format(new Date(m.DateRecu), 'd MMM yyyy, HH:mm', { locale: fr }) : (m.DateCMD ? format(new Date(m.DateCMD), 'd MMM yyyy, HH:mm', { locale: fr }) : 'N/A')}
                       </TableCell>

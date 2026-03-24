@@ -49,10 +49,6 @@ export default function ContactForm({ contact, onSave, onCancel }) {
               <Input id="cell-contact" value={formData.Cell} onChange={e => handleChange('Cell', e.target.value)} />
             </div>
           </div>
-          <div className="space-y-1">
-            <Label htmlFor="produit-contact">Produit/Service</Label>
-            <Input id="produit-contact" value={formData.Produit} onChange={e => handleChange('Produit', e.target.value)} />
-          </div>
           <div className="flex justify-end gap-2 pt-2">
             {onCancel && <Button type="button" variant="ghost" size="sm" onClick={onCancel}>Annuler</Button>}
             <Button type="submit" size="sm"><Save className="w-4 h-4 mr-2" /> Sauvegarder</Button>

@@ -25,6 +25,7 @@ class PieceBase(BaseModel):
     devise: Optional[str] = 'CAD'
     RefDepartement: Optional[int] = None
     NomDepartement: Optional[str] = None
+    NumPièceAutreFournisseur: Optional[str] = ""
 
 class PieceCreate(BaseModel):
     NomPièce: Optional[str] = ""
@@ -71,6 +72,7 @@ class PieceUpdate(BaseModel):
     RefDepartement: Optional[int] = None
     Modified: Optional[datetime] = None
     fournisseurs: Optional[List[dict]] = None
+    NumPièceAutreFournisseur: Optional[str] = ""
 
 class Piece(PieceBase):
     Created: Optional[datetime] = None

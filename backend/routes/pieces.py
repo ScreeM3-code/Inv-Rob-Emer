@@ -360,8 +360,8 @@ async def create_piece(
             "NumPièceAutreFournisseur", "RefFabricant",
             "Lieuentreposage", "QtéenInventaire", "Qtéminimum", "Qtémax",
             "Prix unitaire", "Soumission LD", "SoumDem",
-            "Created", "Modified", "NoFESTO", "RTBS", "devise"
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17)
+            "Created", "Modified", "NoFESTO", "RTBS", "devise", "RefDepartement"
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
         RETURNING *
         ''',
         piece.NomPièce,
@@ -380,7 +380,9 @@ async def create_piece(
         now,
         piece.NoFESTO or "",
         piece.RTBS,
-        piece.devise or "CAD"
+        piece.devise or "CAD",
+        piece.RefDepartement,
+        
     )
 
     piece_id = row["RéfPièce"]

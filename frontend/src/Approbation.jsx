@@ -230,7 +230,13 @@ export default function ApprobationPage() {
     }
   }
 
-  useEffect(() => { load(); }, []);
+  useEffect(() => {
+    load();
+    // Écoute l'événement custom pour rafraîchir la liste après action
+    const handler = () => load();
+    window.addEventListener('approbation-updated', handler);
+    return () => window.removeEventListener('approbation-updated', handler);
+  }, []);
 
   // NULL et en_attente = même filtre "en_attente"
   const filtered = pieces.filter(p => {

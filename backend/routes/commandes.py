@@ -510,14 +510,12 @@ async def soumettre_approbation(
     Passe le statut à 'en_attente'.
     """
 
-    # Notifier les admins
+    # Notifier les admins (dans le même context de connexion pour éviter un conn async fermé)
     piece_info = await conn.fetchrow(
         'SELECT "RéfPièce", "NomPièce" FROM "Pièce" WHERE "RéfPièce" = $1', piece_id
     )
     piece_nom = piece_info['NomPièce'] if piece_info else f"Pièce #{piece_id}"
-    asyncio.create_task(
-        notify_demande_approbation(conn, piece_nom, piece_id, user['username'])
-    )
+    await notify_demande_approbation(conn, piece_nom, piece_id, user['username'])
 
     piece = await conn.fetchrow(
         'SELECT "RéfPièce", approbation_statut FROM "Pièce" WHERE "RéfPièce" = $1',
@@ -567,9 +565,7 @@ async def approuver_piece(
            WHERE "RéfPièce" = $3''',
         user['username'], data.note, piece_id
     )
-    asyncio.create_task(
-        notify_approbation_result(conn, piece['NomPièce'], "approuvee", data.note or "")
-    )
+    await notify_approbation_result(conn, piece['NomPièce'], "approuvee", data.note or "")
     return {"msg": "Pièce approuvée", "statut": "approuvee"}
 
 
@@ -599,9 +595,7 @@ async def refuser_piece(
            WHERE "RéfPièce" = $3''',
         user['username'], data.note, piece_id
     )
-    asyncio.create_task(
-        notify_approbation_result(conn, piece['NomPièce'], "refusee", data.note or "")
-    )
+    await notify_approbation_result(conn, piece['NomPièce'], "refusee", data.note or "")
     return {"msg": "Pièce refusée", "statut": "refusee"}
 
 

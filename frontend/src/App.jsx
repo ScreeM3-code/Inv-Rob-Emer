@@ -6,7 +6,7 @@ import { Button } from "./components/ui/button";
 import { Input } from "./components/ui/input";
 import { Card, CardContent, CardHeader, CardTitle } from "./components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "./components/ui/select";
-import { Plus, Package, Loader2, AlertTriangle, Search, DollarSign, FileDown } from "lucide-react";
+import { Plus, Package, Loader2, AlertTriangle, Search, DollarSign, FileDown, X } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import PieceEditDialog from "@/components/inventaire/PieceEditDialog";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
@@ -116,9 +116,7 @@ function Dashboard () {
       
       const piecesUrl = `${API}/pieces?${params.toString()}`;
 
-      log('🔍 URL appelée:', piecesUrl);
-
-      try {
+       try {
         const [pieces, fournisseurs, stats, fabricants, groupes, departements] = await Promise.all([
           fetchJson(piecesUrl),
           fetchJson(`${API}/fournisseurs`),
@@ -219,7 +217,13 @@ function Dashboard () {
     Qtémax: 100,
     Prix_unitaire: 0,
     Soumission_LD: "",
-    SoumDem: false
+    SoumDem: false,
+    NoFESTO: "",
+    RTBS: null,
+    devise: 'CAD',
+    RefDepartement: null,
+    fournisseurs: [],
+    fournisseur_principal: null,
   });
 
 
@@ -338,8 +342,12 @@ function Dashboard () {
         Prix_unitaire: parseFloat(newPiece.Prix_unitaire) || 0,
         Soumission_LD: newPiece.Soumission_LD?.trim() || "",
         SoumDem: newPiece.SoumDem || false,
-        NoFESTO: newPiece.NoFESTO?.trim() || "",
+        NoFESTO: newPiece.NoFESTO || "",
         RTBS: (newPiece.RTBS === "" || newPiece.RTBS == null) ? null : parseFloat(newPiece.RTBS),
+        devise: newPiece.devise || 'CAD',
+        RefDepartement: newPiece.RefDepartement || null,
+        fournisseurs: newPiece.fournisseurs || [],
+        fournisseur_principal: newPiece.fournisseur_principal || null
       };
 
   import("./lib/utils").then(({ log }) => log('➕ Création de pièce:', cleanedPiece)); // Debug
@@ -418,6 +426,8 @@ function Dashboard () {
         fournisseurs: editingPiece.fournisseurs || [],
       };
 
+      log('🔄 Mise à jour pièce:', editingPiece.RéfPièce, 'avec fournisseurs:', dataToSend.fournisseurs);
+
       // ✅ Mise à jour optimiste
       setPieces(prevPieces => 
         prevPieces.map(p => 
@@ -434,11 +444,13 @@ function Dashboard () {
         body: JSON.stringify(dataToSend)
       });
       
+      log('✅ Réponse serveur:', updatedPiece.fournisseurs);
+      
       // ✅ Mettre à jour avec la réponse serveur
       setPieces(prevPieces => 
         prevPieces.map(p => 
           p.RéfPièce === updatedPiece.RéfPièce 
-            ? updatedPiece
+            ? {...updatedPiece, fournisseurs: updatedPiece.fournisseurs || []}
             : p
         )
       );
@@ -617,8 +629,16 @@ function Dashboard () {
                   placeholder="Rechercher..."
                   value={searchTerm}
                   onChange={(e) => setSearchTerm(e.target.value)}
-                  className="pl-8 md:pl-10 h-9 md:h-10 text-sm"
+                  className="pl-8 md:pl-10 pr-8 h-9 md:h-10 text-sm"
                 />
+                {searchTerm && (
+                  <button
+                    onClick={() => setSearchTerm('')}
+                    className="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-slate-600 transition"
+                  >
+                    <X className="w-3 h-3 md:w-4 md:h-4" />
+                  </button>
+                )}
               </div>
               
               <div className="flex items-center gap-2 text-xs md:text-sm w-full lg:w-auto">
@@ -745,7 +765,11 @@ function Dashboard () {
           onUpdateDepartement={handleUpdateDepartement}
           onSave={handleUpdatePiece}
           onCancel={() => setEditingPiece(null)}
-          onChange={(field, value) => setEditingPiece(prev => ({...prev, [field]: value}))}
+          onChange={(field, value) => {
+            console.log('📝 Changement dans dialog:', field, value);
+            setEditingPiece(prev => ({...prev, [field]: value}));
+          }}
+          isEditing={true}
         />
       )}
 
@@ -760,6 +784,7 @@ function Dashboard () {
           onSave={handleAddPiece}
           onCancel={() => setIsAddDialogOpen(false)}
           onChange={(field, value) => setNewPiece(prev => ({...prev, [field]: value}))}
+          isEditing={false}
         />
       )}
     </div>

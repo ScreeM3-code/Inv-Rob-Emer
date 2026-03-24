@@ -25,7 +25,6 @@ export default function FabricantsPage() {
     setError(null);
     try {
   const data = await fetchJson(`${API}/fabricant`);
-  log("📦 Fabricants chargés:", data);
   setFabricants(data || []);
     } catch (err) {
       log("❌ Erreur chargement fabricants:", err);

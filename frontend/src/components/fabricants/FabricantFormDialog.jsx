@@ -66,30 +66,6 @@ export default function FabricantFormDialog({ fabricant, onSave, onCancel }) {
                 onChange={e => debouncedSetFormData('Domaine', e.target.value)}
             />
           </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div className="space-y-2">
-              <Label>Contact</Label>
-              <Input 
-                value={formData.NomContact} 
-                onChange={e => handleChange('NomContact', e.target.value)} 
-              />
-            </div>
-            <div className="space-y-2">
-              <Label>Titre</Label>
-              <Input 
-                value={formData.TitreContact} 
-                onChange={e => handleChange('TitreContact', e.target.value)} 
-              />
-            </div>
-          </div>
-          <div className="space-y-2">
-            <Label>Email</Label>
-            <Input 
-              type="email" 
-              value={formData.Email} 
-              onChange={e => handleChange('Email', e.target.value)} 
-            />
-          </div>
         </div>
         <DialogFooter>
           <Button variant="outline" onClick={onCancel}>Annuler</Button>

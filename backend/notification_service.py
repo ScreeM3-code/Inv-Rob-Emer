@@ -1,5 +1,6 @@
 import logging
 import json as _json
+import asyncio
 import asyncpg
 from email_service import (
     send_notification_pieces_a_commander,
@@ -22,7 +23,14 @@ async def _get_users_with_pref(conn: asyncpg.Connection, pref_key: str) -> list[
     )
     result = []
     for row in rows:
-        prefs = dict(row['notification_prefs']) if row['notification_prefs'] else {}
+        # Parser JSON si c'est une string, ou utiliser directement si c'est un dict
+        prefs_raw = row['notification_prefs']
+        if isinstance(prefs_raw, str):
+            prefs = _json.loads(prefs_raw) if prefs_raw else {}
+        elif isinstance(prefs_raw, dict):
+            prefs = prefs_raw
+        else:
+            prefs = {}
         # Par défaut True pour la plupart des notifs sauf piece_commandee
         default = False if pref_key == "piece_commandee" else True
         if prefs.get(pref_key, default):
@@ -40,7 +48,10 @@ async def notify_pieces_a_commander(conn: asyncpg.Connection, pieces: list[dict]
     users = await _get_users_with_pref(conn, "pieces_a_commander")
     for u in users:
         try:
-            send_notification_pieces_a_commander(u['email'], u['username'], pieces)
+            # Exécuter l'envoi email en background sans bloquer la connection
+            asyncio.create_task(asyncio.to_thread(
+                send_notification_pieces_a_commander, u['email'], u['username'], pieces
+            ))
             logger.info(f"📧 Notif pieces_a_commander → {u['username']} ({u['email']})")
         except Exception as e:
             logger.error(f"❌ Notif pieces_a_commander → {u['username']}: {e}")
@@ -56,12 +67,21 @@ async def notify_demande_approbation(conn: asyncpg.Connection, piece_nom: str, p
            WHERE role = 'admin' AND email IS NOT NULL AND email != ''"""
     )
     for row in rows:
-        prefs = dict(row['notification_prefs']) if row['notification_prefs'] else {}
+        # Parser JSON si c'est une string, ou utiliser directement si c'est un dict
+        prefs_raw = row['notification_prefs']
+        if isinstance(prefs_raw, str):
+            prefs = _json.loads(prefs_raw) if prefs_raw else {}
+        elif isinstance(prefs_raw, dict):
+            prefs = prefs_raw
+        else:
+            prefs = {}
         if prefs.get("demande_approbation", True):
             try:
-                send_notification_demande_approbation(
+                # Exécuter l'envoi email en background sans bloquer la connection
+                asyncio.create_task(asyncio.to_thread(
+                    send_notification_demande_approbation,
                     row['email'], row['username'], piece_nom, piece_ref, demande_par
-                )
+                ))
                 logger.info(f"📧 Notif demande_approbation → {row['username']}")
             except Exception as e:
                 logger.error(f"❌ Notif demande_approbation → {row['username']}: {e}")
@@ -88,10 +108,21 @@ async def notify_approbation_result(
             demandeur_username
         )
         if row and row['email']:
-            prefs = dict(row['notification_prefs']) if row['notification_prefs'] else {}
+            # Parser JSON si c'est une string, ou utiliser directement si c'est un dict
+            prefs_raw = row['notification_prefs']
+            if isinstance(prefs_raw, str):
+                prefs = _json.loads(prefs_raw) if prefs_raw else {}
+            elif isinstance(prefs_raw, dict):
+                prefs = prefs_raw
+            else:
+                prefs = {}
             if prefs.get(pref_key, True):
                 try:
-                    send_notification_approbation_result(row['email'], row['username'], piece_nom, statut, note)
+                    # Exécuter l'envoi email en background sans bloquer la connection
+                    asyncio.create_task(asyncio.to_thread(
+                        send_notification_approbation_result,
+                        row['email'], row['username'], piece_nom, statut, note
+                    ))
                     logger.info(f"📧 Notif {pref_key} → {row['username']}")
                 except Exception as e:
                     logger.error(f"❌ Notif {pref_key} → {row['username']}: {e}")
@@ -99,7 +130,11 @@ async def notify_approbation_result(
         users = await _get_users_with_pref(conn, pref_key)
         for u in users:
             try:
-                send_notification_approbation_result(u['email'], u['username'], piece_nom, statut, note)
+                # Exécuter l'envoi email en background sans bloquer la connection
+                asyncio.create_task(asyncio.to_thread(
+                    send_notification_approbation_result,
+                    u['email'], u['username'], piece_nom, statut, note
+                ))
                 logger.info(f"📧 Notif {pref_key} → {u['username']}")
             except Exception as e:
                 logger.error(f"❌ Notif {pref_key} → {u['username']}: {e}")
@@ -112,7 +147,11 @@ async def notify_piece_commandee(conn: asyncpg.Connection, piece_nom: str, qte: 
     users = await _get_users_with_pref(conn, "piece_commandee")
     for u in users:
         try:
-            send_notification_piece_commandee(u['email'], u['username'], piece_nom, qte)
+            # Exécuter l'envoi email en background sans bloquer la connection
+            asyncio.create_task(asyncio.to_thread(
+                send_notification_piece_commandee,
+                u['email'], u['username'], piece_nom, qte
+            ))
             logger.info(f"📧 Notif piece_commandee → {u['username']}")
         except Exception as e:
             logger.error(f"❌ Notif piece_commandee → {u['username']}: {e}")

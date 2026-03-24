@@ -1,9 +1,15 @@
-2026-03-20 14:23:34,793 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
-2026-03-20 14:23:34,793 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2026-03-20 14:23:34,799 - asyncio - DEBUG - Using proactor: IocpProactor
-2026-03-20 14:23:34,867 - uvicorn.error - INFO - Started server process [25940]
-2026-03-20 14:23:34,867 - uvicorn.error - INFO - Waiting for application startup.
-2026-03-20 14:23:35,023 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2026-03-20 14:23:35,038 - Inventaire-Robot - INFO - \u2705 948 Pièce trouvés
-2026-03-20 14:23:35,039 - uvicorn.error - INFO - Application startup complete.
-2026-03-20 14:23:35,040 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
+2026-03-24 14:30:19,159 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
+2026-03-24 14:30:19,160 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2026-03-24 14:30:19,164 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-03-24 14:30:19,224 - uvicorn.error - INFO - Started server process [28788]
+2026-03-24 14:30:19,225 - uvicorn.error - INFO - Waiting for application startup.
+2026-03-24 14:30:19,363 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2026-03-24 14:30:19,370 - Inventaire-Robot - INFO - \u2705 949 Pièce trouvés
+2026-03-24 14:30:19,372 - uvicorn.error - INFO - Application startup complete.
+2026-03-24 14:30:19,373 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
+2026-03-24 14:31:05,836 - Inventaire-Robot - INFO - \U0001f4e7 Notif approbation_accordee \u2192 SimonDC
+2026-03-24 14:31:05,836 - Inventaire-Robot - INFO - \U0001f4e7 Notif approbation_accordee \u2192 MaximL
+2026-03-24 14:31:05,839 - Inventaire-Robot - INFO - \U0001f4e7 Tentative envoi \u2192 simon.dechamplain@riotinto.com | host=smtpca.corp.riotinto.org:25 | tls=False | ssl=False | auth=non
+2026-03-24 14:31:05,842 - Inventaire-Robot - INFO - \U0001f4e7 Tentative envoi \u2192 maxim.lauzier@riotinto.com | host=smtpca.corp.riotinto.org:25 | tls=False | ssl=False | auth=non
+2026-03-24 14:31:07,984 - Inventaire-Robot - INFO - \u2705 Email envoyé à simon.dechamplain@riotinto.com — \u2705 Approbation approuvée — test
+2026-03-24 14:31:08,150 - Inventaire-Robot - INFO - \u2705 Email envoyé à maxim.lauzier@riotinto.com — \u2705 Approbation approuvée — test
