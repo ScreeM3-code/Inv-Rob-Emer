@@ -136,7 +136,7 @@ export default function PieceFournisseursEditor({ fournisseurs = [], allFourniss
                   {f.EstPrincipal && <Badge className="text-xs bg-blue-100 text-blue-700 border-blue-200">Principal</Badge>}
                   {f.NumSap && <Badge variant="outline" className="text-xs font-mono">{f.NumSap}</Badge>}
                 </div>
-                <div className="flex gap-4 text-xs text-gray-500 mt-0.5">
+                <div className="flex gap-4 text-xs text-gray-500 mt-0.5 dark:text-white">
                   {f.NumPièceFournisseur && <span>Ref: <span className="font-mono">{f.NumPièceFournisseur}</span></span>}
                   {f.PrixUnitaire > 0 && <span>{f.PrixUnitaire.toFixed(2)} $</span>}
                   {f.DelaiLivraison && <span>⏱ {f.DelaiLivraison}</span>}
@@ -159,13 +159,13 @@ export default function PieceFournisseursEditor({ fournisseurs = [], allFourniss
 
       {/* Formulaire d'ajout */}
       <div className="border rounded-lg p-3 space-y-2 bg-gray-50 dark:bg-gray-900">
-        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide">Ajouter un fournisseur</p>
+        <p className="text-xs font-medium text-gray-500 uppercase tracking-wide dark:text-white">Ajouter un fournisseur</p>
 
         {/* Recherche avec menu déroulant intégré */}
         <Popover open={isPopoverOpen} onOpenChange={setIsPopoverOpen}>
           <PopoverTrigger asChild>
             <div className="relative">
-              <Search className="absolute left-2 top-2.5 w-3.5 h-3.5 text-gray-400" />
+              <Search className="absolute left-2 top-2.5 w-3.5 h-3.5 text-gray-400 dark:text-white" />
               <Input
                 ref={inputRef}
                 placeholder="Rechercher un fournisseur..."
@@ -221,7 +221,7 @@ export default function PieceFournisseursEditor({ fournisseurs = [], allFourniss
                     setHighlightedIndex(isPopoverOpen ? -1 : 0);
                   }
                 }}
-                className="absolute right-2 top-2.5 w-3.5 h-3.5 text-gray-400 hover:text-gray-600"
+                className="absolute right-2 top-2.5 w-3.5 h-3.5 text-gray-400 hover:text-gray-600 dark:text-white"
               >
                 <ChevronDown className={`w-3.5 h-3.5 transition-transform ${isPopoverOpen ? 'rotate-180' : ''}`} />
               </button>
@@ -252,9 +252,9 @@ export default function PieceFournisseursEditor({ fournisseurs = [], allFourniss
                 </button>
               ))
             ) : search.trim() !== '' ? (
-              <div className="px-3 py-2 text-sm text-gray-400">Aucun résultat pour "{search}"</div>
+              <div className="px-3 py-2 text-sm text-gray-400 dark:text-white">Aucun résultat pour "{search}"</div>
             ) : (
-              <div className="px-3 py-2 text-sm text-gray-400">Tapez pour rechercher...</div>
+              <div className="px-3 py-2 text-sm text-gray-400 dark:text-white">Tapez pour rechercher...</div>
             )}
           </PopoverContent>
         </Popover>
@@ -267,7 +267,7 @@ export default function PieceFournisseursEditor({ fournisseurs = [], allFourniss
                 placeholder="Réf. pièce chez ce fourn."
                 value={numPiece}
                 onChange={(e) => setNumPiece(e.target.value)}
-                className="text-sm h-8"
+                className="text-sm h-8 dark:text-white"
               />
             </div>
             <div className="w-28">
@@ -277,7 +277,7 @@ export default function PieceFournisseursEditor({ fournisseurs = [], allFourniss
                 step="0.01"
                 value={prixUnitaire}
                 onChange={(e) => setPrixUnitaire(e.target.value)}
-                className="text-sm h-8"
+                className="text-sm h-8 dark:text-white"
               />
             </div>
           </div>

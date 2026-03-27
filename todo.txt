@@ -3,22 +3,21 @@ e-mail regarde quand envoyer les e-mail et ajusté le tout avec la page de pref
 
 
 bug entre historique quand on crée une commandes (pas Ereq)
-
-a commandé le chiffre s'update pas bien
-
-
-Commande
-historique installHook.js:1 Each child in a list should have a unique "key" prop. Check the render method of `TableBody`. It was passed a child from HistoriqueDialog. See https://react.dev/link/warning-keys for more information.
+reception decommande total historique pas marché
 
 
+historique :
+amélioré ? avec une def pour chaque modif de pieces
+
+commande:
 na pas crée la soumission
 
 
-amélioré ? avec une def pour chaque modif de pieces
+Page Debug juste pour moi
 
 
-role 
-simple user enelver les notification
+permision contact dans fournisseurs /// photo
+
 
 
 
@@ -30,7 +29,7 @@ const { can, isAdmin } = usePermissions();
 {can('inventaire_delete') && <Button onClick={handleDelete}>Supprimer</Button>}
 {can('commandes_create') && <Button onClick={handleCommande}>Commander</Button>}
 
-permision contact dans fournisseurs /// photo
+
 
 
 "can_delete_any"": false, "

@@ -48,6 +48,7 @@ const PERMISSION_LABELS = {
   can_manage_users:          'Gérer les utilisateurs',
   can_approve_orders:        'Approuver les commandes',
   can_submit_approval:       'Soumettre pour approbation',
+  debug_access:              'Accès debug',
 };
 
 const PERMISSION_SECTIONS = [
@@ -57,7 +58,7 @@ const PERMISSION_SECTIONS = [
   { label: 'Fabricants',     keys: ['fabricant_view','fabricant_create','fabricant_update','fabricant_delete'] },
   { label: 'Commandes',      keys: ['commandes_view','commandes_create','commandes_update','soumissions_view','soumissions_create','soumissions_update','receptions_view','receptions_create','receptions_update'] },
   { label: 'Historique',     keys: ['historique_view'] },
-  { label: 'Administration', keys: ['can_delete_any','can_manage_users','can_approve_orders','can_submit_approval'] },
+  { label: 'Administration', keys: ['can_delete_any','can_manage_users','can_approve_orders','can_submit_approval','debug_access'] },
 ];
 
 // ── Grille de permissions ─────────────────────────────────────
@@ -139,7 +140,7 @@ function PermissionsGrid({ permissions, onChange, readOnly = false }) {
 
 // ── Carte d'un rôle ───────────────────────────────────────────
 function RoleCard({ group, onSave, onDelete }) {
-  const SYSTEM = ['admin', 'user', 'acheteur'];
+  const SYSTEM = ['SuperAdmin', 'admin', 'user', 'acheteur'];
   const isSystem = SYSTEM.includes(group.name);
 
   const [editing,  setEditing]  = useState(false);

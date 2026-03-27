@@ -16,6 +16,7 @@ import ForgotPassword from "./ForgotPassword";
 import ResetPassword from "./ResetPassword";
 import Approbation from "./Approbation";
 import Profile from "./Profile";
+import Debug from "./Debug";
 import Departements from "./Departements";
 
 export default function AppRouter() {
@@ -49,6 +50,7 @@ export default function AppRouter() {
         <Route path="departements" element={<Departements />} />
         <Route path="soumissions-historique" element={<SoumissionsHistorique />} />
         <Route path="users" element={<UsersPage />} />
+        <Route path="debug" element={<Debug />} />
         <Route path="profile" element={<Profile />} />
       </Route>
     </Routes>

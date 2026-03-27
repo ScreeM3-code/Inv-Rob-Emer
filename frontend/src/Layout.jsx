@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { Link, useLocation, Outlet, useNavigate } from "react-router-dom";
-import { Package, Store, Cog, FileText, Layers, User, Shield, LogOut, LogIn, Menu, X, ShoppingCart, Inbox, History, CheckCircle, Bell, Building2 } from "lucide-react";
+import { Package, Store, Cog, Bug, FileText, Layers, User, Shield, LogOut, LogIn, Menu, X, ShoppingCart, Inbox, History, CheckCircle, Bell, Building2 } from "lucide-react";
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useAuth } from './contexts/AuthContext';
 import { usePermissions } from './hooks/usePermissions';
@@ -29,6 +29,7 @@ export default function Layout() {
     navigate('/login');
   };
 
+  
   // Items standalone
   const standaloneNavItems = [
     { path: '/inventaire',   label: 'Inventaire',  icon: Package, permission: 'inventaire_view' },
@@ -50,6 +51,10 @@ export default function Layout() {
     { path: '/approbation',  label: 'Approbations', icon: CheckCircle, permission: 'can_approve_orders' },
     { path: '/departements', label: 'Départements', icon: Building2,   permission: 'departements_view' },
     ...(isAdmin ? [{ path: '/users', label: 'Gestion des Utilisateurs', icon: Shield }] : []),
+  ].filter(item => !item.permission || can(item.permission));
+
+  const SuperAdminItems = [
+        { path: '/debug', label: 'Debug', icon: Bug,   permission: 'debug_access' },
   ].filter(item => !item.permission || can(item.permission));
 
   const isActive = (path) => location.pathname === path;
@@ -116,7 +121,7 @@ export default function Layout() {
                     to={item.path}
                     className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
                       isActive(item.path)
-                        ? 'bg-gradient-to-r from-rio-red to-red-600 text-white shadow-lg'
+                        ? 'bg-gradient-to-r from-rio-red to-red-600 text-black shadow-lg dark:text-white'
                         : 'text-gray-600 dark:text-gray-300 hover:text-rio-red hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}
                   >
@@ -132,7 +137,7 @@ export default function Layout() {
                   <DropdownMenuTrigger asChild>
                     <button className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
                       commandesItems.some(i => isActive(i.path))
-                        ? 'bg-gradient-to-r from-rio-red to-red-600 text-white shadow-lg'
+                        ? 'bg-gradient-to-r from-rio-red to-red-600 text-black shadow-lg dark:text-white'
                         : 'text-gray-600 dark:text-gray-300 hover:text-rio-red hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}>
                       <ShoppingCart className="h-4 w-4" />
@@ -164,7 +169,7 @@ export default function Layout() {
                   <DropdownMenuTrigger asChild>
                     <button className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
                       adminItems.some(i => isActive(i.path))
-                        ? 'bg-gradient-to-r from-rio-red to-red-600 text-white shadow-lg'
+                        ? 'bg-gradient-to-r from-rio-red to-red-600 text-black shadow-lg dark:text-white'
                         : 'text-gray-600 dark:text-gray-300 hover:text-rio-red hover:bg-gray-100 dark:hover:bg-gray-800'
                     }`}>
                       <Shield className="h-4 w-4" />
@@ -199,6 +204,24 @@ export default function Layout() {
                   </DropdownMenuContent>
                 </DropdownMenu>
               )}
+                            {/* Items standalone */}
+              {SuperAdminItems.map((item) => {
+                const Icon = item.icon;
+                return (
+                  <Link
+                    key={item.path}
+                    to={item.path}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all duration-200 flex items-center gap-2 ${
+                      isActive(item.path)
+                        ? 'bg-gradient-to-r from-rio-red to-red-600 text-black shadow-lg dark:text-white'
+                        : 'text-gray-600 dark:text-gray-300 hover:text-rio-red hover:bg-gray-100 dark:hover:bg-gray-800'
+                    }`}
+                  >
+                    <Icon className="h-4 w-4" />
+                    <span className="hidden xl:inline">{item.label}</span>
+                  </Link>
+                );
+              })}
             </nav>
 
             {/* Actions droite */}
@@ -229,12 +252,12 @@ export default function Layout() {
                       </div>
                     </DropdownMenuLabel>
                     <DropdownMenuSeparator />
-                    <DropdownMenuItem asChild>
+                    {can('commandes_view') && <DropdownMenuItem asChild>
                       <Link to="/profile" className="cursor-pointer flex items-center gap-2">
                         <Bell className="h-4 w-4" />
                         Mon profil & notifications
                       </Link>
-                    </DropdownMenuItem>
+                    </DropdownMenuItem>}
                     <DropdownMenuItem onClick={handleLogout} className="cursor-pointer text-red-600 focus:text-red-600">
                       <LogOut className="mr-2 h-4 w-4" />
                       <span>Se déconnecter</span>
@@ -330,6 +353,31 @@ export default function Layout() {
                             {pendingCount}
                           </span>
                         )}
+                      </Link>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Super Admin Items mobile */}
+              {SuperAdminItems.length > 0 && (
+                <div className="pt-2">
+                  <p className="px-4 py-1 text-xs font-semibold text-gray-400 uppercase tracking-wider">Super Admin</p>
+                  {SuperAdminItems.map((item) => {
+                    const Icon = item.icon;
+                    return (
+                      <Link
+                        key={item.path}
+                        to={item.path}
+                        onClick={() => setMobileMenuOpen(false)}
+                        className={`flex items-center gap-3 px-4 py-3 rounded-lg text-base font-medium transition-all ${
+                          isActive(item.path)
+                            ? 'bg-gradient-to-r from-rio-red to-red-600 text-white shadow-lg'
+                            : 'text-gray-600 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-800'
+                        }`}
+                      >
+                        <Icon className="h-5 w-5" />
+                        {item.label}
                       </Link>
                     );
                   })}

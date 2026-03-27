@@ -92,9 +92,9 @@ export default function FournisseurManager({ piece, onClose, onUpdate }) {
         <div className="space-y-4 py-4">
           {/* Liste des fournisseurs actuels */}
           <div>
-            <h3 className="font-semibold mb-3">Fournisseurs actuels ({fournisseurs.length})</h3>
+            <h3 className="font-semibold mb-3 dark:text-white">Fournisseurs actuels ({fournisseurs.length})</h3>
             {fournisseurs.length === 0 ? (
-              <p className="text-sm text-gray-500 py-4 text-center border-2 border-dashed rounded">
+              <p className="text-sm text-gray-500 py-4 text-center border-2 border-dashed rounded dark:text-white">
                 Aucun fournisseur configuré
               </p>
             ) : (
@@ -134,7 +134,7 @@ export default function FournisseurManager({ piece, onClose, onUpdate }) {
           {/* Formulaire d'ajout */}
           {isAdding ? (
             <div className="border-t pt-4 space-y-4">
-              <h3 className="font-semibold">Ajouter un fournisseur</h3>
+              <h3 className="font-semibold dark:text-white">Ajouter un fournisseur</h3>
               
               <div>
                 <Label>Fournisseur *</Label>
@@ -168,7 +168,7 @@ export default function FournisseurManager({ piece, onClose, onUpdate }) {
                 <Label htmlFor="principal">Fournisseur principal</Label>
               </div>
 
-              <div className="grid grid-cols-2 gap-4">
+              <div className="grid grid-cols-2 gap-4 dark:text-white">
                 <div>
                   <Label>N° pièce fournisseur</Label>
                   <Input

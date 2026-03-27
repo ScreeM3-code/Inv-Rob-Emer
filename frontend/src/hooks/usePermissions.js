@@ -16,10 +16,10 @@ export function usePermissions() {
 
   /**
    * Vérifie si l'utilisateur a une permission donnée.
-   * Les admins ont toujours accès à tout.
+   * Les admins ont toujours accès à tout SAUF debug_access qui doit être explicitement activé.
    */
   function can(permission) {
-    if (role === 'admin') return true;
+    if (role === 'admin' && permission !== 'debug_access') return true;
     return permissions[permission] === true;
   }
 

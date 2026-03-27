@@ -179,7 +179,7 @@ export default function PieceEditDialog({
 
           {/* Fournisseurs */}
           <div className="border-t pt-3 md:pt-4">
-            <h4 className="font-semibold text-gray-700 mb-2 md:mb-3 text-sm md:text-base">Fournisseurs</h4>
+            <h4 className="font-semibold text-gray-700 mb-2 md:mb-3 text-sm md:text-base dark:text-white">Fournisseurs</h4>
             <PieceFournisseursEditor
               fournisseurs={piece.fournisseurs || []}
               allFournisseurs={fournisseurs || []}
@@ -244,7 +244,7 @@ export default function PieceEditDialog({
 
           {/* Quantités */}
           <div className="border-t pt-3 md:pt-4">
-            <h4 className="font-semibold text-gray-700 mb-2 md:mb-3 text-sm md:text-base">Quantités</h4>
+            <h4 className="font-semibold text-gray-700 mb-2 md:mb-3 text-sm md:text-base dark:text-white">Quantités</h4>
             <div className="grid grid-cols-3 gap-2 md:gap-4">
               <div>
                 <Label className="text-xs md:text-sm">Stock *</Label>
