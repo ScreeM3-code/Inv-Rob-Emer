@@ -145,7 +145,15 @@ function PieceCard({ piece, onAction }) {
                     )}
                   </div>
                 )}
-              </div>
+                {piece.demandeur && (
+                  <div className="mt-1.5 flex items-center gap-1.5">
+                    <span className="text-xs text-gray-400">Demandé par</span>
+                    <span className="text-xs font-medium text-indigo-600 dark:text-indigo-400 bg-indigo-50 dark:bg-indigo-900/30 px-2 py-0.5 rounded-full">
+                      {piece.demandeur}
+                    </span>
+                  </div>
+                )}
+                </div>
 
               {/* Bouton expand */}
               <button

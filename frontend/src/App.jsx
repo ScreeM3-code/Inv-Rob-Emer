@@ -13,6 +13,7 @@ import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { Toaster } from "@/components/ui/toaster";
 import { toast } from "@/hooks/use-toast";
 import { usePermissions } from './hooks/usePermissions';
+import { useAuth } from './contexts/AuthContext';
 import * as XLSX from 'xlsx';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -69,6 +70,7 @@ function Dashboard () {
   const [categories, setCategories] = useState([]);
   const [departements, setDepartements] = useState([]);
   const { can, isAdmin } = usePermissions();
+  const auth = useAuth();
   const [filters, setFilters] = useState({ statut: 'tous', stock: 'tous', commande: 'tous', departement: 'tous' });
 
 
@@ -374,6 +376,15 @@ function Dashboard () {
 
       // Fermer le dialog
       setIsAddDialogOpen(false);
+      const isAdmin = auth?.user?.role === 'admin' || auth?.user?.role === 'superadmin';
+      if (!isAdmin) {
+        toast({
+          title: '✅ Pièce créée — En attente d\'approbation',
+          description: `"${newPiece.NomPièce}" a été soumise. Un administrateur doit l'approuver avant qu'elle apparaisse dans les commandes.`,
+        });
+      } else {
+        toast({ title: '✅ Pièce créée', description: newPiece.NomPièce });
+      }
       
       // Reset form
       setNewPiece({

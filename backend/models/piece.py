@@ -45,9 +45,11 @@ class PieceCreate(BaseModel):
     NoFESTO: Optional[str] = ""
     devise: Optional[str] = 'CAD'
     RefDepartement: Optional[int] = None
+    demandeur: Optional[str] = None
     fournisseurs: Optional[List[dict]] = []
     fournisseur_principal: Optional[dict] = None
     NumPièceAutreFournisseur: Optional[str] = ""
+
 
 class PieceUpdate(BaseModel):
     NomPièce: Optional[str] = None
@@ -70,6 +72,7 @@ class PieceUpdate(BaseModel):
     Datecommande: Optional[str] = None
     devise: Optional[str] = None
     RefDepartement: Optional[int] = None
+    demandeur: Optional[str] = None
     Modified: Optional[datetime] = None
     fournisseurs: Optional[List[dict]] = None
     NumPièceAutreFournisseur: Optional[str] = ""
@@ -82,6 +85,7 @@ class Piece(PieceBase):
     NomFabricant: Optional[str] = ""
     Qtéàcommander: Optional[int] = 0
     Qtéarecevoir: Optional[int] = 0
+    demandeur: Optional[str] = None
 
 class ImageUrlRequest(BaseModel):
     image_url: str

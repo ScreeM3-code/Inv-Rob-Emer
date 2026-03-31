@@ -482,6 +482,7 @@ async def get_pieces_en_attente(
                p.approbation_par,
                p.approbation_date,
                p.approbation_note,
+               p."demandeur",
                fp."NomFournisseur"  AS fournisseur_principal_nom,
                f3."NomFabricant"
         FROM "Pièce" p
@@ -569,7 +570,10 @@ async def approuver_piece(
            WHERE "RéfPièce" = $3''',
         user['username'], data.note, piece_id
     )
-    await notify_approbation_result(conn, piece['NomPièce'], "approuvee", data.note or "")
+    demandeur = await conn.fetchval(
+        'SELECT "demandeur" FROM "Pièce" WHERE "RéfPièce" = $1', piece_id
+    )
+    await notify_approbation_result(conn, piece['NomPièce'], "approuvee", data.note or "", demandeur)
     return {"msg": "Pièce approuvée", "statut": "approuvee"}
 
 
@@ -599,7 +603,10 @@ async def refuser_piece(
            WHERE "RéfPièce" = $3''',
         user['username'], data.note, piece_id
     )
-    await notify_approbation_result(conn, piece['NomPièce'], "refusee", data.note or "")
+    demandeur = await conn.fetchval(
+        'SELECT "demandeur" FROM "Pièce" WHERE "RéfPièce" = $1', piece_id
+    )
+    await notify_approbation_result(conn, piece['NomPièce'], "refusee", data.note or "", demandeur)
     return {"msg": "Pièce refusée", "statut": "refusee"}
 
 

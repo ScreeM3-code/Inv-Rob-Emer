@@ -9,6 +9,8 @@ from utils.helpers import (
     safe_string, safe_int, safe_float,
     calculate_qty_to_order, get_stock_status
 )
+from auth import require_auth
+from notification_service import notify_demande_approbation, notify_piece_commandee
 
 router = APIRouter(prefix="/pieces", tags=["pieces"])
 
@@ -346,11 +348,15 @@ async def remove_fournisseur_from_piece(
 @router.post("", response_model=Piece)
 async def create_piece(
     piece: PieceCreate,
-    conn: asyncpg.Connection = Depends(get_db_connection)
+    conn: asyncpg.Connection = Depends(get_db_connection),
+    user: dict = Depends(require_auth)
 ):
     """Crée une nouvelle pièce puis insère les fournisseurs dans PieceFournisseur"""
 
     now = datetime.utcnow()
+    is_admin = user.get('role') in ('admin', 'superadmin')
+    approbation_statut = 'approuvee' if is_admin else 'en_attente'
+    demandeur = None if is_admin else user.get('username')
 
     # 1. Insérer la pièce (sans fournisseurs — c'est dans PieceFournisseur)
     row = await conn.fetchrow(
@@ -360,8 +366,8 @@ async def create_piece(
             "NumPièceAutreFournisseur", "RefFabricant",
             "Lieuentreposage", "QtéenInventaire", "Qtéminimum", "Qtémax",
             "Prix unitaire", "Soumission LD", "SoumDem",
-            "Created", "Modified", "NoFESTO", "RTBS", "devise", "RefDepartement"
-        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
+            "Created", "Modified", "NoFESTO", "RTBS", "devise", "RefDepartement","approbation_statut", "demandeur"
+        ) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18, $19, $20)
         RETURNING *
         ''',
         piece.NomPièce,
@@ -382,6 +388,8 @@ async def create_piece(
         piece.RTBS,
         piece.devise or "CAD",
         piece.RefDepartement,
+        approbation_statut,
+        demandeur,
         
     )
 
@@ -448,6 +456,13 @@ async def create_piece(
     ]
     fournisseur_principal = next((f for f in fournisseurs_list if f["EstPrincipal"]), None)
 
+    # Notifier les admins si pièce soumise par un non-admin
+    if not is_admin and piece.NomPièce:
+        try:
+            await notify_demande_approbation(conn, piece.NomPièce, piece_id, user.get('username', 'Système'))
+        except Exception as notif_err:
+            print(f"⚠️ Erreur notification (non bloquant): {notif_err}")
+
     piece_dict = dict(row)
     qty_a_commander = calculate_qty_to_order(
         piece_dict.get("QtéenInventaire", 0),
@@ -482,6 +497,7 @@ async def create_piece(
         RefDepartement=piece_dict.get("RefDepartement"),
         NomDepartement=safe_string(piece_dict.get("NomDepartement", "")),
         devise=safe_string(piece_dict.get("devise", "CAD")) or "CAD",
+        demandeur=safe_string(piece_dict.get("demandeur", "")) or None,
     )
 
 
@@ -538,6 +554,20 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
             WHERE "RéfPièce" = ${param_count}
         '''
     await conn.execute(query, *values)
+
+    # Notifier si une commande vient d'être passée (Qtécommandée > 0)
+    update_dict_check = piece_update.dict(exclude_unset=True)
+    qte_commandee = update_dict_check.get("Qtécommandée")
+    if qte_commandee and isinstance(qte_commandee, int) and qte_commandee > 0:
+        # Récupérer le nom de la pièce pour la notification
+        piece_nom_row = await conn.fetchrow(
+            'SELECT "NomPièce" FROM "Pièce" WHERE "RéfPièce" = $1', piece_id
+        )
+        if piece_nom_row:
+            try:
+                await notify_piece_commandee(conn, piece_nom_row["NomPièce"], qte_commandee)
+            except Exception as notif_err:
+                print(f"⚠️ Erreur notification commande (non bloquant): {notif_err}")
 
     # Sauvegarder les fournisseurs si fournis dans la mise à jour
     update_dict = piece_update.dict(exclude_unset=True)
