@@ -23,7 +23,7 @@ const COULEURS_PRESET = [
 const EMPTY_DEPT = { NomDepartement: '', Description: '', Couleur: '#6366f1' };
 
 export default function Departements() {
-  const { isAdmin } = usePermissions();
+  const { isAdmin, isSuperAdmin } = usePermissions();
   const navigate    = useNavigate();
   const [depts,    setDepts]    = useState([]);
   const [loading,  setLoading]  = useState(true);
@@ -31,7 +31,7 @@ export default function Departements() {
   const [saving,   setSaving]   = useState(false);
 
   useEffect(() => {
-    if (!isAdmin) navigate('/inventaire');
+    if (!isAdmin && !isSuperAdmin) navigate('/inventaire');
     load();
   }, []);
 

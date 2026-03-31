@@ -206,15 +206,15 @@ function PieceCard({ piece, onAction }) {
 
 // ── Page principale ───────────────────────────────────────────
 export default function ApprobationPage() {
-  const { isAdmin }     = usePermissions();
+  const { isAdmin, isSuperAdmin } = usePermissions();
   const navigate        = useNavigate();
   const [pieces,   setPieces]   = useState([]);
   const [loading,  setLoading]  = useState(true);
   const [filtre,   setFiltre]   = useState('en_attente');
 
   useEffect(() => {
-    if (!isAdmin) navigate('/inventaire');
-  }, [isAdmin]);
+    if (!isAdmin && !isSuperAdmin) navigate('/inventaire');
+  }, [isAdmin, isSuperAdmin]);
 
   async function load() {
     setLoading(true);

@@ -10,6 +10,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from './contexts/AuthContext';
 import { usePermissions } from './hooks/usePermissions';
+import { is } from 'date-fns/locale';
 
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
@@ -31,20 +32,6 @@ const NOTIF_OPTIONS = [
     adminOnly: true,
   },
   {
-    key: 'approbation_accordee',
-    label: 'Approbation accordée',
-    description: 'Quand une de vos pièces est approuvée.',
-    icon: CheckCircle,
-    color: 'text-green-500',
-  },
-  {
-    key: 'approbation_refusee',
-    label: 'Approbation refusée',
-    description: 'Quand une de vos pièces est refusée.',
-    icon: XCircle,
-    color: 'text-red-500',
-  },
-  {
     key: 'piece_commandee',
     label: 'Commande passée',
     description: 'Quand une pièce est commandée dans le système.',
@@ -55,7 +42,7 @@ const NOTIF_OPTIONS = [
 
 export default function Profile() {
   const auth = useAuth();
-  const { isAdmin } = usePermissions();
+  const { isAdmin, isSuperAdmin } = usePermissions();
 
   const [email, setEmail]         = useState('');
   const [prefs, setPrefs]         = useState({});
@@ -151,7 +138,7 @@ export default function Profile() {
     );
   }
 
-  const visibleOptions = NOTIF_OPTIONS.filter(o => !o.adminOnly || isAdmin);
+  const visibleOptions = NOTIF_OPTIONS.filter(o => !o.adminOnly || isAdmin || isSuperAdmin);
 
   return (
     <div className="p-4 md:p-6 max-w-2xl mx-auto space-y-6">
@@ -195,7 +182,7 @@ export default function Profile() {
           )}
 
           {/* Bouton test email (admin seulement) */}
-          {isAdmin && hasEmail && (
+          {isSuperAdmin && hasEmail && (
             <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
               <p className="text-xs text-gray-500 mb-2">Zone admin — diagnostiquer la configuration SMTP</p>
               <Button

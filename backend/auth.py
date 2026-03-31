@@ -133,6 +133,6 @@ async def require_auth(user: dict = Depends(get_current_user)):
 
 async def require_admin(user: dict = Depends(get_current_user)):
     """Protège une route - nécessite rôle admin"""
-    if user.get("role") != "admin":
+    if user.get("role") != "admin" and user.get("role") != "superadmin":
         raise HTTPException(status_code=403, detail="Accès refusé - Admin seulement")
     return user

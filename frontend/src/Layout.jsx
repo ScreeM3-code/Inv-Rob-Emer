@@ -22,7 +22,7 @@ export default function Layout() {
   const [mobileMenuOpen, setMobileMenuOpen] = React.useState(false);
   
   const auth = useAuth();
-  const { can, isAdmin } = usePermissions();
+  const { can, isAdmin, isSuperAdmin } = usePermissions();
 
   const handleLogout = () => {
     auth.logout();
@@ -51,6 +51,7 @@ export default function Layout() {
     { path: '/approbation',  label: 'Approbations', icon: CheckCircle, permission: 'can_approve_orders' },
     { path: '/departements', label: 'Départements', icon: Building2,   permission: 'departements_view' },
     ...(isAdmin ? [{ path: '/users', label: 'Gestion des Utilisateurs', icon: Shield }] : []),
+    ...(isSuperAdmin ? [{ path: '/users', label: 'Gestion des Utilisateurs', icon: Shield }] : []),
   ].filter(item => !item.permission || can(item.permission));
 
   const SuperAdminItems = [
@@ -63,7 +64,7 @@ export default function Layout() {
   const [pendingCount, setPendingCount] = useState(0);
 
   useEffect(() => {
-    if (!isAdmin) return;
+    if (!isAdmin && !isSuperAdmin) return;
 
     const fetchPending = () => {
       fetch(`${import.meta.env.VITE_BACKEND_URL}/api/toorders/en-attente`, {
@@ -82,7 +83,7 @@ export default function Layout() {
     fetchPending();
     window.addEventListener('approbation-updated', fetchPending);
     return () => window.removeEventListener('approbation-updated', fetchPending);
-  }, [isAdmin]);
+  }, [isAdmin || isSuperAdmin]);
   
   // Label du rôle affiché
   const roleLabel = {
@@ -232,8 +233,8 @@ export default function Layout() {
                 <DropdownMenu>
                   <DropdownMenuTrigger asChild>
                     <Button variant="ghost" className="hidden md:flex items-center gap-2 h-10 px-3">
-                      <div className={`p-1.5 rounded-full ${isAdmin ? 'bg-rio-red/10' : 'bg-blue-500/10'}`}>
-                        {isAdmin
+                      <div className={`p-1.5 rounded-full ${isAdmin || isSuperAdmin ? 'bg-rio-red/10' : 'bg-blue-500/10'}`}>
+                        {isAdmin || isSuperAdmin
                           ? <Shield className="h-4 w-4 text-rio-red" />
                           : <User className="h-4 w-4 text-blue-600" />
                         }
@@ -389,8 +390,8 @@ export default function Layout() {
                   <>
                     <div className="px-4 py-2 mb-2">
                       <div className="flex items-center gap-3">
-                        <div className={`p-2 rounded-full ${isAdmin ? 'bg-rio-red/10' : 'bg-blue-500/10'}`}>
-                          {isAdmin
+                        <div className={`p-2 rounded-full ${isAdmin || isSuperAdmin ? 'bg-rio-red/10' : 'bg-blue-500/10'}`}>
+                          {isAdmin || isSuperAdmin
                             ? <Shield className="h-5 w-5 text-rio-red" />
                             : <User className="h-5 w-5 text-blue-600" />
                           }
@@ -402,7 +403,7 @@ export default function Layout() {
                       </div>
                     </div>
 
-                    {isAdmin && (
+                    {isAdmin || isSuperAdmin && (
                       <></>
                     )}
 

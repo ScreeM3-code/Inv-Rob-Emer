@@ -15,6 +15,8 @@ import {
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
 
+const SYSTEM_USERS = ['SimonDC'];
+
 // ── Labels lisibles pour chaque permission ───────────────────
 const PERMISSION_LABELS = {
   inventaire_view:           "Voir l'inventaire",
@@ -48,7 +50,6 @@ const PERMISSION_LABELS = {
   can_manage_users:          'Gérer les utilisateurs',
   can_approve_orders:        'Approuver les commandes',
   can_submit_approval:       'Soumettre pour approbation',
-  debug_access:              'Accès debug',
 };
 
 const PERMISSION_SECTIONS = [
@@ -58,7 +59,7 @@ const PERMISSION_SECTIONS = [
   { label: 'Fabricants',     keys: ['fabricant_view','fabricant_create','fabricant_update','fabricant_delete'] },
   { label: 'Commandes',      keys: ['commandes_view','commandes_create','commandes_update','soumissions_view','soumissions_create','soumissions_update','receptions_view','receptions_create','receptions_update'] },
   { label: 'Historique',     keys: ['historique_view'] },
-  { label: 'Administration', keys: ['can_delete_any','can_manage_users','can_approve_orders','can_submit_approval','debug_access'] },
+  { label: 'Administration', keys: ['can_delete_any','can_manage_users','can_approve_orders','can_submit_approval'] },
 ];
 
 // ── Grille de permissions ─────────────────────────────────────
@@ -324,7 +325,7 @@ function NewRoleForm({ onSave, onCancel }) {
 // ══════════════════════════════════════════════════════════════
 export default function UsersPage() {
   const auth = useAuth();
-  const { isAdmin } = usePermissions();
+  const { isAdmin, isSuperAdmin } = usePermissions();
 
   const [activeTab,    setActiveTab]    = useState('users');
   const [users,        setUsers]        = useState([]);
@@ -427,7 +428,7 @@ export default function UsersPage() {
     }
   }
 
-  if (!isAdmin) {
+  if (!isAdmin && !isSuperAdmin) {
     return (
       <div className="min-h-screen flex items-center justify-center">
         <AnimatedBackground />
@@ -510,6 +511,7 @@ export default function UsersPage() {
                       <tbody>
                         {users.map(u => {
                           const isEditing = editingUser?.username === u.username;
+                          const isSystemUser = SYSTEM_USERS.includes(u.username);
                           return (
                             <tr key={u.username} className="border-b border-gray-100 dark:border-gray-800 hover:bg-gray-50 dark:hover:bg-gray-800/50">
                               <td className="py-3 px-2">
@@ -518,6 +520,7 @@ export default function UsersPage() {
                                     <Shield className={`h-3.5 w-3.5 ${u.role === 'admin' ? 'text-rio-red' : 'text-blue-500'}`} />
                                   </div>
                                   <span className="font-medium">{u.username}</span>
+                                  {isSystemUser && <Badge variant="outline" className="text-xs">Système</Badge>}
                                 </div>
                               </td>
                               <td className="py-3 px-2">
@@ -552,10 +555,12 @@ export default function UsersPage() {
                                     </>
                                   ) : (
                                     <>
-                                      <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-gray-400 hover:text-blue-600" onClick={() => setEditingUser({ username: u.username, email: u.email || '', group_id: u.group_id?.toString() || '' })}>
-                                        <Pencil className="h-3.5 w-3.5" />
-                                      </Button>
-                                      {u.username !== auth.user?.username && (
+                                      {!isSystemUser && (
+                                        <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-gray-400 hover:text-blue-600" onClick={() => setEditingUser({ username: u.username, email: u.email || '', group_id: u.group_id?.toString() || '' })}>
+                                          <Pencil className="h-3.5 w-3.5" />
+                                        </Button>
+                                      )}
+                                      {u.username !== auth.user?.username && !isSystemUser && (
                                         <Button size="sm" variant="ghost" className="h-7 w-7 p-0 text-gray-400 hover:text-red-600" onClick={() => deleteUser(u.username)}>
                                           <Trash2 className="h-3.5 w-3.5" />
                                         </Button>

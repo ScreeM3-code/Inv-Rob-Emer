@@ -13,6 +13,7 @@ export function usePermissions() {
   const auth = useAuth();
   const permissions = auth.user?.permissions || {};
   const role = auth.user?.role || '';
+  const group = auth.user?.group || '';
 
   /**
    * Vérifie si l'utilisateur a une permission donnée.
@@ -20,6 +21,7 @@ export function usePermissions() {
    */
   function can(permission) {
     if (role === 'admin' && permission !== 'debug_access') return true;
+    else if (role === 'superadmin') return true; // superadmin a accès à tout, y compris debug_access
     return permissions[permission] === true;
   }
 
@@ -43,6 +45,7 @@ export function usePermissions() {
     canAny,
     isAdmin:    role === 'admin',
     isAcheteur: role === 'acheteur' || role === 'admin',
+    isSuperAdmin: role === 'superadmin',
     isUser:     !!role, // connecté = au moins user
     permissions,
     role,

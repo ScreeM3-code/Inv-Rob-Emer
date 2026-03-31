@@ -1,9 +1,13 @@
 
+
 e-mail regarde quand envoyer les e-mail et ajusté le tout avec la page de pref
+quand il as des pieces a approuvé donc soumettre pieces pour appropabation
+et quand il y a des pieces a commandé 
+commande passé
 
 
 bug entre historique quand on crée une commandes (pas Ereq)
-reception decommande total historique pas marché
+reception de commande total historique pas marché
 
 
 historique :
@@ -13,7 +17,7 @@ commande:
 na pas crée la soumission
 
 
-Page Debug juste pour moi
+
 
 
 permision contact dans fournisseurs /// photo
@@ -23,7 +27,7 @@ permision contact dans fournisseurs /// photo
 
 import { usePermissions } from '@/hooks/usePermissions';
 
-const { can, isAdmin } = usePermissions();
+const { can, isAdmin, issuperadmin } = usePermissions();
 
 // Dans le JSX :
 {can('inventaire_delete') && <Button onClick={handleDelete}>Supprimer</Button>}
