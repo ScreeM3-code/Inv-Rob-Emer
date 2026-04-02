@@ -8,7 +8,7 @@ from database import get_db_connection
 from utils.helpers import safe_string, safe_int, safe_float, calculate_qty_to_order
 from auth import require_admin, require_auth
 from models import Commande, StatsResponse, ApprobationRequest
-
+from utils.historique import log_mouvement
 import asyncio
 from notification_service import (
     notify_demande_approbation,
@@ -304,6 +304,36 @@ async def receive_all_order(
         except Exception as hist_error:
             print(f"⚠️ Erreur mise à jour historique (non bloquant): {hist_error}")
 
+            # ── Log réception totale ────────────────────────────────────
+            try:
+                nom_row = await conn.fetchrow(
+                    'SELECT "NomPièce", "NumPièce" FROM "Pièce" WHERE "RéfPièce" = $1', piece_id
+                )
+                # Calculer le délai depuis la dernière commande
+                cmd_row = await conn.fetchrow(
+                    '''SELECT "DateCMD" FROM "historique"
+                       WHERE "RéfPièce" = $1 AND "Opération" = \'Commande\'
+                       ORDER BY id DESC LIMIT 1''',
+                    piece_id
+                )
+                delai = None
+                if cmd_row and cmd_row["DateCMD"]:
+                    delai = float((now.date() - cmd_row["DateCMD"].date()).days)
+
+                if nom_row:
+                    await log_mouvement(
+                        conn,
+                        operation="Achat",
+                        piece_id=piece_id,
+                        nom_piece=str(nom_row["NomPièce"] or ""),
+                        num_piece=str(nom_row["NumPièce"] or ""),
+                        qty_cmd=str(qty_received),
+                        user="Réception",
+                        delai=delai,
+                    )
+            except Exception as log_err:
+                print(f"⚠️  Log réception totale (non bloquant): {log_err}")
+
         return {
             "message": "Réception totale effectuée",
             "piece_id": piece_id,
@@ -352,6 +382,37 @@ async def receive_partial_order(
         '''
 
         result = await conn.execute(query, piece_id, quantity_received, datetime.utcnow())
+
+        # ── Log réception partielle ─────────────────────────────────
+        try:
+            nom_row = await conn.fetchrow(
+                'SELECT "NomPièce", "NumPièce" FROM "Pièce" WHERE "RéfPièce" = $1', piece_id
+            )
+            cmd_row = await conn.fetchrow(
+                '''SELECT "DateCMD" FROM "historique"
+                   WHERE "RéfPièce" = $1 AND "Opération" = \'Commande\'
+                   ORDER BY id DESC LIMIT 1''',
+                piece_id
+            )
+            delai = None
+            if cmd_row and cmd_row["DateCMD"]:
+                from datetime import datetime as _dt
+                delai = float((_dt.utcnow().date() - cmd_row["DateCMD"].date()).days)
+
+            if nom_row:
+                await log_mouvement(
+                    conn,
+                    operation="Achat",
+                    piece_id=piece_id,
+                    nom_piece=str(nom_row["NomPièce"] or ""),
+                    num_piece=str(nom_row["NumPièce"] or ""),
+                    qty_cmd=str(quantity_received),
+                    description=f"Réception partielle : {quantity_received} unité(s)",
+                    user="Réception",
+                    delai=delai,
+                )
+        except Exception as log_err:
+            print(f"⚠️  Log réception partielle (non bloquant): {log_err}")
 
         if result == "UPDATE 0":
             raise HTTPException(status_code=404, detail="Pièce non trouvée")

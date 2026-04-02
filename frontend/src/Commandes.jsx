@@ -152,28 +152,6 @@ function Commandes() {
         const userData = await fetchJson(`${API}/current-user`);
         const userName = userData.user?.username || "Système";  
         
-        // Ajouter à l'historique de mouvements (existant)
-        const historiqueEntry = {
-          Opération: "Commande",
-          DateCMD: new Date().toISOString(),
-          DateRecu: null,
-          RéfPièce: updatedPiece.RéfPièce,
-          nompiece: updatedPiece.NomPièce,
-          numpiece: updatedPiece.NumPièce,
-          qtécommande: String(updatedPiece.Qtécommandée || 0),
-          QtéSortie: "0",
-          description: updatedPiece.DescriptionPièce || "",
-          User: userName,
-          Delais: null
-        };
-        
-        log('📝 Ajout historique mouvement:', historiqueEntry);
-        await fetchJson(`${API}/historique`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(historiqueEntry)
-        });
-
         // ← NOUVEAU : Mettre à jour la soumission associée
         try {
           // Trouver la dernière soumission pour cette pièce

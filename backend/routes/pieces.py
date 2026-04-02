@@ -9,7 +9,8 @@ from utils.helpers import (
     safe_string, safe_int, safe_float,
     calculate_qty_to_order, get_stock_status
 )
-from auth import require_auth
+from utils.historique import log_mouvement
+from auth import require_auth, get_username_from_request
 from notification_service import notify_demande_approbation, notify_piece_commandee
 
 router = APIRouter(prefix="/pieces", tags=["pieces"])
@@ -502,7 +503,13 @@ async def create_piece(
 
 
 @router.put("/{piece_id}", response_model=Piece)
-async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.Connection = Depends(get_db_connection)):
+async def update_piece(piece_id: int, piece_update: PieceUpdate, request: Request, conn: asyncpg.Connection = Depends(get_db_connection)):
+    # ── Snapshot AVANT mise à jour (pour détecter les changements) ──
+    username = get_username_from_request(request)
+    old_row = await conn.fetchrow(
+        'SELECT "QtéenInventaire", "Qtécommandée", "NomPièce", "NumPièce" FROM "Pièce" WHERE "RéfPièce" = $1',
+        piece_id
+    )
     # Construire la requête de mise à jour dynamiquement
     update_fields = []
     values = []
@@ -588,6 +595,46 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, conn: asyncpg.C
                 f.get("PrixUnitaire", 0),
                 f.get("DelaiLivraison", ""),
             )
+        # ── Logging automatique des mouvements ──────────────────────────
+        if old_row:
+            update_fields_log = piece_update.dict(exclude_unset=True)
+            old_qty_inv = int(old_row.get("QtéenInventaire") or 0)
+            old_qty_cmd = int(old_row.get("Qtécommandée") or 0)
+            nom_log = str(old_row.get("NomPièce") or "")
+            num_log = str(old_row.get("NumPièce") or "")
+
+            new_qty_inv = update_fields_log.get("QtéenInventaire")
+            new_qty_cmd = update_fields_log.get("Qtécommandée")
+
+            # Sortie détectée : stock diminue
+            if new_qty_inv is not None and new_qty_inv < old_qty_inv:
+                qty_diff = old_qty_inv - new_qty_inv
+                # Si seul QtéenInventaire change → "Sortie rapide", sinon "Sortie" (PieceEditDialog)
+                autres_champs = {k for k in update_fields_log if
+                                 k not in ("QtéenInventaire", "fournisseurs", "Modified")}
+                op = "Sortie rapide" if not autres_champs else "Sortie"
+                await log_mouvement(
+                    conn,
+                    operation=op,
+                    piece_id=piece_id,
+                    nom_piece=nom_log,
+                    num_piece=num_log,
+                    qty_sortie=str(qty_diff),
+                    user=username,
+                )
+
+            # Commande détectée : Qtécommandée passe de 0 à > 0
+            if new_qty_cmd is not None and int(new_qty_cmd or 0) > 0 and old_qty_cmd == 0:
+                await log_mouvement(
+                    conn,
+                    operation="Commande",
+                    piece_id=piece_id,
+                    nom_piece=nom_log,
+                    num_piece=num_log,
+                    qty_cmd=str(new_qty_cmd),
+                    description=update_fields_log.get("Cmd_info", ""),
+                    user=username,
+                )
 
     # Récupérer la pièce mise à jour avec ses fournisseurs via PieceFournisseur
     piece = await conn.fetchrow('''

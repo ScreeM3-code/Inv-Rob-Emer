@@ -210,9 +210,7 @@ export default function Groupes() {
 
   const handleSortirPieces = async (sorties) => {
     try {
-      // 1. Récupérer l'utilisateur
-  const userData = await fetchJson(`${API}/current-user`);
-  const userName = userData.user?.username || "Système";
+
 
       // 2. Pour chaque pièce, faire la sortie
       for (const sortie of sorties) {
@@ -224,22 +222,6 @@ export default function Groupes() {
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
             QtéenInventaire: piece.QtéenInventaire - quantite
-          })
-        });
-
-        // Ajout dans l'historique
-        await fetchJson(`${API}/historique`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            Opération: "Sortie",
-            QtéSortie: quantite.toString(),
-            RéfPièce: piece.RéfPièce,
-            nompiece: piece.NomPièce,
-            numpiece: piece.NumPièce,
-            User: userName,
-            DateRecu: new Date().toISOString(),
-            description: piece.DescriptionPièce || ""
           })
         });
       }

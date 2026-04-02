@@ -1,22 +1,21 @@
 
-
+#### a tester ####
 e-mail regarde quand envoyer les e-mail et ajusté le tout avec la page de pref
 quand il as des pieces a approuvé donc soumettre pieces pour appropabation
 et quand il y a des pieces a commandé 
 commande passé
+#####
 
-
+##### a tester ####
 bug entre historique quand on crée une commandes (pas Ereq)
 reception de commande total historique pas marché
-
-
 historique :
 amélioré ? avec une def pour chaque modif de pieces
-
-commande:
-na pas crée la soumission
+#####
 
 
+Ereq a f ait une erreur mais la commande a été envoyer pareille
+a vérifier je crois que c'est la pieces jointe qu'il a pas aimer
 
 
 

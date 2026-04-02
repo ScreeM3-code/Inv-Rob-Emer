@@ -136,3 +136,22 @@ async def require_admin(user: dict = Depends(get_current_user)):
     if user.get("role") != "admin" and user.get("role") != "superadmin":
         raise HTTPException(status_code=403, detail="Accès refusé - Admin seulement")
     return user
+
+def get_username_from_request(request: Request) -> str:
+    """
+    Extrait le username du JWT (header ou cookie) sans accès DB.
+    Retourne 'Système' si absent ou token invalide.
+    """
+    try:
+        token = None
+        auth_header = request.headers.get("Authorization", "")
+        if auth_header.startswith("Bearer "):
+            token = auth_header[7:]
+        if not token:
+            token = request.cookies.get("access_token")
+        if token:
+            payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+            return payload.get("sub") or "Système"
+    except Exception:
+        pass
+    return "Système"

@@ -289,23 +289,6 @@ function Dashboard () {
         pieces_a_commander: prev.pieces_a_commander + (isToOrder ? 1 : 0) - (wasToOrder ? 1 : 0)
       }));
 
-      const historyEntry = {
-        Opération: "Sortie rapide",
-        QtéSortie: amount.toString(),
-        RéfPièce: piece.RéfPièce,
-        nompiece: piece.NomPièce,
-        numpiece: piece.NumPièce,
-        User: user?.username || "Système",
-        DateRecu: new Date().toISOString(),
-        description: piece.DescriptionPièce,
-      };
-
-      await fetchJson(`${API}/historique`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(historyEntry),
-      });
-
       // Afficher une confirmation toast
       try {
         toast({
