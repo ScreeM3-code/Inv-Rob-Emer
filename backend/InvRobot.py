@@ -154,7 +154,3 @@ def require_admin(request: Request):
         )
     return user
 
-#@app.delete("/api/pieces/{piece_id}")
-#async def delete_piece(piece_id: int, request: Request, conn: asyncpg.Connection = Depends(get_db_connection)):
-    # Vérifier que c'est un admin
- #   require_admin(request)

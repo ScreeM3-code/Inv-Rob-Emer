@@ -65,7 +65,7 @@ async def get_pieces(
 
         # Filtrage par recherche
         if search:
-            base_query += f' AND (COALESCE(p."NomPièce", \'\') ILIKE ${param_idx} OR COALESCE(p."NumPièce", \'\') ILIKE ${param_idx} OR COALESCE(p."DescriptionPièce", \'\') ILIKE ${param_idx} OR COALESCE(p."NumPièceAutreFournisseur", \'\') ILIKE ${param_idx})'
+            base_query += f' AND (COALESCE(p."NomPièce", \'\') ILIKE ${param_idx} OR COALESCE(p."NumPièce", \'\') ILIKE ${param_idx} OR COALESCE(p."DescriptionPièce", \'\') ILIKE ${param_idx} OR COALESCE(p."NumPièceAutreFournisseur", \'\') ILIKE ${param_idx} OR COALESCE(p."Lieuentreposage", \'\') ILIKE ${param_idx} OR COALESCE(p."NoFESTO", \'\') ILIKE ${param_idx} OR COALESCE(CAST(p."RTBS" AS TEXT), \'\') ILIKE ${param_idx})'
             params.append(f'%{search}%')
             param_idx += 1
 
