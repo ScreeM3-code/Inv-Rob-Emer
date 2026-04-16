@@ -1,69 +1,312 @@
-2026-03-31 14:13:44,471 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
-2026-03-31 14:13:44,471 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2026-03-31 14:13:44,476 - asyncio - DEBUG - Using proactor: IocpProactor
-2026-03-31 14:13:44,544 - uvicorn.error - INFO - Started server process [33164]
-2026-03-31 14:13:44,544 - uvicorn.error - INFO - Waiting for application startup.
-2026-03-31 14:13:44,668 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2026-03-31 14:13:44,688 - Inventaire-Robot - INFO - \u2705 935 Pièce trouvés
-2026-03-31 14:13:44,689 - uvicorn.error - INFO - Application startup complete.
-2026-03-31 14:13:44,690 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
-2026-04-02 08:34:11,616 - httpx - DEBUG - load_ssl_context verify=False cert=None trust_env=True http2=False
-2026-04-02 08:34:11,619 - httpcore.connection - DEBUG - connect_tcp.started host='fip.remote.riotinto.com' port=443 local_address=None timeout=60.0 socket_options=None
-2026-04-02 08:34:11,872 - httpcore.connection - DEBUG - connect_tcp.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001D5E2C44580>
-2026-04-02 08:34:11,872 - httpcore.connection - DEBUG - start_tls.started ssl_context=<ssl.SSLContext object at 0x000001D5E29ACCC0> server_hostname='fip.remote.riotinto.com' timeout=60.0
-2026-04-02 08:34:12,393 - httpcore.connection - DEBUG - start_tls.complete return_value=<httpcore._backends.anyio.AnyIOStream object at 0x000001D5E2C478E0>
-2026-04-02 08:34:12,394 - httpcore.http11 - DEBUG - send_request_headers.started request=<Request [b'GET']>
-2026-04-02 08:34:12,395 - httpcore.http11 - DEBUG - send_request_headers.complete
-2026-04-02 08:34:12,395 - httpcore.http11 - DEBUG - send_request_body.started request=<Request [b'GET']>
-2026-04-02 08:34:12,395 - httpcore.http11 - DEBUG - send_request_body.complete
-2026-04-02 08:34:12,395 - httpcore.http11 - DEBUG - receive_response_headers.started request=<Request [b'GET']>
-2026-04-02 08:34:12,665 - httpcore.http11 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 200, b'OK', [(b'content-type', b'application/json; charset=utf-8'), (b'content-length', b'567'), (b'x-csrf-token', b'oRtnAdXp4YzdYRFvmMUZhA=='), (b'dataserviceversion', b'1.0'), (b'sap-metadata-last-modified', b'Sun, 23 Mar 2025 07:23:23 GMT'), (b'last-modified', b'Sun, 23 Mar 2025 07:23:23 GMT'), (b'cache-control', b'no-store, no-cache, must-revalidate, max-age=0, post-check=0, pre-check=0'), (b'pragma', b'no-cache'), (b'expires', b'Tue, 03 Jul 2001 06:00:00 GMT'), (b'sap-processing-info', b'ODataBEP=,crp=,st=,MedCacheHub=SHM,codeployed=,softstate='), (b'sap-server', b'true'), (b'sap-perf-fesrec', b'38703.000000'), (b'content-encoding', b'gzip')])
-2026-04-02 08:34:12,666 - httpx - INFO - HTTP Request: GET https://fip.remote.riotinto.com/sap/opu/odata/rio/ZMPTP_EREQ_SRV/?sap-client=500 "HTTP/1.1 200 OK"
-2026-04-02 08:34:12,670 - httpcore.http11 - DEBUG - receive_response_body.started request=<Request [b'GET']>
-2026-04-02 08:34:12,672 - httpcore.http11 - DEBUG - receive_response_body.complete
-2026-04-02 08:34:12,673 - httpcore.http11 - DEBUG - response_closed.started
-2026-04-02 08:34:12,673 - httpcore.http11 - DEBUG - response_closed.complete
-2026-04-02 08:34:12,675 - httpcore.http11 - DEBUG - send_request_headers.started request=<Request [b'POST']>
-2026-04-02 08:34:12,675 - httpcore.http11 - DEBUG - send_request_headers.complete
-2026-04-02 08:34:12,676 - httpcore.http11 - DEBUG - send_request_body.started request=<Request [b'POST']>
-2026-04-02 08:34:12,676 - httpcore.http11 - DEBUG - send_request_body.complete
-2026-04-02 08:34:12,677 - httpcore.http11 - DEBUG - receive_response_headers.started request=<Request [b'POST']>
-2026-04-02 08:34:19,990 - httpcore.http11 - DEBUG - receive_response_headers.complete return_value=(b'HTTP/1.1', 202, b'Accepted', [(b'content-type', b'multipart/mixed; boundary=41A0D0D0ECE0CED616E46306ECC8420C0'), (b'content-length', b'651'), (b'dataserviceversion', b'2.0'), (b'cache-control', b'no-cache, no-store, must-revalidate'), (b'sap-server', b'true'), (b'sap-perf-fesrec', b'6621019.000000'), (b'content-encoding', b'gzip')])
-2026-04-02 08:34:19,990 - httpx - INFO - HTTP Request: POST https://fip.remote.riotinto.com/sap/opu/odata/rio/ZMPTP_EREQ_SRV/$batch?sap-client=500 "HTTP/1.1 202 Accepted"
-2026-04-02 08:34:19,990 - httpcore.http11 - DEBUG - receive_response_body.started request=<Request [b'POST']>
-2026-04-02 08:34:19,990 - httpcore.http11 - DEBUG - receive_response_body.complete
-2026-04-02 08:34:19,992 - httpcore.http11 - DEBUG - response_closed.started
-2026-04-02 08:34:19,992 - httpcore.http11 - DEBUG - response_closed.complete
-2026-04-02 08:34:19,992 - httpcore.connection - DEBUG - close.started
-2026-04-02 08:34:19,992 - httpcore.connection - DEBUG - close.complete
-2026-04-02 08:34:20,024 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
-2026-04-02 08:34:20,024 - python_multipart.multipart - DEBUG - Calling on_header_field with data[42:61]
-2026-04-02 08:34:20,024 - python_multipart.multipart - DEBUG - Calling on_header_value with data[63:112]
-2026-04-02 08:34:20,024 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
-2026-04-02 08:34:20,024 - python_multipart.multipart - DEBUG - Calling on_header_field with data[114:126]
-2026-04-02 08:34:20,024 - python_multipart.multipart - DEBUG - Calling on_header_value with data[128:143]
-2026-04-02 08:34:20,024 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
-2026-04-02 08:34:20,024 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
-2026-04-02 08:34:20,024 - python_multipart.multipart - DEBUG - Calling on_part_data with data[147:81920]
-2026-04-02 08:34:20,025 - python_multipart.multipart - DEBUG - Calling on_part_data with data[0:130082]
-2026-04-02 08:34:20,025 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
-2026-04-02 08:34:20,025 - python_multipart.multipart - DEBUG - Calling on_end with no data
-2026-04-02 08:51:05,132 - python_multipart.multipart - DEBUG - Calling on_part_begin with no data
-2026-04-02 08:51:05,132 - python_multipart.multipart - DEBUG - Calling on_header_field with data[42:61]
-2026-04-02 08:51:05,132 - python_multipart.multipart - DEBUG - Calling on_header_value with data[63:112]
-2026-04-02 08:51:05,132 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
-2026-04-02 08:51:05,132 - python_multipart.multipart - DEBUG - Calling on_header_field with data[114:126]
-2026-04-02 08:51:05,132 - python_multipart.multipart - DEBUG - Calling on_header_value with data[128:143]
-2026-04-02 08:51:05,132 - python_multipart.multipart - DEBUG - Calling on_header_end with no data
-2026-04-02 08:51:05,132 - python_multipart.multipart - DEBUG - Calling on_headers_finished with no data
-2026-04-02 08:51:05,133 - python_multipart.multipart - DEBUG - Calling on_part_data with data[147:16384]
-2026-04-02 08:51:05,133 - python_multipart.multipart - DEBUG - Calling on_part_data with data[0:81920]
-2026-04-02 08:51:05,133 - python_multipart.multipart - DEBUG - Calling on_part_data with data[0:81920]
-2026-04-02 08:51:05,133 - python_multipart.multipart - DEBUG - Calling on_part_data with data[0:31778]
-2026-04-02 08:51:05,134 - python_multipart.multipart - DEBUG - Calling on_part_end with no data
-2026-04-02 08:51:05,134 - python_multipart.multipart - DEBUG - Calling on_end with no data
-2026-04-02 12:21:01,143 - uvicorn.error - INFO - Shutting down
-2026-04-02 12:21:01,249 - uvicorn.error - INFO - Waiting for application shutdown.
-2026-04-02 12:21:01,251 - Inventaire-Robot - INFO - Pool PostgreSQL fermé.
-2026-04-02 12:21:01,252 - uvicorn.error - INFO - Application shutdown complete.
-2026-04-02 12:21:01,252 - uvicorn.error - INFO - Finished server process [33164]
+2026-04-15 19:39:23,259 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
+2026-04-15 19:39:23,259 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2026-04-15 19:39:23,263 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-15 19:39:23,279 - uvicorn.error - INFO - Started server process [10640]
+2026-04-15 19:39:23,279 - uvicorn.error - INFO - Waiting for application startup.
+2026-04-15 19:39:23,313 - Inventaire-Robot - ERROR - \u274c Erreur connexion PostgreSQL: password authentication failed for user "InvRobot"
+Traceback (most recent call last):
+  File "C:\Users\ScreeM\Documents\GitHub\Inv-Rob-Emer\backend\database.py", line 17, in lifespan
+    app.state.pool = await asyncpg.create_pool(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\asyncpg\pool.py", line 439, in _async__init__
+    await self._initialize()
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\asyncpg\pool.py", line 466, in _initialize
+    await first_ch.connect()
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\asyncpg\pool.py", line 153, in connect
+    self._con = await self._pool._get_new_connection()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\asyncpg\pool.py", line 538, in _get_new_connection
+    con = await self._connect(
+          ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\asyncpg\connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\asyncpg\connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\asyncpg\connect_utils.py", line 1054, in _connect_addr
+    return await __connect_addr(params, True, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\asyncpg\connect_utils.py", line 1102, in __connect_addr
+    await connected
+asyncpg.exceptions.InvalidPasswordError: password authentication failed for user "InvRobot"
+2026-04-15 19:39:23,315 - uvicorn.error - INFO - Application startup complete.
+2026-04-15 19:39:23,316 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
+2026-04-15 19:40:30,246 - uvicorn.error - ERROR - Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\uvicorn\protocols\http\h11_impl.py", line 406, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\applications.py", line 1106, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\applications.py", line 122, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\errors.py", line 184, in __call__
+    raise exc
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\errors.py", line 162, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\cors.py", line 83, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 79, in __call__
+    raise exc
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 68, in __call__
+    await self.app(scope, receive, sender)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 20, in __call__
+    raise e
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 17, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\routing.py", line 718, in __call__
+    await route.handle(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\routing.py", line 66, in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\routing.py", line 264, in app
+    solved_result = await solve_dependencies(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\dependencies\utils.py", line 563, in solve_dependencies
+    solved_result = await solve_dependencies(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\dependencies\utils.py", line 588, in solve_dependencies
+    solved = await solve_generator(
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\dependencies\utils.py", line 513, in solve_generator
+    return await stack.enter_async_context(cm)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 659, in enter_async_context
+    result = await _enter(cm)
+             ^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Documents\GitHub\Inv-Rob-Emer\backend\database.py", line 45, in get_db_connection
+    conn = await pool.acquire()
+                 ^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'acquire'
+2026-04-15 19:40:30,254 - uvicorn.error - ERROR - Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\uvicorn\protocols\http\h11_impl.py", line 406, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\applications.py", line 1106, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\applications.py", line 122, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\errors.py", line 184, in __call__
+    raise exc
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\errors.py", line 162, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\cors.py", line 83, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 79, in __call__
+    raise exc
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 68, in __call__
+    await self.app(scope, receive, sender)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 20, in __call__
+    raise e
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 17, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\routing.py", line 718, in __call__
+    await route.handle(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\routing.py", line 66, in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\routing.py", line 264, in app
+    solved_result = await solve_dependencies(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\dependencies\utils.py", line 563, in solve_dependencies
+    solved_result = await solve_dependencies(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\dependencies\utils.py", line 588, in solve_dependencies
+    solved = await solve_generator(
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\dependencies\utils.py", line 513, in solve_generator
+    return await stack.enter_async_context(cm)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 659, in enter_async_context
+    result = await _enter(cm)
+             ^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Documents\GitHub\Inv-Rob-Emer\backend\database.py", line 45, in get_db_connection
+    conn = await pool.acquire()
+                 ^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'acquire'
+2026-04-15 19:40:33,228 - uvicorn.error - ERROR - Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\uvicorn\protocols\http\h11_impl.py", line 406, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\applications.py", line 1106, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\applications.py", line 122, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\errors.py", line 184, in __call__
+    raise exc
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\errors.py", line 162, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\cors.py", line 83, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 79, in __call__
+    raise exc
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 68, in __call__
+    await self.app(scope, receive, sender)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 20, in __call__
+    raise e
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 17, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\routing.py", line 718, in __call__
+    await route.handle(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\routing.py", line 66, in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\routing.py", line 264, in app
+    solved_result = await solve_dependencies(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\dependencies\utils.py", line 563, in solve_dependencies
+    solved_result = await solve_dependencies(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\dependencies\utils.py", line 588, in solve_dependencies
+    solved = await solve_generator(
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\dependencies\utils.py", line 513, in solve_generator
+    return await stack.enter_async_context(cm)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 659, in enter_async_context
+    result = await _enter(cm)
+             ^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Documents\GitHub\Inv-Rob-Emer\backend\database.py", line 45, in get_db_connection
+    conn = await pool.acquire()
+                 ^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'acquire'
+2026-04-15 19:40:33,232 - uvicorn.error - ERROR - Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\uvicorn\protocols\http\h11_impl.py", line 406, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\applications.py", line 1106, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\applications.py", line 122, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\errors.py", line 184, in __call__
+    raise exc
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\errors.py", line 162, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\cors.py", line 83, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 79, in __call__
+    raise exc
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 68, in __call__
+    await self.app(scope, receive, sender)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 20, in __call__
+    raise e
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 17, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\routing.py", line 718, in __call__
+    await route.handle(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\routing.py", line 66, in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\routing.py", line 264, in app
+    solved_result = await solve_dependencies(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\dependencies\utils.py", line 563, in solve_dependencies
+    solved_result = await solve_dependencies(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\dependencies\utils.py", line 588, in solve_dependencies
+    solved = await solve_generator(
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\dependencies\utils.py", line 513, in solve_generator
+    return await stack.enter_async_context(cm)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 659, in enter_async_context
+    result = await _enter(cm)
+             ^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Documents\GitHub\Inv-Rob-Emer\backend\database.py", line 45, in get_db_connection
+    conn = await pool.acquire()
+                 ^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'acquire'
+2026-04-15 19:40:42,665 - uvicorn.error - ERROR - Exception in ASGI application
+Traceback (most recent call last):
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\uvicorn\protocols\http\h11_impl.py", line 406, in run_asgi
+    result = await app(  # type: ignore[func-returns-value]
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\uvicorn\middleware\proxy_headers.py", line 60, in __call__
+    return await self.app(scope, receive, send)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\applications.py", line 1106, in __call__
+    await super().__call__(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\applications.py", line 122, in __call__
+    await self.middleware_stack(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\errors.py", line 184, in __call__
+    raise exc
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\errors.py", line 162, in __call__
+    await self.app(scope, receive, _send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\cors.py", line 91, in __call__
+    await self.simple_response(scope, receive, send, request_headers=headers)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\cors.py", line 146, in simple_response
+    await self.app(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 79, in __call__
+    raise exc
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\middleware\exceptions.py", line 68, in __call__
+    await self.app(scope, receive, sender)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 20, in __call__
+    raise e
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\middleware\asyncexitstack.py", line 17, in __call__
+    await self.app(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\routing.py", line 718, in __call__
+    await route.handle(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\routing.py", line 276, in handle
+    await self.app(scope, receive, send)
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\starlette\routing.py", line 66, in app
+    response = await func(request)
+               ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\routing.py", line 264, in app
+    solved_result = await solve_dependencies(
+                    ^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\dependencies\utils.py", line 588, in solve_dependencies
+    solved = await solve_generator(
+             ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\fastapi\dependencies\utils.py", line 513, in solve_generator
+    return await stack.enter_async_context(cm)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 659, in enter_async_context
+    result = await _enter(cm)
+             ^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\AppData\Local\Programs\Python\Python312\Lib\contextlib.py", line 210, in __aenter__
+    return await anext(self.gen)
+           ^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Documents\GitHub\Inv-Rob-Emer\backend\database.py", line 45, in get_db_connection
+    conn = await pool.acquire()
+                 ^^^^^^^^^^^^
+AttributeError: 'NoneType' object has no attribute 'acquire'
+2026-04-15 20:01:40,232 - uvicorn.error - INFO - Shutting down
+2026-04-15 20:01:40,332 - uvicorn.error - INFO - Waiting for application shutdown.
+2026-04-15 20:01:40,332 - uvicorn.error - INFO - Application shutdown complete.
+2026-04-15 20:01:40,332 - uvicorn.error - INFO - Finished server process [10640]

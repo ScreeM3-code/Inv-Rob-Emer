@@ -94,3 +94,6 @@ frontend/yarn.lock
 /backend/uploads
 /backend/lambda_package
 backend/InvRob.log
+frontend/.env.production
+frontend/yarn.lock
+backend/InvRob.log
