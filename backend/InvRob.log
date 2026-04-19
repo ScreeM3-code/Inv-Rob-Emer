@@ -1,28 +1,10 @@
-2026-04-17 13:26:45,484 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
-2026-04-17 13:26:45,484 - Inventaire-Robot - INFO - \U0001f680 Mode production
-2026-04-17 13:26:45,492 - asyncio - DEBUG - Using proactor: IocpProactor
-2026-04-17 13:26:45,561 - uvicorn.error - INFO - Started server process [1300]
-2026-04-17 13:26:45,561 - uvicorn.error - INFO - Waiting for application startup.
-2026-04-17 13:26:45,685 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2026-04-17 13:26:45,694 - Inventaire-Robot - INFO - \u2705 936 Pièce trouvés
-2026-04-17 13:26:45,701 - Inventaire-Robot - INFO - \u2705 Tables de paramètres et bons de commande prêtes
-2026-04-17 13:26:45,702 - uvicorn.error - INFO - Application startup complete.
-2026-04-17 13:26:45,702 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
-2026-04-17 13:37:00,108 - passlib.handlers.bcrypt - DEBUG - detected 'bcrypt' backend, version '4.0.1'
-2026-04-17 13:37:00,108 - passlib.handlers.bcrypt - DEBUG - 'bcrypt' backend lacks $2$ support, enabling workaround
-2026-04-17 13:37:00,627 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
-handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
-Traceback (most recent call last):
-  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
-    self._context.run(self._callback, *self._args)
-  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
-    self._sock.shutdown(socket.SHUT_RDWR)
-ConnectionResetError: [WinError 10054] Une connexion existante a dû être fermée par l’hôte distant
-2026-04-17 15:57:00,329 - asyncio - ERROR - Exception in callback _ProactorBasePipeTransport._call_connection_lost(None)
-handle: <Handle _ProactorBasePipeTransport._call_connection_lost(None)>
-Traceback (most recent call last):
-  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\asyncio\events.py", line 80, in _run
-    self._context.run(self._callback, *self._args)
-  File "C:\Users\simon.dechamplain\AppData\Local\Programs\Python\Python310\lib\asyncio\proactor_events.py", line 165, in _call_connection_lost
-    self._sock.shutdown(socket.SHUT_RDWR)
-ConnectionResetError: [WinError 10054] Une connexion existante a dû être fermée par l’hôte distant
+2026-04-19 13:50:59,777 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
+2026-04-19 13:50:59,777 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2026-04-19 13:50:59,784 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-19 13:50:59,940 - uvicorn.error - INFO - Started server process [33652]
+2026-04-19 13:50:59,940 - uvicorn.error - INFO - Waiting for application startup.
+2026-04-19 13:51:00,072 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
+2026-04-19 13:51:00,084 - Inventaire-Robot - INFO - \u2705 936 Pièce trouvés
+2026-04-19 13:51:00,094 - Inventaire-Robot - INFO - \u2705 Tables de paramètres et bons de commande prêtes
+2026-04-19 13:51:00,095 - uvicorn.error - INFO - Application startup complete.
+2026-04-19 13:51:00,096 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)

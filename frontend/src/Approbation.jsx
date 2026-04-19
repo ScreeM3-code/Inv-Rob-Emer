@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
 import { Badge } from '@/components/ui/badge';
 import { Textarea } from '@/components/ui/textarea';
+import { useSettings } from './contexts/SettingsContext';
 import { toast } from '@/hooks/use-toast';
 import {
   CheckCircle, XCircle, Clock, Package,
@@ -13,6 +14,7 @@ import {
 } from 'lucide-react';
 
 const API = `${import.meta.env.VITE_BACKEND_URL}/api`;
+
 
 // ── Badge statut — NULL et en_attente = même badge jaune ─────
 function StatutBadge({ statut }) {
@@ -255,6 +257,7 @@ export default function ApprobationPage() {
 
   const countEnAttente = pieces.filter(p => !p.approbation_statut || p.approbation_statut === 'en_attente').length;
   const countRefusee   = pieces.filter(p => p.approbation_statut === 'refusee').length;
+  const { settings } = useSettings();
 
   return (
     <div className="min-h-screen p-4 md:p-8">

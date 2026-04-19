@@ -6,6 +6,7 @@ from datetime import datetime
 import httpx
 from database import get_db_connection
 from utils.helpers import safe_string, safe_int, safe_float, calculate_qty_to_order
+from utils.settings import get_app_settings
 from auth import require_admin, require_auth
 from models import Commande, StatsResponse, ApprobationRequest
 from utils.historique import log_mouvement
@@ -145,7 +146,10 @@ async def get_commande(conn: asyncpg.Connection = Depends(get_db_connection)):
 async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
     """Récupère les pièces à commander"""
     try:
-        rows = await conn.fetch('''
+        settings = await get_app_settings(conn)
+        approbation_enabled = bool(settings.get('features', {}).get('approbation', True))
+
+        query = '''
             SELECT p.*,
                    f3."NomFabricant",
                    fp."NomFournisseur"  AS fournisseur_principal_nom,
@@ -171,8 +175,11 @@ async def get_toorders(conn: asyncpg.Connection = Depends(get_db_connection)):
             WHERE COALESCE(p."Qtécommandée", 0) <= 0
              AND p."QtéenInventaire" < p."Qtéminimum"
              AND p."Qtéminimum" > 0
-             AND p.approbation_statut = 'approuvee'
-        ''')
+        '''
+        if approbation_enabled:
+            query += "\n             AND p.approbation_statut = 'approuvee'"
+
+        rows = await conn.fetch(query)
 
         import json as _json
         result = []
