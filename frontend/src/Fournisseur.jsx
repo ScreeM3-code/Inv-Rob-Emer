@@ -8,6 +8,7 @@ import FournisseurFormDialog from "@/components/fournisseurs/FournisseurFormDial
 import ContactManagerDialog from "@/components/fournisseurs/ContactManagerDialog";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { usePermissions } from '@/hooks/usePermissions';
+import { useSettings } from './contexts/SettingsContext';
 import ImportSapDialog from '@/components/fournisseurs/ImportSapDialog';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -22,6 +23,7 @@ export default function FournisseursPage() {
   const [isFormOpen, setIsFormOpen] = useState(false);
   const [showImportSap, setShowImportSap] = useState(false);
   const { can, isAdmin } = usePermissions();
+  const { settings } = useSettings();
   const [managingContactsFor, setManagingContactsFor] = useState(null);
 
   const loadFournisseurs = useCallback(async () => {
@@ -228,14 +230,14 @@ export default function FournisseursPage() {
           </Button>}
         </div>
 
-        <Button
+        {settings.features?.ereq_sap && <Button
           onClick={() => setShowImportSap(true)}
           variant="outline"
           className="border-orange-500 text-orange-600 hover:bg-orange-50"
         >
           <Download className="w-4 h-4 mr-2" />
           Importer SAP
-        </Button>
+        </Button>}
         
         {/* Barre de recherche */}
         <div className="mb-4 md:mb-6 backdrop-blur-sm rounded-lg shadow-lg p-3 md:p-4">

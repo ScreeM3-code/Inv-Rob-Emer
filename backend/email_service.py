@@ -19,45 +19,55 @@ SMTP_SSL      = os.getenv("SMTP_SSL", "false").lower() == "true"   # SSL direct 
 APP_URL       = os.getenv("APP_URL", "http://localhost:5173")
 
 
-def send_email(to: str, subject: str, body_html: str) -> bool:
+from typing import Optional
+
+
+def send_email(to: str, subject: str, body_html: str, smtp_config: Optional[dict] = None) -> bool:
     """
     Envoie un email. Retourne True si succès, False sinon.
 
-    Variables .env disponibles :
-      SMTP_HOST, SMTP_PORT, SMTP_FROM
-      SMTP_USER, SMTP_PASSWORD  (optionnel — si votre relay exige une auth)
-      SMTP_TLS=true             (active STARTTLS — port 587 typiquement)
-      SMTP_SSL=true             (active SSL direct — port 465)
+    La configuration SMTP peut venir soit des variables d'environnement, soit de la base de données via smtp_config.
     """
     if not to:
         logger.warning("⚠️ send_email appelé sans destinataire — ignoré")
         return False
 
+    host = smtp_config.get('host') if smtp_config else SMTP_HOST
+    port = smtp_config.get('port') if smtp_config else SMTP_PORT
+    sender = smtp_config.get('from') if smtp_config and smtp_config.get('from') else SMTP_FROM
+    user = smtp_config.get('user') if smtp_config else SMTP_USER
+    password = smtp_config.get('password') if smtp_config else SMTP_PASSWORD
+    tls = smtp_config.get('tls') if smtp_config and smtp_config.get('tls') is not None else SMTP_TLS
+    ssl = smtp_config.get('ssl') if smtp_config and smtp_config.get('ssl') is not None else SMTP_SSL
+
+    if not host or not port:
+        logger.error("❌ Configuration SMTP incomplète")
+        return False
+
     try:
         msg = MIMEMultipart("alternative")
         msg["Subject"] = subject
-        msg["From"]    = SMTP_FROM
-        msg["To"]      = to
+        msg["From"] = sender
+        msg["To"] = to
         msg.attach(MIMEText(body_html, "html", "utf-8"))
 
-        logger.info(f"📧 Tentative envoi → {to} | host={SMTP_HOST}:{SMTP_PORT} | tls={SMTP_TLS} | ssl={SMTP_SSL} | auth={'oui' if SMTP_USER else 'non'}")
+        logger.info(f"📧 Tentative envoi → {to} | host={host}:{port} | tls={tls} | ssl={ssl} | auth={'oui' if user else 'non'}")
 
-        if SMTP_SSL:
-            # SSL direct (port 465)
-            with smtplib.SMTP_SSL(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+        if ssl:
+            with smtplib.SMTP_SSL(host, port, timeout=15) as server:
                 server.ehlo()
-                if SMTP_USER:
-                    server.login(SMTP_USER, SMTP_PASSWORD)
-                server.sendmail(SMTP_FROM, [to], msg.as_string())
+                if user:
+                    server.login(user, password)
+                server.sendmail(sender, [to], msg.as_string())
         else:
-            with smtplib.SMTP(SMTP_HOST, SMTP_PORT, timeout=15) as server:
+            with smtplib.SMTP(host, port, timeout=15) as server:
                 server.ehlo()
-                if SMTP_TLS:
+                if tls:
                     server.starttls()
                     server.ehlo()
-                if SMTP_USER:
-                    server.login(SMTP_USER, SMTP_PASSWORD)
-                server.sendmail(SMTP_FROM, [to], msg.as_string())
+                if user:
+                    server.login(user, password)
+                server.sendmail(sender, [to], msg.as_string())
 
         logger.info(f"✅ Email envoyé à {to} — {subject}")
         return True

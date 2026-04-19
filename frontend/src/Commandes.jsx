@@ -12,6 +12,7 @@ import { useNavigate } from 'react-router-dom';
 import { FileText } from 'lucide-react';
 import { Button } from "@/components/ui/button";
 import { usePermissions } from '@/hooks/usePermissions';
+import { useSettings } from './contexts/SettingsContext';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -28,6 +29,7 @@ function Commandes() {
   const [historyLoading, setHistoryLoading] = useState(false);
   const [departements, setDepartements] = useState([]);
   const { can, isAdmin } = usePermissions();
+  const { settings } = useSettings();
   const navigate = useNavigate();
   const [currentPage, setCurrentPage] = useState(1);
 
@@ -316,7 +318,7 @@ function Commandes() {
         {/* Header */}
         <div className="mb-6">
           <h1 className="text-2xl font-bold text-gray-900 dark:text-white">Commandes à passer</h1>
-          <p className="text-sm text-gray-600 dark:text-white">Pièces nécessitant une commande</p>
+          <p className="text-sm text-gray-600 dark:text-white">{settings.piece_label || 'Pièces'} nécessitant une commande</p>
         </div>
         {can('soumissions_view') && <Button 
           variant="outline" 
@@ -331,7 +333,7 @@ function Commandes() {
         <div className="grid gap-4">
           {toorders.length === 0 ? (
             <div className="text-center py-12 text-gray-500">
-              Aucune pièce à commander pour le moment
+              Aucune {settings.piece_label || 'pièces'} à commander pour le moment
             </div>
           ) : (
             toorders.map((order) => {

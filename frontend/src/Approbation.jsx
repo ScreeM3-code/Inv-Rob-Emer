@@ -311,9 +311,9 @@ export default function ApprobationPage() {
             <CardContent className="flex flex-col items-center py-16 text-center">
               <Package className="h-12 w-12 text-gray-300 mb-3" />
               <p className="text-gray-500 font-medium">
-                {filtre === 'en_attente' ? "Aucune pièce en attente d'approbation" :
-                 filtre === 'refusee'    ? 'Aucune pièce refusée' :
-                 'Aucune pièce trouvée'}
+                {filtre === 'en_attente' ? `Aucune ${settings.piece_label || 'pièce'} en attente d'approbation` :
+                 filtre === 'refusee'    ? `Aucune ${settings.piece_label || 'pièce'} refusée` :
+                 `Aucune ${settings.piece_label || 'pièce'} trouvée`}
               </p>
             </CardContent>
           </Card>

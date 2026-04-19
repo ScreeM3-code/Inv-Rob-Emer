@@ -4,6 +4,7 @@ import { Package, Store, Cog, Bug, FileText, Layers, User, Shield, LogOut, LogIn
 import ThemeToggle from "@/components/ui/ThemeToggle";
 import { useAuth } from './contexts/AuthContext';
 import { usePermissions } from './hooks/usePermissions';
+import { useSettings } from './contexts/SettingsContext';
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { Badge } from '@/components/ui/badge';
 import {
@@ -23,6 +24,7 @@ export default function Layout() {
   
   const auth = useAuth();
   const { can, isAdmin, isSuperAdmin } = usePermissions();
+  const { settings } = useSettings();
 
   const handleLogout = () => {
     auth.logout();
@@ -33,26 +35,27 @@ export default function Layout() {
   // Items standalone
   const standaloneNavItems = [
     { path: '/inventaire',   label: 'Inventaire',  icon: Package, permission: 'inventaire_view' },
-    { path: '/groupes',      label: 'Groupes',     icon: Layers,  permission: 'groupes_view' },
+    { path: '/groupes',      label: 'Groupes',     icon: Layers,  permission: 'groupes_view', feature: 'groupes' },
     { path: '/fournisseurs', label: 'Fournisseurs',icon: Store,   permission: 'fournisseur_view' },
     { path: '/fabricant',    label: 'Fabricant',   icon: Cog,     permission: 'fabricant_view' },
-  ].filter(item => !item.permission || can(item.permission));
+  ].filter(item => (!item.permission || can(item.permission)) && (!item.feature || settings.features?.[item.feature]));
 
   // Groupe Commandes
   const commandesItems = [
-    { path: '/commandes',              label: 'Commander',  icon: ShoppingCart, permission: 'commandes_view' },
-    { path: '/receptions',             label: 'Réceptions', icon: Inbox,        permission: 'receptions_view' },
+    { path: '/commandes',              label: 'Commander',  icon: ShoppingCart, permission: 'commandes_view', feature: 'bon_de_commande' },
+    { path: '/receptions',             label: 'Réceptions', icon: Inbox,        permission: 'receptions_view', feature: 'bon_de_commande' },
     { path: '/soumissions-historique', label: 'Soumissions',icon: FileText,     permission: 'soumissions_view' },
     { path: '/historique',             label: 'Historique', icon: History,      permission: 'historique_view' },
-  ].filter(item => !item.permission || can(item.permission));
+  ].filter(item => (!item.permission || can(item.permission)) && (!item.feature || settings.features?.[item.feature]));
 
   // Groupe Admin
   const adminItems = [
-    { path: '/approbation',  label: 'Approbations', icon: CheckCircle, permission: 'can_approve_orders' },
+    { path: '/approbation',  label: 'Approbations', icon: CheckCircle, permission: 'can_approve_orders', feature: 'approbation' },
     { path: '/departements', label: 'Départements', icon: Building2,   permission: 'departements_view' },
+    { path: '/parametres',   label: 'Paramètres',   icon: Cog,         permission: 'parametres_view' },
     ...(isAdmin ? [{ path: '/users', label: 'Gestion des Utilisateurs', icon: Shield }] : []),
     ...(isSuperAdmin ? [{ path: '/users', label: 'Gestion des Utilisateurs', icon: Shield }] : []),
-  ].filter(item => !item.permission || can(item.permission));
+  ].filter(item => (!item.permission || can(item.permission)) && (!item.feature || settings.features?.[item.feature]));
 
   const SuperAdminItems = [
         { path: '/debug', label: 'Debug', icon: Bug,   permission: 'debug_access' },
@@ -106,8 +109,8 @@ export default function Layout() {
                 <Package className="h-6 w-6 md:h-8 md:w-8 text-gray-900 dark:text-white" />
               </div>
               <div>
-                <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">Inventaire Robots</h1>
-                <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">Système de maintenance</p>
+                <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-white">{settings.site_name || 'Inventaire Robots'}</h1>
+                <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400 hidden sm:block">{settings.site_description || 'Système de maintenance'}</p>
               </div>
             </Link>
 

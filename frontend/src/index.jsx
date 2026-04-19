@@ -8,6 +8,7 @@ import AppRouter from "./Router";
 import { CartProvider } from "@/components/cart/CartContext";
 import { ThemeProvider } from "@/contexts/ThemeContext";
 import { AuthProvider } from './contexts/AuthContext';
+import { SettingsProvider } from './contexts/SettingsContext';
 
 // ← Ajouter cette ligne
 const queryClient = new QueryClient();
@@ -19,9 +20,11 @@ root.render(
       <QueryClientProvider client={queryClient}>
         <ThemeProvider>
           <AuthProvider>
-            <CartProvider>
-              <AppRouter />
-            </CartProvider>
+            <SettingsProvider>
+              <CartProvider>
+                <AppRouter />
+              </CartProvider>
+            </SettingsProvider>
           </AuthProvider>
         </ThemeProvider>
       </QueryClientProvider>

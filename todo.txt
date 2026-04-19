@@ -1,3 +1,26 @@
+Comptabilité
+crée des # de bon de commande
+rapport menuel combien on a commander combien on a sortie en $
+
+
+importation execel interface tel colone = tel champs ex champ nom = colonne A dans la feuille excel
+ligne ou commencer a importé
+
+
+parametre
+# de commande
+active ou désactivé des fonctionnalité
+	# de commande
+	ereq / sap fournisseur
+	approbation
+	code Barre
+	groupe
+	exporté excel
+setter e-mail smtp
+Changer Titre
+Changer pieces pour EPP...
+
+
 
 #### a tester ####
 e-mail regarde quand envoyer les e-mail et ajusté le tout avec la page de pref

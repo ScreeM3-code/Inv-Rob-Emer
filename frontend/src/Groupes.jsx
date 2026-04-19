@@ -8,6 +8,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@
 import { Textarea } from '@/components/ui/textarea';
 import GroupeCard from '@/components/groupes/GroupeCard';
 import { Badge } from '@/components/ui/badge';
+import { useSettings } from './contexts/SettingsContext';
 import { usePermissions } from '@/hooks/usePermissions';
 import { 
   Plus, Trash2, Edit, Layers, FolderTree, Package, 
@@ -24,6 +25,7 @@ export default function Groupes() {
   const [groupes, setGroupes] = useState([]);
   const [pieces, setPieces] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { settings } = useSettings();
   const { can, isAdmin } = usePermissions();
   
   // États pour les dialogs
@@ -263,8 +265,8 @@ return (
         <div className="flex items-center space-x-3 md:space-x-4">
           <FolderTree className="h-6 w-6 md:h-8 md:w-8 text-blue-600 dark:text-blue-400" />
           <div>
-            <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">Groupes de Pièces</h1>
-            <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">Organisez vos pièces par entretiens</p>
+            <h1 className="text-xl md:text-2xl font-bold text-gray-900 dark:text-gray-100">Groupes de {settings.piece_label || 'Pièces'}</h1>
+            <p className="text-xs md:text-sm text-gray-600 dark:text-gray-400">Organisez vos {settings.piece_label || 'pièces'} par entretiens</p>
           </div>
         </div>
         
@@ -534,17 +536,17 @@ return (
         <Dialog open={pieceDialog.open} onOpenChange={() => setPieceDialog({ open: false, groupeId: null })}>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Ajouter une pièce au groupe</DialogTitle>
+              <DialogTitle>Ajouter une {settings.piece_label || 'pièces'} au groupe</DialogTitle>
             </DialogHeader>
             <div className="space-y-4">
               <div>
-                <Label>Pièce *</Label>
+                <Label>{settings.piece_label || 'Pièces'} *</Label>
                 <Select
                   value={pieceDialog.selectedPiece?.toString() || ''}
                   onValueChange={v => setPieceDialog({ ...pieceDialog, selectedPiece: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Sélectionner une pièce" />
+                    <SelectValue placeholder="Sélectionner une {settings.piece_label || 'pièces'}" />
                   </SelectTrigger>
                   <SelectContent>
                     {pieces.map(p => (

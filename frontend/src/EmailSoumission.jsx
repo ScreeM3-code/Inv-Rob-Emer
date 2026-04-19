@@ -8,13 +8,15 @@ import { Textarea } from './components/ui/textarea';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './components/ui/select';
 import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from './components/ui/dialog';
 import { Mail, Send, Plus, Trash2 } from 'lucide-react';
+import { useSettings } from './contexts/SettingsContext';
 
 function EmailSoumission({ pieces, fournisseurs }) {
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [selectedPieces, setSelectedPieces] = useState([]);
+  const { settings } = useSettings();
   const [emailData, setEmailData] = useState({
     destinataire: '',
-    sujet: 'Demande de soumission - Pièces d\'inventaire',
+    sujet: `Demande de soumission - {settings.piece_label || 'pièces'} d\'inventaire`,
     message: '',
     fournisseur: ''
   });
@@ -36,7 +38,7 @@ function EmailSoumission({ pieces, fournisseurs }) {
 
     const defaultMessage = `Bonjour,
 
-Nous souhaitons recevoir une soumission pour les pièces suivantes :
+Nous souhaitons recevoir une soumission pour les {settings.piece_label || 'pièces'} suivantes :
 
 ${piecesList}
 
@@ -72,7 +74,7 @@ Cordialement,
     setSelectedPieces([]);
     setEmailData({
       destinataire: '',
-      sujet: 'Demande de soumission - Pièces d\'inventaire',
+      sujet: `Demande de soumission - {settings.piece_label || 'pièces'} d\'inventaire`,
       message: '',
       fournisseur: ''
     });
@@ -93,17 +95,17 @@ Cordialement,
         <DialogHeader>
           <DialogTitle>Demande de soumission par email</DialogTitle>
           <DialogDescription>
-            Sélectionnez les pièces et envoyez une demande de soumission par email
+            Sélectionnez les {settings.piece_label || 'pièces'} et envoyez une demande de soumission par email
           </DialogDescription>
         </DialogHeader>
 
         <div className="grid gap-6 py-4">
           {/* Sélection des pièces */}
           <div>
-            <Label className="text-base font-semibold">Pièces à commander</Label>
+            <Label className="text-base font-semibold">{settings.piece_label || 'pièces'} à commander</Label>
             <div className="mt-2 max-h-40 overflow-y-auto border rounded-md p-2">
               {piecesACommander.length === 0 ? (
-                <p className="text-gray-500 text-sm">Aucune pièce à commander</p>
+                <p className="text-gray-500 text-sm">Aucune {settings.piece_label || 'pièce'} à commander</p>
               ) : (
                 piecesACommander.map(piece => (
                   <div key={piece.RéfPièce} className="flex items-center justify-between p-2 hover:bg-gray-50 rounded">
@@ -129,7 +131,7 @@ Cordialement,
           {/* Pièces sélectionnées */}
           {selectedPieces.length > 0 && (
             <div>
-              <Label className="text-base font-semibold">Pièces sélectionnées ({selectedPieces.length})</Label>
+              <Label className="text-base font-semibold">{settings.piece_label || 'pièces'} sélectionnées ({selectedPieces.length})</Label>
               <div className="mt-2 space-y-2">
                 {selectedPieces.map(piece => (
                   <div key={piece.RéfPièce} className="flex items-center justify-between p-2 bg-blue-50 rounded border">

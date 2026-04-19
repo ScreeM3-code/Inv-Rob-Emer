@@ -30,6 +30,7 @@ from models.user import (
     NotifPrefsRequest,
 )
 from email_service import send_password_reset_email, send_email
+from utils.settings import get_app_settings
 import secrets
 
 router = APIRouter(prefix="/auth", tags=["auth"])
@@ -506,12 +507,22 @@ async def test_email(
             detail="Aucun email configuré sur votre compte. Ajoutez-en un d'abord."
         )
 
-    try:
-        send_email(
-            to=row['email'],
-            subject="Test Email - Inventaire Robot",
-            body_html="Ceci est un email de test envoyé depuis Inventaire Robot. La configuration SMTP fonctionne correctement."
-        )
-        return {"msg": f"Email de test envoyé à {row['email']}"}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=f"Erreur envoi email: {str(e)}")
+    settings = await get_app_settings(conn)
+    smtp_config = {
+        'host': settings.get('email_host'),
+        'port': settings.get('email_port'),
+        'from': settings.get('email_from'),
+        'user': settings.get('email_user'),
+        'password': settings.get('email_password'),
+        'tls': settings.get('email_tls'),
+        'ssl': settings.get('email_ssl'),
+    }
+    success = send_email(
+        to=row['email'],
+        subject="Test Email - Inventaire Robot",
+        body_html="Ceci est un email de test envoyé depuis Inventaire Robot. La configuration SMTP fonctionne correctement.",
+        smtp_config=smtp_config
+    )
+    if not success:
+        raise HTTPException(status_code=500, detail="Erreur envoi email : vérifiez la configuration SMTP")
+    return {"msg": f"Email de test envoyé à {row['email']}"}

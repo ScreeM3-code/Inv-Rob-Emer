@@ -8,6 +8,7 @@ import { Button } from './components/ui/button';
 import { History, Search, Filter, Download, Loader2 } from 'lucide-react';
 import { fetchJson, log } from './lib/utils';
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
+import { useSettings } from './contexts/SettingsContext';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -52,6 +53,7 @@ function useInfiniteScroll(items, itemsPerPage = 50) {
 function Historique() {
   const [historique, setHistorique] = useState([]);
   const [loading, setLoading] = useState(true);
+  const { settings } = useSettings();
   const [filters, setFilters] = useState({
     search: '',
     operation: 'tous',
@@ -256,8 +258,8 @@ function Historique() {
                   <TableRow>
                     <TableHead className="w-20">Date</TableHead>
                     <TableHead>Opération</TableHead>
-                    <TableHead>Pièce</TableHead>
-                    <TableHead>N° Pièce</TableHead>
+                    <TableHead>{settings.piece_label || 'pièces'}</TableHead>
+                    <TableHead>N° {settings.piece_label || 'pièces'}</TableHead>
                     <TableHead>Description</TableHead>
                     <TableHead>Quantité</TableHead>
                     <TableHead>Utilisateur</TableHead>

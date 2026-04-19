@@ -1,6 +1,7 @@
 import React from "react";
 import { Routes, Route, Navigate } from "react-router-dom";
 import { useAuth } from "./contexts/AuthContext";
+import { useSettings } from "./contexts/SettingsContext";
 import Layout from "./Layout";
 import Dashboard from "./App";
 import Fournisseurs from "./Fournisseur";
@@ -18,9 +19,11 @@ import Approbation from "./Approbation";
 import Profile from "./Profile";
 import Debug from "./Debug";
 import Departements from "./Departements";
+import Parametres from "./Parametres";
 
 export default function AppRouter() {
   const auth = useAuth();
+  const { settings } = useSettings();
 
   return (
     <Routes>
@@ -41,15 +44,15 @@ export default function AppRouter() {
         <Route path="inventaire" element={<Dashboard />} />
         <Route path="fournisseurs" element={<Fournisseurs />} />
         <Route path="fabricant" element={<Fabricant />} />
-        <Route path="approbation" element={<Approbation />} />
-        <Route path="approbation" element={<Approbation />} />
-        <Route path="commandes" element={<Commandes />} />
-        <Route path="receptions" element={<Receptions />} />
+        {settings.features?.approbation && <Route path="approbation" element={<Approbation />} />}
+        {settings.features?.bon_de_commande && <Route path="commandes" element={<Commandes />} />}
+        {settings.features?.bon_de_commande && <Route path="receptions" element={<Receptions />} />}
         <Route path="historique" element={<Historique />} />
-        <Route path="groupes" element={<Groupes />} />
+        {settings.features?.groupes && <Route path="groupes" element={<Groupes />} />}
         <Route path="departements" element={<Departements />} />
         <Route path="soumissions-historique" element={<SoumissionsHistorique />} />
         <Route path="users" element={<UsersPage />} />
+        <Route path="parametres" element={<Parametres/>} />
         <Route path="debug" element={<Debug />} />
         <Route path="profile" element={<Profile />} />
       </Route>

@@ -12,6 +12,7 @@ from .user import (
     UpdateUserRequest, CreateGroupRequest, UpdateGroupRequest,
     NotifPrefsRequest,
 )
+from .parametres import AppSettingsRequest, AppSettingsResponse
 from .groupe import (
     CategorieBase, CategorieCreate, Categorie,
     GroupeBase, GroupeCreate, Groupe,

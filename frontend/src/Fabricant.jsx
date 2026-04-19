@@ -7,6 +7,7 @@ import FabricantCard from "@/components/fabricants/FabricantCard";
 import FabricantFormDialog from "@/components/fabricants/FabricantFormDialog";
 import AnimatedBackground from "@/components/ui/AnimatedBackground";
 import { usePermissions } from '@/hooks/usePermissions';
+import { useSettings } from './contexts/SettingsContext';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
 const API = `${BACKEND_URL}/api`;
@@ -19,6 +20,7 @@ export default function FabricantsPage() {
   const [editingFabricant, setEditingFabricant] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
   const { can, isAdmin } = usePermissions();
+  const { settings } = useSettings();
 
   const loadFabricants = useCallback(async () => {
     setLoading(true);
@@ -122,7 +124,7 @@ export default function FabricantsPage() {
             <Factory className="h-8 w-8 text-blue-600" />
             <div>
               <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Fabricants</h1>
-              <p className="text-slate-600 dark:text-white">Gérez les fabricants de vos pièces</p>
+              <p className="text-slate-600 dark:text-white">Gérez les fabricants de vos {settings.piece_label || 'pièces'}</p>
             </div>
           </div>
           {can('fabricant_create') && <Button 

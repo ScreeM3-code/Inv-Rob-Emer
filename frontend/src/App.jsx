@@ -14,6 +14,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { toast } from "@/hooks/use-toast";
 import { usePermissions } from './hooks/usePermissions';
 import { useAuth } from './contexts/AuthContext';
+import { useSettings } from './contexts/SettingsContext';
 import * as XLSX from 'xlsx';
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL;
@@ -71,6 +72,7 @@ function Dashboard () {
   const [departements, setDepartements] = useState([]);
   const { can, isAdmin } = usePermissions();
   const auth = useAuth();
+  const { settings } = useSettings();
   const [filters, setFilters] = useState({ statut: 'tous', stock: 'tous', commande: 'tous', departement: 'tous' });
 
 
@@ -316,7 +318,7 @@ function Dashboard () {
     try {
       // Validation basique
       if (!newPiece.NomPièce?.trim()) {
-        toast({ title: 'Attention', description: 'Le nom de la pièce est obligatoire' });
+        toast({ title: 'Attention', description: 'Le nom de la' + (settings.piece_label || 'pièce') + ' est obligatoire', s});
         return;
       }
 
@@ -505,7 +507,7 @@ function Dashboard () {
 
     const ws = XLSX.utils.json_to_sheet(data);
     const wb = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(wb, ws, 'Pièces');
+    XLSX.utils.book_append_sheet(wb, ws, settings.piece_label || 'Pièces');
 
     const cols = Object.keys(data[0] || {}).map(key => ({ wch: Math.max(key.length, 14) }));
     ws['!cols'] = cols;
@@ -527,18 +529,20 @@ function Dashboard () {
           <div className="flex items-center space-x-4">
             <Package className="h-8 w-8 text-blue-600" />
             <div>
-              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Inventaire des Pièces</h1>
-              <p className="text-slate-600 dark:text-white">Gérez vos pièces et votre stock</p>
+              <h1 className="text-3xl font-bold text-slate-900 dark:text-white">Inventaire des {settings.piece_label || 'Pièces'}</h1>
+              <p className="text-slate-600 dark:text-white">Gérez vos {settings.piece_label || 'pièces'} et votre stock</p>
             </div>
           </div>
-          <Button
-            variant="outline"
-            onClick={handleExportExcel}
-            className="border-green-600 text-green-600 hover:bg-green-50"
-          >
-            <FileDown className="w-4 h-4 mr-2" />
-            Exporter Excel
-          </Button>
+          {settings.features?.export_excel && (
+            <Button
+              variant="outline"
+              onClick={handleExportExcel}
+              className="border-green-600 text-green-600 hover:bg-green-50"
+            >
+              <FileDown className="w-4 h-4 mr-2" />
+              Exporter Excel
+            </Button>
+          )}
 
           {can('inventaire_create') && <Button 
             onClick={() => {
@@ -562,7 +566,7 @@ function Dashboard () {
             }}
             className="bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-700 hover:to-indigo-700 text-white"
           >
-            <Plus className="w-4 h-4 mr-2" /> Ajouter une Pièce
+            <Plus className="w-4 h-4 mr-2" /> Ajouter une {settings.piece_label || 'Pièces'}
           </Button>}
           
         </div>
@@ -571,7 +575,7 @@ function Dashboard () {
         <div className="hidden md:grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-6 mb-6 md:mb-8">
           <Card className="glass-card hover:shadow-2xl transition-all duration-300 group">
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2 p-3 md:p-6">
-              <CardTitle className="text-xs md:text-sm font-medium dark:text-gray-100">Total Pièces</CardTitle>
+              <CardTitle className="text-xs md:text-sm font-medium dark:text-gray-100">Total {settings.piece_label || 'pièces'}</CardTitle>
               <div className="p-1 md:p-2 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 group-hover:scale-110 transition-transform">
                 <Package className="h-3 w-3 md:h-4 md:w-4 text-white" />
               </div>
@@ -713,11 +717,11 @@ function Dashboard () {
 ) : pieces.length === 0 ? (
         <div className="text-center py-12">
           <Package className="mx-auto h-12 w-12 text-gray-400" />
-          <h3 className="mt-2 text-sm font-medium text-gray-900">Aucune pièce trouvée</h3>
+          <h3 className="mt-2 text-sm font-medium text-gray-900">Aucune {settings.piece_label || 'pièces'} trouvée</h3>
           <p className="mt-1 text-sm text-gray-500">
             {searchTerm || filters.stock !== "tous" || filters.departement !== "tous" || filters.commande !== "tous"
               ? "Essayez de modifier vos filtres de recherche." 
-              : "Commencez par ajouter une nouvelle pièce."}
+              : `Commencez par ajouter une nouvelle ${settings.piece_label || 'pièce'}.`}
           </p>
         </div>
       ) : (
@@ -753,7 +757,7 @@ function Dashboard () {
             <div ref={loaderRef} className="flex justify-center py-8">
               <Loader2 className="w-6 h-6 animate-spin text-blue-600" />
               <span className="ml-2 text-sm text-gray-600">
-                Chargement de {displayedItems.length}/{pieces.length} pièces...
+                Chargement de {displayedItems.length}/{pieces.length} {settings.piece_label || 'pièces'}...
               </span>
             </div>
           )}

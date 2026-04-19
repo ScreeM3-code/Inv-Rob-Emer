@@ -6,6 +6,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import PieceFournisseursEditor from '@/components/pieces/PieceFournisseursEditor';
 import BarcodeScanner from "./BarcodeScanner";
+import { useSettings } from '@/contexts/SettingsContext';
 
 function DeviseSelect({ value, onChange }) {
   const DEVISES = ['CAD', 'USD'];
@@ -54,6 +55,7 @@ export default function PieceEditDialog({
   departements = [],
   isEditing = false
 }) {
+  const { settings } = useSettings();
   if (!piece) return null;
 
   // State local pour tous les champs texte — pas de debounce, mise à jour immédiate
@@ -112,10 +114,12 @@ export default function PieceEditDialog({
         <div className="grid gap-3 md:gap-4 py-3 md:py-4">
 
           {/* Scanner code barre */}
-          <BarcodeScanner
-            onResult={handleBarcodeResult}
-            onNotFound={handleBarcodeNotFound}
-          />
+          {settings.features?.code_barre && (
+            <BarcodeScanner
+              onResult={handleBarcodeResult}
+              onNotFound={handleBarcodeNotFound}
+            />
+          )}
 
           {/* Nom */}
           <div>

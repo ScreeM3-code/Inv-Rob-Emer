@@ -6,6 +6,7 @@ from typing import AsyncGenerator
 from fastapi import Request
 
 from config import DATABASE_URL
+from utils.settings import ensure_app_settings_table
 
 logger = logging.getLogger("Inventaire-Robot")
 
@@ -27,6 +28,12 @@ async def lifespan(app):
                 logger.info(f"✅ {c} Pièce trouvés")
             except Exception:
                 logger.info("⚠️ Table 'Pièce' introuvable")
+
+            try:
+                await ensure_app_settings_table(conn)
+                logger.info("✅ Tables de paramètres et bons de commande prêtes")
+            except Exception as table_err:
+                logger.exception("❌ Impossible de créer les tables de paramètres : %s", table_err)
     except Exception as e:
         logger.exception("❌ Erreur connexion PostgreSQL: %s", e)
         app.state.pool = None

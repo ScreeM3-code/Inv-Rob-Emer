@@ -11,38 +11,40 @@ import { toast } from "@/hooks/use-toast";
 import { useAuth } from './contexts/AuthContext';
 import { usePermissions } from './hooks/usePermissions';
 import { is } from 'date-fns/locale';
+import { useSettings } from './contexts/SettingsContext';
 
 
 const BACKEND_URL = import.meta.env.VITE_BACKEND_URL || '';
 
-const NOTIF_OPTIONS = [
-  {
-    key: 'pieces_a_commander',
-    label: 'Pièces à commander',
-    description: 'Quand une pièce atteint son seuil minimum et doit être commandée.',
-    icon: ShoppingCart,
-    color: 'text-orange-500',
-  },
-  {
-    key: 'demande_approbation',
-    label: 'Demande d\'approbation',
-    description: 'Quand une pièce est soumise pour approbation (admins).',
-    icon: ClipboardCheck,
-    color: 'text-yellow-500',
-    adminOnly: true,
-  },
-  {
-    key: 'piece_commandee',
-    label: 'Commande passée',
-    description: 'Quand une pièce est commandée dans le système.',
-    icon: Package,
-    color: 'text-blue-500',
-  },
-];
-
 export default function Profile() {
   const auth = useAuth();
   const { isAdmin, isSuperAdmin } = usePermissions();
+  const { settings } = useSettings();
+
+  const NOTIF_OPTIONS = [
+    {
+      key: 'pieces_a_commander',
+      label: `${settings.piece_label || 'Pièces'} à commander`,
+      description: `Quand une ${settings.piece_label || 'pièce'} atteint son seuil minimum et doit être commandée.`,
+      icon: ShoppingCart,
+      color: 'text-orange-500',
+    },
+    {
+      key: 'demande_approbation',
+      label: 'Demande d\'approbation',
+      description: `Quand une ${settings.piece_label || 'pièce'} est soumise pour approbation (admins).`,
+      icon: ClipboardCheck,
+      color: 'text-yellow-500',
+      adminOnly: true,
+    },
+    {
+      key: 'piece_commandee',
+      label: 'Commande passée',
+      description: `Quand une ${settings.piece_label || 'pièce'} est commandée dans le système.`,
+      icon: Package,
+      color: 'text-blue-500',
+    },
+  ];
 
   const [email, setEmail]         = useState('');
   const [prefs, setPrefs]         = useState({});
@@ -50,7 +52,6 @@ export default function Profile() {
   const [loading, setLoading]     = useState(true);
   const [saving, setSaving]       = useState(false);
   const [savingEmail, setSavingEmail] = useState(false);
-  const [testSending, setTestSending] = useState(false);
 
   useEffect(() => { load(); }, []);
 
@@ -110,25 +111,7 @@ export default function Profile() {
     }
   }
 
-  async function sendTestEmail() {
-    setTestSending(true);
-    try {
-      const res = await fetch(`${BACKEND_URL}/api/auth/test-email`, {
-        method: 'POST',
-        credentials: 'include'
-      });
-      const data = await res.json();
-      if (!res.ok) throw new Error(data.detail || 'Erreur');
-      toast({
-        title: '✅ Email de test envoyé',
-        description: `Vérifiez la boîte de ${email}. Si rien n'arrive dans 2 min, consultez les logs backend.`
-      });
-    } catch (e) {
-      toast({ title: '❌ Échec', description: e.message, variant: 'destructive' });
-    } finally {
-      setTestSending(false);
-    }
-  }
+
 
   if (loading) {
     return (
@@ -181,23 +164,6 @@ export default function Profile() {
             </div>
           )}
 
-          {/* Bouton test email (admin seulement) */}
-          {isSuperAdmin && hasEmail && (
-            <div className="mt-4 pt-4 border-t border-gray-100 dark:border-gray-700">
-              <p className="text-xs text-gray-500 mb-2">Zone admin — diagnostiquer la configuration SMTP</p>
-              <Button
-                variant="outline"
-                size="sm"
-                onClick={sendTestEmail}
-                disabled={testSending}
-              >
-                {testSending
-                  ? <><Loader2 className="h-3.5 w-3.5 animate-spin mr-1" /> Envoi...</>
-                  : <><Mail className="h-3.5 w-3.5 mr-1" /> Envoyer un email de test</>
-                }
-              </Button>
-            </div>
-          )}
         </CardContent>
       </Card>
 

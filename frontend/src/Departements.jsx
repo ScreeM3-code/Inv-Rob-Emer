@@ -9,6 +9,7 @@ import { Label } from '@/components/ui/label';
 import { Badge } from '@/components/ui/badge';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { toast } from '@/hooks/use-toast';
+import { useSettings } from './contexts/SettingsContext';
 import { Loader2, Plus, Edit, Trash2, Building2 } from 'lucide-react';
 import AnimatedBackground from '@/components/ui/AnimatedBackground';
 
@@ -29,6 +30,7 @@ export default function Departements() {
   const [loading,  setLoading]  = useState(true);
   const [dialog,   setDialog]   = useState({ open: false, data: null });
   const [saving,   setSaving]   = useState(false);
+  const { settings } = useSettings();
 
   useEffect(() => {
     if (!isAdmin && !isSuperAdmin) navigate('/inventaire');
@@ -76,7 +78,7 @@ export default function Departements() {
   }
 
   async function handleDelete(id) {
-    if (!window.confirm('Supprimer ce département ? Les pièces associées perdront leur département.')) return;
+    if (!window.confirm(`Supprimer ce département ? Les ${settings.piece_label || 'pièces'} associées perdront leur département.`)) return;
     try {
       await fetchJson(`${API}/departements/${id}`, { method: 'DELETE' });
       toast({ title: 'Département supprimé' });

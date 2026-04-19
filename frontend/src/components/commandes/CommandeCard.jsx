@@ -9,6 +9,7 @@ import { fetchJson } from '../../lib/utils';
 import { toast } from '@/hooks/use-toast';
 import SoumissionsHistoryDialog from '../soumissions/SoumissionsHistoryDialog';
 import { usePermissions } from '@/hooks/usePermissions';
+import { useSettings } from '@/contexts/SettingsContext';
 
 const API_URL = import.meta.env.VITE_BACKEND_URL + '/api';
 
@@ -27,6 +28,7 @@ export default function CommandeCard({
   const imageUrl = `${API_URL}/pieces/${order.RéfPièce}/image`;
   const [showSoumissionsHistory, setShowSoumissionsHistory] = useState(false);
   const { can, isAdmin } = usePermissions();
+  const { settings } = useSettings();
   const [showEreqDialog, setShowEreqDialog] = useState(false);
 
 
@@ -224,7 +226,7 @@ export default function CommandeCard({
             </Button>}
 
             {/* eReq SAP */}
-            {can('commandes_create') && <Button
+            {can('commandes_create') && settings.features?.ereq_sap && <Button
               variant="outline"
               size="sm"
               onClick={() => setShowEreqDialog(true)}

@@ -12,6 +12,7 @@ from utils.helpers import (
 from utils.historique import log_mouvement
 from auth import require_auth, get_username_from_request
 from notification_service import notify_demande_approbation, notify_piece_commandee
+from utils.settings import create_bon_commande
 
 router = APIRouter(prefix="/pieces", tags=["pieces"])
 
@@ -635,6 +636,20 @@ async def update_piece(piece_id: int, piece_update: PieceUpdate, request: Reques
                     description=update_fields_log.get("Cmd_info", ""),
                     user=username,
                 )
+                try:
+                    await create_bon_commande(
+                        conn=conn,
+                        piece_id=piece_id,
+                        piece_nom=nom_log,
+                        num_piece=num_log,
+                        qte_commandee=int(new_qty_cmd or 0),
+                        prix_unitaire=float(update_fields_log.get("Prix_unitaire", 0) or 0),
+                        devise=update_fields_log.get("devise", "CAD") or "CAD",
+                        cmd_info=update_fields_log.get("Cmd_info", ""),
+                        ref_fournisseur=update_fields_log.get("RéfFournisseur")
+                    )
+                except Exception as bc_err:
+                    print(f"⚠️ Impossible de créer le bon de commande : {bc_err}")
 
     # Récupérer la pièce mise à jour avec ses fournisseurs via PieceFournisseur
     piece = await conn.fetchrow('''

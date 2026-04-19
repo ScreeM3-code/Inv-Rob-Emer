@@ -6,6 +6,7 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Package, Lock, User, AlertCircle } from 'lucide-react';
 import AnimatedBackground from '@/components/ui/AnimatedBackground';
+import { useSettings } from './contexts/SettingsContext';
 
 export default function Login() {
   const [username, setUsername] = React.useState('');
@@ -13,6 +14,7 @@ export default function Login() {
   const [error, setError] = React.useState(null);
   const [loading, setLoading] = React.useState(false);
   const auth = useAuth();
+  const { settings } = useSettings();
   const navigate = useNavigate();
 
   async function submit(e) {
@@ -42,10 +44,10 @@ export default function Login() {
           </div>
           <div className="text-center">
             <CardTitle className="text-3xl font-bold text-gray-900 dark:text-white">
-              Inventaire Robots
+              {settings.site_name || 'Inventaire Robots'}
             </CardTitle>
             <p className="text-sm text-gray-600 dark:text-gray-400 mt-2">
-              Système de gestion de pièces
+              Système de gestion de {settings.piece_label || 'pièces'}
             </p>
           </div>
         </CardHeader>

@@ -10,6 +10,7 @@ from .soumissions import router as soumissions_router
 from .piece_images import router as piece_images_router
 from .uploads import router as uploads_router
 from .departements import router as departements_router
+from .parametres import router as parametres_router
 
 __all__ = [
     'auth_router',
@@ -23,4 +24,5 @@ __all__ = [
     'soumissions_router',
     'uploads_router',
     'departements_router',
+    'parametres_router',
 ]
