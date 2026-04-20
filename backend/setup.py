@@ -10,9 +10,43 @@ Usage :  python setup.py
 import asyncio
 import os
 import secrets
-import sys
 import uuid
 from pathlib import Path
+
+import subprocess
+import sys
+
+# ── Auto-installation des dépendances ────────────────────────
+REQUIREMENTS = ["asyncpg", "bcrypt", "python-dotenv"]
+
+def install_requirements():
+    print("📦 Vérification des dépendances Python...")
+    to_install = []
+    for pkg in REQUIREMENTS:
+        import importlib
+        # nom du module importable peut différer du nom pip
+        module_name = pkg.replace("-", "_").split("[")[0]
+        if importlib.util.find_spec(module_name) is None:
+            to_install.append(pkg)
+
+    if not to_install:
+        print("✅ Toutes les dépendances sont déjà installées.\n")
+        return
+
+    print(f"   Installation de : {', '.join(to_install)}")
+    try:
+        subprocess.check_call(
+            [sys.executable, "-m", "pip", "install", *to_install],
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+        print("✅ Dépendances installées avec succès.\n")
+    except subprocess.CalledProcessError:
+        print("❌ Échec de l'installation automatique. Installez manuellement :")
+        print(f"   pip install {' '.join(to_install)}")
+        sys.exit(1)
+
+install_requirements()
 
 # ── Vérifier les dépendances avant tout ──────────────────────
 MISSING = []
@@ -21,9 +55,9 @@ try:
 except ImportError:
     MISSING.append("asyncpg")
 try:
-    from passlib.context import CryptContext
+    import bcrypt as _bcrypt_lib
 except ImportError:
-    MISSING.append("passlib[bcrypt]")
+    MISSING.append("bcrypt")
 try:
     from dotenv import set_key, load_dotenv
 except ImportError:
@@ -34,10 +68,14 @@ if MISSING:
     print(f"   pip install {' '.join(MISSING)}")
     sys.exit(1)
 
-from passlib.context import CryptContext
-from dotenv import set_key, load_dotenv
+import bcrypt as _bcrypt_lib
 
-pwd_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
+def hash_password(password: str) -> str:
+    """Hash un mot de passe avec bcrypt."""
+    return _bcrypt_lib.hashpw(
+        password.encode("utf-8"),
+        _bcrypt_lib.gensalt()
+    ).decode("utf-8")
 
 # ─────────────────────────────────────────────────────────────
 ROOT_DIR = Path(__file__).parent
@@ -368,7 +406,7 @@ def collect_config() -> dict:
 
     section("🌐 CONFIGURATION CORS / APP")
     cfg["CORS_ORIGINS"] = ask(
-        "Origines CORS autorisées (séparées par virgule), l'ip de l'hote ou le site va rouler",
+        "Origines CORS autorisées (séparées par virgule)",
         e("CORS_ORIGINS", "http://localhost:5173,http://localhost:3000")
     )
     cfg["APP_URL"] = ask(
@@ -492,7 +530,7 @@ async def create_admin(cfg: dict, username: str, password: str):
         "SELECT id FROM users WHERE username = $1", username
     )
 
-    pw_hash = pwd_context.hash(password)
+    pw_hash = hash_password(password)
 
     if existing:
         reset = ask(
