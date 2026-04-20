@@ -97,3 +97,4 @@ backend/InvRob.log
 frontend/.env.production
 frontend/yarn.lock
 backend/InvRob.log
+frontend/.env.production
