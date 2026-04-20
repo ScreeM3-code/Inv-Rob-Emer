@@ -3,8 +3,46 @@
 2026-04-19 13:50:59,784 - asyncio - DEBUG - Using proactor: IocpProactor
 2026-04-19 13:50:59,940 - uvicorn.error - INFO - Started server process [33652]
 2026-04-19 13:50:59,940 - uvicorn.error - INFO - Waiting for application startup.
-2026-04-19 13:51:00,072 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL réussie
-2026-04-19 13:51:00,084 - Inventaire-Robot - INFO - \u2705 936 Pièce trouvés
-2026-04-19 13:51:00,094 - Inventaire-Robot - INFO - \u2705 Tables de paramètres et bons de commande prêtes
+2026-04-19 13:51:00,072 - Inventaire-Robot - INFO - \u2705 Connexion PostgreSQL rï¿½ussie
+2026-04-19 13:51:00,084 - Inventaire-Robot - INFO - \u2705 936 Piï¿½ce trouvï¿½s
+2026-04-19 13:51:00,094 - Inventaire-Robot - INFO - \u2705 Tables de paramï¿½tres et bons de commande prï¿½tes
 2026-04-19 13:51:00,095 - uvicorn.error - INFO - Application startup complete.
 2026-04-19 13:51:00,096 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
+2026-04-17 21:09:55,188 - Inventaire-Robot - WARNING - \u26a0\ufe0f Dossier 'build' introuvable. Lancez 'yarn build' d'abord.
+2026-04-17 21:09:55,188 - Inventaire-Robot - INFO - \U0001f680 Mode production
+2026-04-17 21:09:55,192 - asyncio - DEBUG - Using proactor: IocpProactor
+2026-04-17 21:09:55,218 - uvicorn.error - INFO - Started server process [25904]
+2026-04-17 21:09:55,218 - uvicorn.error - INFO - Waiting for application startup.
+2026-04-17 21:09:55,251 - Inventaire-Robot - ERROR - \u274c Erreur connexion PostgreSQL: password authentication failed for user "InvRobot"
+Traceback (most recent call last):
+  File "C:\Users\ScreeM\Documents\GitHub\Inv-Rob-Emer\backend\database.py", line 17, in lifespan
+    app.state.pool = await asyncpg.create_pool(
+                     ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\asyncpg\pool.py", line 439, in _async__init__
+    await self._initialize()
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\asyncpg\pool.py", line 466, in _initialize
+    await first_ch.connect()
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\asyncpg\pool.py", line 153, in connect
+    self._con = await self._pool._get_new_connection()
+                ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\asyncpg\pool.py", line 538, in _get_new_connection
+    con = await self._connect(
+          ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\asyncpg\connection.py", line 2443, in connect
+    return await connect_utils._connect(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\asyncpg\connect_utils.py", line 1218, in _connect
+    conn = await _connect_addr(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\asyncpg\connect_utils.py", line 1054, in _connect_addr
+    return await __connect_addr(params, True, *args)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\ScreeM\Document\GitHub\Inv-Rob-Emer\.venv\Lib\site-packages\asyncpg\connect_utils.py", line 1102, in __connect_addr
+    await connected
+asyncpg.exceptions.InvalidPasswordError: password authentication failed for user "InvRobot"
+2026-04-17 21:09:55,264 - uvicorn.error - INFO - Application startup complete.
+2026-04-17 21:09:55,265 - uvicorn.error - INFO - Uvicorn running on http://0.0.0.0:2549 (Press CTRL+C to quit)
+2026-04-17 21:09:57,778 - uvicorn.error - INFO - Shutting down
+2026-04-17 21:09:57,879 - uvicorn.error - INFO - Waiting for application shutdown.
+2026-04-17 21:09:57,879 - uvicorn.error - INFO - Application shutdown complete.
+2026-04-17 21:09:57,879 - uvicorn.error - INFO - Finished server process [25904]
